@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Backend API for the Evangadi Forum collaborative project",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"
