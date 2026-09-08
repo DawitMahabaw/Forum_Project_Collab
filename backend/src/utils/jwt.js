@@ -13,5 +13,13 @@ function createToken(user) {
     );
 }
 
+function verifyToken(token) {
+    try {
+        return jwt.verify(token, secret);
+    } catch (error) {
+        return null; // invalid or expired token
+    }
+}
 
-module.exports = { createToken };
+
+module.exports = { createToken, verifyToken };
