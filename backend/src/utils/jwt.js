@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 const secret = process.env.JWT_SECRET;
 
 // Create a token
-function createToken(user) {
+export function createToken(user) {
     return jwt.sign(
         {
             id: user.user_id,
@@ -13,7 +13,7 @@ function createToken(user) {
     );
 }
 
-function verifyToken(token) {
+export function verifyToken(token) {
     try {
         return jwt.verify(token, secret);
     } catch (error) {
@@ -21,5 +21,3 @@ function verifyToken(token) {
     }
 }
 
-
-module.exports = { createToken, verifyToken };
