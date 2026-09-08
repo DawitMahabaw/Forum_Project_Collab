@@ -1,113 +1,55 @@
-import { apiClient } from "../core/api.client.js";
+import axios from 'axios';
 
 /**
- * Registers a new user.
- * @param {Object} userData - User details for registration.
+ * Configured axios instance for API communication.
  */
-async function register(userData) {
-  try {
-    const response = await apiClient.post("/api/auth/register", userData);
-    return { user: response.data.user };
-  } catch (error) {
-    throw handleAuthError(error);
-  }
-}
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3777',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 /**
- * Logs in an existing user and stores their session in localStorage.
- * @param {Object} credentials - User login credentials.
+ * Request interceptor to attach the JWT token to headers.
  */
-async function login(credentials) {
-  try {
-    const response = await apiClient.post("/api/auth/login", credentials);
-    const { user, token } = response.data;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    return { user, token };
-  } catch (error) {
-    throw handleAuthError(error);
-  }
-}
-
-/**
- * Logs out the current user by clearing localStorage.
- */
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-}
-
-/**
- * Retrieves the stored JWT token from localStorage.
- */
-function getStoredToken() {
-  return localStorage.getItem("token");
-}
-
-/**
- * Retrieves the stored user object from localStorage.
- */
-function getStoredUser() {
-  const userJson = localStorage.getItem("user");
-  if (!userJson) return null;
-
-  try {
-    return JSON.parse(userJson);
-  } catch {
-    // If JSON parsing fails, clear invalid data
-    localStorage.removeItem("user");
-    return null;
-  }
-}
-
-/**
- * Checks if the user is currently authenticated based on local storage.
- */
-function isAuthenticated() {
-  return !!getStoredToken();
-}
-
-/**
- * Centralized error handler for auth service requests.
- */
-function handleAuthError(error) {
-  if (!error.response) {
-    if (error.code === "ECONNABORTED") {
-      return new Error("Request timed out. Please try again.");
+apiClient.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return new Error(
-      "Unable to connect to server. Please check your internet connection.",
-    );
-  }
-
-  const status = error.response.status;
-  const backendMessage =
-    error.response.data?.msg || error.response.data?.message;
-
-  switch (status) {
-    case 400:
-      return new Error(backendMessage || "Invalid input data.");
-    case 401:
-      return new Error(backendMessage || "Invalid email or password.");
-    case 500:
-      return new Error(
-        "Something went wrong on our end. Please try again later.",
-      );
-    default:
-      return new Error(backendMessage || "An unexpected error occurred.");
-  }
-}
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  },
+);
 
 /**
- * Service for handling auth-related requests.
+ * Response interceptor to handle global 401 unauthorized errors.
  */
-export const authService = {
-  register,
-  login,
-  logout,
-  getStoredToken,
-  getStoredUser,
-  isAuthenticated,
-};
+apiClient.interceptors.response.use(
+  response => {
+    return response;
+  },
+  error => {
+    // Skip global 401 redirect for auth endpoints so components can handle login/register errors
+    const isAuthEndpoint =
+      error.config?.url?.includes('/api/auth/login') ||
+      error.config?.url?.includes('/api/auth/register');
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      // Clear authentication data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      // Redirect to login page
+      window.location.href = '/auth';
+    }
+    return Promise.reject(error);
+  },
+);
+
+export { apiClient };
