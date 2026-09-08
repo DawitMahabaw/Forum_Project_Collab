@@ -72,3 +72,42 @@ function isAuthenticated() {
 /**
  * Centralized error handler for auth service requests.
  */
+function handleAuthError(error) {
+  if (!error.response) {
+    if (error.code === "ECONNABORTED") {
+      return new Error("Request timed out. Please try again.");
+    }
+    return new Error(
+      "Unable to connect to server. Please check your internet connection.",
+    );
+  }
+
+  const status = error.response.status;
+  const backendMessage =
+    error.response.data?.msg || error.response.data?.message;
+
+  switch (status) {
+    case 400:
+      return new Error(backendMessage || "Invalid input data.");
+    case 401:
+      return new Error(backendMessage || "Invalid email or password.");
+    case 500:
+      return new Error(
+        "Something went wrong on our end. Please try again later.",
+      );
+    default:
+      return new Error(backendMessage || "An unexpected error occurred.");
+  }
+}
+
+/**
+ * Service for handling auth-related requests.
+ */
+export const authService = {
+  register,
+  login,
+  logout,
+  getStoredToken,
+  getStoredUser,
+  isAuthenticated,
+};
