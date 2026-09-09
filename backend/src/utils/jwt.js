@@ -1,23 +1,23 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
+import env from "../config/env.js";
 
-const secret = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = "1d";
 
-// Create a token
-export function createToken(user) {
-    return jwt.sign(
+const generateToken = (userId) => {
+    const token = jwt.sign(
         {
-            id: user.user_id,
+            userId,
         },
-        secret,
-        { expiresIn: "1h" }
+        env.jwtSecret,
+        {
+            expiresIn: JWT_EXPIRES_IN,
+        },
     );
-}
+    return token;
+};
 
-export function verifyToken(token) {
-    try {
-        return jwt.verify(token, secret);
-    } catch (error) {
-        return null; // invalid or expired token
-    }
-}
+const verifyToken = (token) => {
+    return jwt.verify(token, env.jwtSecret);
+};
 
+export { generateToken, verifyToken };
