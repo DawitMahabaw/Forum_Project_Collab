@@ -1,49 +1,7 @@
-// Import the MySQL connection pool.
-//
-// The User model uses this pool to communicate with MySQL.
-// Notice that the model does NOT create its own database connection.
-// The connection is already managed by config/db.js.
 import pool from "../config/db.js";
 
-// Create the User model.
-//
-// We use an object because the model will contain multiple
-// operations related to users, such as:
-//
-// - creating a user
-// - finding a user by email
-// - finding a user by ID
-//
-// Keeping these operations together gives the "users" table
-// one clear place in our application.
 const User = {
-  // ---------------------------------------------------------
-  // CREATE USER
-  // ---------------------------------------------------------
-  //
-  // This method creates a new user in the database.
-  //
-  // The controller/service will eventually receive information like:
-  //
-  // firstName
-  // lastName
-  // email
-  // passwordHash
-  //
-  // Notice that this method receives passwordHash,
-  // NOT the user's original password.
-  //
-  // Password hashing will be handled elsewhere.
   async create({ firstName, lastName, email, passwordHash }) {
-    // Execute a parameterized SQL INSERT query.
-    //
-    // The question marks (?) are placeholders.
-    //
-    // We NEVER build SQL like:
-    //
-    // `INSERT INTO users VALUES ('${email}')`
-    //
-    // because that can create SQL injection vulnerabilities.
     const [result] = await pool.execute(
       `
       INSERT INTO users
