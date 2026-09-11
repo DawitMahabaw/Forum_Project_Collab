@@ -44,3 +44,20 @@ const saveToken = (token) => {
 const getToken = () => {
   return localStorage.getItem(TOKEN_KEY);
 };
+
+
+/*
+ * ------------------------------------------------------------
+ * REMOVE TOKEN
+ * ------------------------------------------------------------
+ *
+ * Removes the JWT from localStorage.
+ *
+ * This is used when the user logs out.
+ */
+const removeToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+};
+
+export { saveToken, getToken, removeToken };
+
