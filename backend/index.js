@@ -1,3 +1,5 @@
+import { initializeDatabase } from "./src/config/initDb.js";
+await initializeDatabase();
 // ============================================================
 // IMPORT DEPENDENCIES
 // ============================================================
@@ -7,6 +9,10 @@
 // Express is the web framework we are using to build our
 // backend API server.
 import express from "express";
+
+// Importing and initializing the  automatic database initialization for authentication schema
+import { initializeDatabase } from "./src/config/initDb.js";
+await initializeDatabase();
 
 // Import CORS.
 //

@@ -1,6 +1,9 @@
 import pool from "../config/db.js";
 
+// User model contains the database operations needed
+// by the authentication system.
 const User = {
+  // Create a new user in the users table.
   async create({ firstName, lastName, email, passwordHash }) {
     const [result] = await pool.execute(
       `
