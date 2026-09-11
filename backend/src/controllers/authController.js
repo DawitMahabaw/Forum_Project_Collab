@@ -1,34 +1,3 @@
-// ============================================================
-// AUTHENTICATION CONTROLLER
-// ============================================================
-//
-// This file handles HTTP requests related to authentication.
-//
-// Controller responsibilities:
-//
-// 1. Receive the HTTP request.
-// 2. Validate incoming data.
-// 3. Normalize user input.
-// 4. Call the authentication service.
-// 5. Send the HTTP response.
-// 6. Pass unexpected errors to the error middleware.
-//
-// The controller does NOT directly communicate with MySQL.
-//
-// Architecture:
-//
-// Route
-//   ↓
-// Controller
-//   ↓
-// Service
-//   ↓
-// Model
-//   ↓
-// MySQL
-//
-// ============================================================
-
 import {
   registerUser,
   loginUser,
