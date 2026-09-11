@@ -42,6 +42,20 @@ export const login = async (req, res, next) => {
       });
     }
 
+    // Verify credentials through the database service
+    const result = await loginUser({
+      email: normalizedEmail,
+      password,
+    });
+
+    // Return the successful login token and user info
+    return res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      user: result.user,
+      token: result.token,
+    });
+
     // Clean up email formatting
     const normalizedEmail = email.trim().toLowerCase();
   } catch (error) {
