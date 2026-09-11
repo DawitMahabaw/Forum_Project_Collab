@@ -1,21 +1,11 @@
 import axios from "axios";
 
-<<<<<<< HEAD
-import { getToken } from "../utils/auth.js";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-
-=======
 /**
  * Configured axios instance for API communication.
  */
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3777",
   timeout: 10000,
->>>>>>> df26f27a071aae84324a47b51ca253ace6c1b86f
   headers: {
     "Content-Type": "application/json",
   },
@@ -37,9 +27,6 @@ apiClient.interceptors.request.use(
   },
 );
 
-<<<<<<< HEAD
-export default api;
-=======
 /**
  * Response interceptor to handle global 401 unauthorized errors.
  */
@@ -66,4 +53,3 @@ apiClient.interceptors.response.use(
 );
 
 export { apiClient };
->>>>>>> df26f27a071aae84324a47b51ca253ace6c1b86f
