@@ -1,33 +1,25 @@
 {
-  "name": "evangadi-forum-backend",
+  "name": "backend",
   "version": "1.0.0",
-  "description": "Backend API for the Evangadi Forum collaborative project",
+  "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "evangadi",
-    "forum",
-    "node",
-    "express",
-    "mysql",
-    "ai",
-    "rag"
-  ],
+  "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.14.3"
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.24.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.14"
   }
 }
