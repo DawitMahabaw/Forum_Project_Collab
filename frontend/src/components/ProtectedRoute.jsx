@@ -14,6 +14,13 @@ const ProtectedRoute = () => {
       </main>
     );
   }
-};;
+  // Redirect to login if not authenticated
+  if (!user) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Render child routes if authenticated
+  return <Outlet />;
+};
 
 export default ProtectedRoute;
