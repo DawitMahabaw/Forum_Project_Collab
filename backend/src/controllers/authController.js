@@ -262,16 +262,11 @@ const login = async (req, res, next) => {
       });
     }
 
-    // --------------------------------------------------------
     // Normalize the email before authentication.
-    // --------------------------------------------------------
-
     const normalizedEmail = email.trim().toLowerCase();
+    
 
-    // --------------------------------------------------------
-    // Authenticate the user through the service.
-    // --------------------------------------------------------
-
+    // Verify credentials through the database service
     const result = await loginUser({
       email: normalizedEmail,
       password,
@@ -286,45 +281,6 @@ const login = async (req, res, next) => {
       message: "Login successful.",
       user: result.user,
       token: result.token,
-    });
-  } catch (error) {
-    // --------------------------------------------------------
-    // Send errors to centralized error middleware.
-    // --------------------------------------------------------
-
-    next(error);
-  }
-};
-
-// ============================================================
-// GET CURRENT USER CONTROLLER
-// ============================================================
-//
-// Handles:
-// GET /api/auth/me
-//
-// The authentication middleware verifies the JWT and places
-// the authenticated user's ID inside:
-//
-//     req.user.userId
-//
-// ============================================================
-
-const getMe = async (req, res, next) => {
-  try {
-    // --------------------------------------------------------
-    // Get the authenticated user's information.
-    // --------------------------------------------------------
-
-    const user = await getCurrentUser(req.user.userId);
-
-    // --------------------------------------------------------
-    // Return the authenticated user's information.
-    // --------------------------------------------------------
-
-    return res.status(200).json({
-      success: true,
-      user,
     });
   } catch (error) {
     // --------------------------------------------------------
