@@ -1,72 +1,42 @@
-import { apiClient } from "../core/api.client.js";
+import { apiClient } from "./api.js";
 
 /**
  * Registers a new user.
  * @param {Object} userData - User details for registration.
  */
-async function register(userData) {
+async function registerUser(userData) {
   try {
     const response = await apiClient.post("/api/auth/register", userData);
+    return { user: response.data.user, token: response.data.token };
+  } catch (error) {
+    throw handleAuthError(error);
+  }
+}
+
+/**
+ * Logs in an existing user.
+ * @param {Object} credentials - User login credentials.
+ */
+async function loginUser(credentials) {
+  try {
+    const response = await apiClient.post("/api/auth/login", credentials);
+    return { user: response.data.user, token: response.data.token };
+  } catch (error) {
+    throw handleAuthError(error);
+  }
+}
+
+/**
+ * Fetches the currently authenticated user's information
+ * using the token attached by the API client.
+ */
+async function getCurrentUser() {
+  try {
+    const response = await apiClient.get("/api/auth/me");
     return { user: response.data.user };
   } catch (error) {
     throw handleAuthError(error);
   }
-}
-
-/**
- * Logs in an existing user and stores their session in localStorage.
- * @param {Object} credentials - User login credentials.
- */
-async function login(credentials) {
-  try {
-    const response = await apiClient.post("/api/auth/login", credentials);
-    const { user, token } = response.data;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    return { user, token };
-  } catch (error) {
-    throw handleAuthError(error);
-  }
-}
-
-/**
- * Logs out the current user by clearing localStorage.
- */
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-}
-
-/**
- * Retrieves the stored JWT token from localStorage.
- */
-function getStoredToken() {
-  return localStorage.getItem("token");
-}
-
-/**
- * Retrieves the stored user object from localStorage.
- */
-function getStoredUser() {
-  const userJson = localStorage.getItem("user");
-  if (!userJson) return null;
-
-  try {
-    return JSON.parse(userJson);
-  } catch {
-    // If JSON parsing fails, clear invalid data
-    localStorage.removeItem("user");
-    return null;
-  }
-}
-
-/**
- * Checks if the user is currently authenticated based on local storage.
- */
-function isAuthenticated() {
-  return !!getStoredToken();
 }
 
 /**
@@ -100,21 +70,4 @@ function handleAuthError(error) {
   }
 }
 
-/**
- * Service for handling auth-related requests.
- */
-export const authService = {
-  register,
-  login,
-  logout,
-  getStoredToken,
-  getStoredUser,
-  isAuthenticated,
-};
-
-
-
-
-
-
-
+export { registerUser, loginUser, getCurrentUser };
