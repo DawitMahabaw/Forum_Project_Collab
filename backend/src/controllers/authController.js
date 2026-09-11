@@ -291,6 +291,30 @@ const login = async (req, res, next) => {
   }
 };
 
+
+
+
+const getMe = async (req, res, next) => {
+  try {
+    // --------------------------------------------------------
+    // Get the authenticated user's information.
+    // --------------------------------------------------------
+    const user = await getCurrentUser(req.user.userId);
+    // --------------------------------------------------------
+    // Return the authenticated user's information.
+    // --------------------------------------------------------
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    // --------------------------------------------------------
+    // Send errors to centralized error middleware.
+    // --------------------------------------------------------
+    next(error);
+  }
+};
+
 // ============================================================
 // EXPORT CONTROLLERS
 // ============================================================
