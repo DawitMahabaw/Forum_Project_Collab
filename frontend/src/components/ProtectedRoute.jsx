@@ -6,7 +6,14 @@ const ProtectedRoute = () => {
   const { user, isInitializing } = useAuth();
   const location = useLocation();
 
-  // Component logic will go here
-};
+  // Wait while checking existing session/JWT
+  if (isInitializing) {
+    return (
+      <main>
+        <p>Checking authentication...</p>
+      </main>
+    );
+  }
+};;
 
 export default ProtectedRoute;
