@@ -1,41 +1,26 @@
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
-import LandingPage from "../pages/LandingPage";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "../components/ProtectedRoute.jsx";
 
-function AuthPagePlaceholder() {
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "1rem",
-        fontFamily: "Arial, Helvetica, sans-serif",
-        background: "#0d0a24",
-        color: "#ffffff",
-      }}
-    >
-      <h1 style={{ margin: 0 }}>Authentication</h1>
-      <p style={{ margin: 0, color: "#c7c3e8" }}>
-        Sign in and registration arrive with the Auth page task (T-07).
-      </p>
-      <Link to="/" style={{ color: "#a5b4fc" }}>
-        Back to home
-      </Link>
-    </div>
-  );
-}
+import LandingPage from "../pages/Landing/LandingPage.jsx";
+import AuthPage from "../pages/Auth/AuthPage.jsx";
+import Dashboard from "../pages/Dashboard/Dashboard.jsx";
 
-function AppRoutes() {
+const AppRoutes = () => {
+  
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<AuthPagePlaceholder />} />
+
+        <Route path="/auth" element={<AuthPage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
-}
-
+};
 export default AppRoutes;
