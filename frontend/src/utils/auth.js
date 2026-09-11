@@ -30,3 +30,17 @@ const TOKEN_KEY = "evangadi_auth_token";
 const saveToken = (token) => {
   localStorage.setItem(TOKEN_KEY, token);
 };
+
+
+/*
+ * ------------------------------------------------------------
+ * GET TOKEN
+ * ------------------------------------------------------------
+ *
+ * Retrieves the JWT from localStorage.
+ *
+ * Returns null when no token exists.
+ */
+const getToken = () => {
+  return localStorage.getItem(TOKEN_KEY);
+};
