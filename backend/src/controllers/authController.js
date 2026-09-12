@@ -42,6 +42,10 @@ export const login = async (req, res, next) => {
       });
     }
 
+    // Normalize the email before authentication.
+    const normalizedEmail = email.trim().toLowerCase();
+    
+
     // Verify credentials through the database service
     const result = await loginUser({
       email: normalizedEmail,
@@ -55,9 +59,6 @@ export const login = async (req, res, next) => {
       user: result.user,
       token: result.token,
     });
-
-    // Clean up email formatting
-    const normalizedEmail = email.trim().toLowerCase();
   } catch (error) {
     next(error);
   }
