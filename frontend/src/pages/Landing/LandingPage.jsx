@@ -122,12 +122,6 @@ const LandingPage = () => {
         <section className={styles.hero}>
           <div className={styles.heroInner}>
             <div>
-              {/*
-               * Motion.* elements fade/slide in on first render —
-               * this is Framer Motion's simplest animation pattern:
-               * "initial" is the starting state, "animate" is where
-               * it ends up.
-               */}
               <Motion.p
                 className={styles.eyebrow}
                 initial={{ opacity: 0, y: 8 }}
@@ -188,11 +182,6 @@ const LandingPage = () => {
                 )}
               </Motion.div>
             </div>
-
-            {/*
-             * "At a glance" side panel — purely informational,
-             * summarizes what the forum offers.
-             */}
             <aside className={styles.heroPanel} aria-label="What you get">
               <p className={styles.heroPanelLabel}>At a glance</p>
               <ul className={styles.heroPanelList}>
@@ -286,11 +275,7 @@ const LandingPage = () => {
             </p>
           </div>
         </section>
-
-        {/* ------------------------------------------------------
-         * CAPABILITIES — only shown to logged-out visitors,
-         * since a logged-in user already knows the app.
-         * ------------------------------------------------------ */}
+        
         {!isAuthenticated && (
           <>
             <section className={styles.capabilities}>

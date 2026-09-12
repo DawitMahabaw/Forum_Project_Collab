@@ -14,92 +14,23 @@ import { useAuth } from "../../context/AuthContext.jsx";
 
 import styles from "./AuthPage.module.css";
 
-/*
- * ============================================================
- * AUTHENTICATION PAGE
- * ============================================================
- *
- * This page handles both:
- *
- * 1. User registration
- * 2. User login
- *
- * The actual API communication is NOT handled here.
- *
- * AuthPage
- *    ↓
- * AuthContext
- *    ↓
- * authService
- *    ↓
- * api.js
- *    ↓
- * Backend
- *
- * This keeps our architecture clean.
- *
- * NOTE ON AUTO-LOGIN:
- * Our backend's /api/auth/register endpoint returns a JWT along
- * with the new user (see authController.js). AuthContext's
- * register() stores that token immediately, exactly like login()
- * does. That means, in THIS project, a successful registration
- * already leaves the user authenticated — we don't need a
- * separate "please log in now" step.
- * ============================================================
- */
+
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, register } = useAuth();
-
-  /*
-   * Determines whether the page is showing the
-   * login form or the registration form.
-   */
   const [isRegistering, setIsRegistering] = useState(false);
-
-  /*
-   * Form data.
-   *
-   * We use one state object for both login and
-   * registration.
-   */
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
   });
-
-  /*
-   * Toggles the password field between masked ("password") and
-   * plain-text ("text") display. Purely a UI convenience — it
-   * does not change what gets sent to the backend.
-   */
   const [showPassword, setShowPassword] = useState(false);
-
-  /*
-   * Stores an error message that should be shown
-   * to the user.
-   */
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  /*
-   * Prevents the user from submitting the form
-   * multiple times while the request is running.
-   */
   const [isLoading, setIsLoading] = useState(false);
-
-  /*
-   * ----------------------------------------------------------
-   * HANDLE INPUT
-   * ----------------------------------------------------------
-   *
-   * Updates the appropriate property in formData whenever
-   * the user types into an input.
-   */
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -107,19 +38,9 @@ const AuthPage = () => {
       ...previousData,
       [name]: value,
     }));
-
-    /*
-     * Remove an old error as soon as the user starts
-     * correcting the form.
-     */
     setError("");
   };
-
-  /*
-   * ----------------------------------------------------------
-   * HANDLE FORM SUBMISSION
-   * ----------------------------------------------------------
-   */
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -159,9 +80,7 @@ const AuthPage = () => {
     setIsLoading(true);
 
     try {
-      /*
-       * Registration
-       */
+      
       if (isRegistering) {
         await register({
           firstName: formData.firstName,
@@ -180,64 +99,31 @@ const AuthPage = () => {
         setIsRegistering(false);
         return;
       } else {
-        /*
-         * Login
-         */
+        
         await login({
           email,
           password: formData.password,
         });
       }
 
-      /*
-       * Authentication succeeded.
-       *
-       * Both login() and register() already stored the JWT and
-       * the user in AuthContext by this point (see
-       * context/AuthContext.jsx), so we can send the user
-       * straight to the protected dashboard.
-       */
+      
       const destination = location.state?.from?.pathname || "/dashboard";
       navigate(destination, { replace: true });
-    } catch (requestError) {
-      /*
-       * The backend sends useful error messages such as:
-       *
-       * "Invalid email or password."
-       *
-       * or:
-       *
-       * "An account with this email already exists."
-       */
-      const message =
-        requestError.response?.data?.message ||
-        requestError.response?.data?.msg ||
-        (requestError.response
-          ? `Request failed (${requestError.response.status}). Please try again.`
-          : "Unable to connect to the server. Make sure the backend is running on port 4000.");
-
-      setError(message);
-    } finally {
-      /*
-       * Whether the request succeeds or fails,
-       * loading must stop.
-       */
+    }  catch (requestError) {
+  setError(
+    requestError instanceof Error
+      ? requestError.message
+      : "Unable to connect to the server. Please try again.",
+  );
+} finally {
       setIsLoading(false);
     }
   };
 
-  /*
-   * ----------------------------------------------------------
-   * SWITCH LOGIN / REGISTER
-   * ----------------------------------------------------------
-   */
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);
 
-    /*
-     * Clear previous form information and errors when
-     * switching between login and registration.
-     */
+
     setFormData({
       firstName: "",
       lastName: "",
@@ -252,9 +138,6 @@ const AuthPage = () => {
 
   return (
     <div className={styles.page}>
-      {/* ------------------------------------------------------
-       * LEFT: BRANDING PANEL
-       * ------------------------------------------------------ */}
       <section className={styles.infoPanel}>
         <div className={styles.infoContent}>
           <header className={styles.infoHeader}>
@@ -329,16 +212,9 @@ const AuthPage = () => {
         </div>
       </section>
 
-      {/* ------------------------------------------------------
-       * RIGHT: FORM CARD
-       * ------------------------------------------------------ */}
+    
       <section className={styles.formSection}>
         <div className={styles.formCard}>
-          {/*
-           * AnimatePresence + a changing "key" is Framer Motion's
-           * pattern for cross-fading between two different pieces
-           * of content — here, the Login form vs the Register form.
-           */}
           <AnimatePresence mode="wait">
             <Motion.div
               key={isRegistering ? "register" : "login"}
@@ -416,11 +292,6 @@ const AuthPage = () => {
                     <input
                       id="password"
                       name="password"
-                      /*
-                       * Toggling the "type" attribute between
-                       * "password" and "text" is what shows/hides
-                       * the characters.
-                       */
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={handleChange}
