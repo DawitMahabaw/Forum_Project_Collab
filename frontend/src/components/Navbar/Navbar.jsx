@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import styles from "./Navbar.module.css";
 
+// Navigation bar for authenticated application pages.
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
+  // Handles logout and redirects the user to authentication.
   const handleLogout = () => {
     logout();
     navigate("/auth", { replace: true });
