@@ -416,3 +416,19 @@ const deleteQuestion = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// EXPORT CONTROLLERS
+// ============================================================
+
+export {
+    createQuestion,
+    getQuestions,
+    getSingleQuestion,
+    searchQuestionsSemantic,
+    getSimilarQuestions,
+    generateQuestionDraftCoach,
+    assessAnswerAgainstQuestion,
+    updateQuestion,
+    deleteQuestion,
+};
