@@ -331,3 +331,23 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// UPDATE QUESTION VALIDATION
+// ============================================================
+
+const validateQuestionUpdate = ({ title, content }) => {
+    if (typeof title !== "string" || typeof content !== "string") {
+        return "Title and content are required.";
+    }
+
+    if (title.trim().length < 5 || title.trim().length > 255) {
+        return "Title must be between 5 and 255 characters.";
+    }
+
+    if (content.trim().length < 10) {
+        return "Content must contain at least 10 characters.";
+    }
+
+    return null;
+};
