@@ -209,3 +209,50 @@ const searchQuestionsSemantic = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// SIMILAR QUESTIONS CONTROLLER
+// ============================================================
+
+const getSimilarQuestions = async (req, res, next) => {
+    try {
+        const { questionHash } = req.params;
+
+        if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid question identifier.",
+            });
+        }
+
+        const { k: rawK, threshold: rawThreshold } = req.query;
+
+        const { value: k, error: kError } = parseKParam(rawK);
+
+        if (kError) {
+            return res.status(400).json({ success: false, message: kError });
+        }
+
+        const { value: threshold, error: thresholdError } =
+            parseThresholdParam(rawThreshold);
+
+        if (thresholdError) {
+            return res.status(400).json({ success: false, message: thresholdError });
+        }
+
+        const result = await getSimilarQuestionsService({
+            questionHash,
+            k,
+            threshold,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Similar questions fetched successfully",
+            data: result.data,
+            meta: result.meta,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
