@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+import Layout from "../components/Layout/Layout.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import AuthPage from "../pages/Auth/AuthPage.jsx";
 import Dashboard from "../pages/Dashboard/Dashboard.jsx";
@@ -13,7 +14,9 @@ const AppRoutes = () => {
         <Route path="/auth" element={<AuthPage />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
