@@ -94,3 +94,33 @@ const getQuestions = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// GET SINGLE QUESTION CONTROLLER
+// ============================================================
+
+const getSingleQuestion = async (req, res, next) => {
+    try {
+        const { questionHash } = req.params;
+
+        if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid question identifier.",
+            });
+        }
+
+        const { question, answers, answersMeta } =
+            await getSingleQuestionService(questionHash);
+
+        return res.status(200).json({
+            success: true,
+            message: "Question fetched successfully",
+            question,
+            answers,
+            answersMeta,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
