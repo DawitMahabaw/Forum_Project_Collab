@@ -124,3 +124,26 @@ const getSingleQuestion = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// SEMANTIC SEARCH VALIDATION
+// ============================================================
+
+const parseKParam = (rawK) => {
+    if (rawK === undefined) {
+        return { value: undefined, error: null };
+    }
+
+    if (
+        !Number.isInteger(parsed) ||
+        parsed < 1 ||
+        parsed > env.semanticSearch.maxK
+    ) {
+        return {
+            value: null,
+            error: `k must be an integer between 1 and ${env.semanticSearch.maxK}.`,
+        };
+    }
+
+    return { value: parsed, error: null };
+};
