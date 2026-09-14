@@ -256,3 +256,37 @@ const getSimilarQuestions = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// DRAFT COACH CONTROLLER
+// ============================================================
+
+const generateQuestionDraftCoach = async (req, res, next) => {
+    try {
+        const { title, content } = req.body;
+
+        const normalizedTitle = typeof title === "string" ? title.trim() : "";
+
+        const normalizedContent = typeof content === "string" ? content.trim() : "";
+
+        if (!normalizedTitle && !normalizedContent) {
+            return res.status(400).json({
+                success: false,
+                message: "Write a title or some details before requesting suggestions.",
+            });
+        }
+
+        const data = await generateQuestionDraftCoachService({
+            title: normalizedTitle,
+            content: normalizedContent,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Draft suggestions generated",
+            data,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
