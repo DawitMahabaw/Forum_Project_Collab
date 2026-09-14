@@ -290,3 +290,44 @@ const generateQuestionDraftCoach = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// ANSWER FIT CONTROLLER
+// ============================================================
+
+const assessAnswerAgainstQuestion = async (req, res, next) => {
+    try {
+        const { questionHash } = req.params;
+
+        const { answerText } = req.body;
+
+        if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid question identifier.",
+            });
+        }
+
+        if (typeof answerText !== "string" || answerText.trim().length < 20) {
+            return res.status(400).json({
+                success: false,
+                message: "answerText must contain at least 20 characters.",
+            });
+        }
+
+        const { question } = await getSingleQuestionService(questionHash);
+
+        const data = await assessAnswerAgainstQuestionService({
+            question,
+            answerText: answerText.trim(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Answer fit assessed",
+            data,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
