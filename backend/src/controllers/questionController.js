@@ -38,3 +38,33 @@ const validateCreateQuestionInput = ({ title, content }) => {
     return null;
 };
 
+// ============================================================
+// CREATE QUESTION CONTROLLER
+// ============================================================
+
+const createQuestion = async (req, res, next) => {
+    try {
+        const { title, content } = req.body;
+        const validationError = validateCreateQuestionInput({ title, content });
+        if (validationError) {
+            return res.status(400).json({
+                success: false,
+                message: validationError,
+            });
+        }
+
+        const question = await createQuestionWithVectorService({
+            userId: req.user.userId,
+            title: title.trim(),
+            content: content.trim(),
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Question posted successfully.",
+            data: question,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
