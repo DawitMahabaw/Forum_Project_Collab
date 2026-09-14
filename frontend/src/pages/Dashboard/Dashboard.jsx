@@ -1,4 +1,4 @@
-import { MessageCircle, FileText, HelpCircle } from "lucide-react";
+import { FileText, HelpCircle, MessageCircle } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 import styles from "./Dashboard.module.css";
@@ -23,7 +23,7 @@ const Dashboard = () => {
         </p>
       </header>
 
-      {/* Main dashboard shortcuts */}
+      {/* Main dashboard feature cards */}
       <section className={styles.featureGrid}>
         <article className={styles.featureCard}>
           <div className={styles.featureIcon}>
@@ -58,7 +58,7 @@ const Dashboard = () => {
         </article>
       </section>
 
-      {/* Dashboard statistics */}
+      {/* Statistics will be populated from the API later. */}
       <section className={styles.statsSection}>
         <p className={styles.sectionIntro}>
           Figures below describe the newest threads in this feed (up to 100 from
@@ -88,11 +88,12 @@ const Dashboard = () => {
         </div>
       </section>
 
-      {/* Discussion feed */}
+      {/* Questions will be rendered here from the API later. */}
       <section className={styles.feedSection}>
         <div className={styles.feedHeader}>
           <div>
             <h2>Discussion feed</h2>
+
             <p>Your threads use a slim left accent in this list.</p>
           </div>
 
@@ -102,67 +103,7 @@ const Dashboard = () => {
         </div>
 
         <div className={styles.questionList}>
-          {/* Temporary UI examples.
-              Real questions will come from questionService later. */}
-
-          <article className={styles.questionPreview}>
-            <div className={styles.questionAvatar}>U</div>
-
-            <div className={styles.questionContent}>
-              <span className={styles.questionCategory}>React Router</span>
-
-              <h3>
-                useParams() returns undefined after hard refresh on dynamic
-                route
-              </h3>
-
-              <p>
-                I have a route like /question/:questionHash and read the
-                parameter using useParams(). After a hard refresh, the
-                questionHash is undefined and my fetch call fails.
-              </p>
-
-              <span className={styles.questionMeta}>
-                4 replies · 3 weeks ago · You
-              </span>
-            </div>
-          </article>
-
-          <article className={styles.questionPreview}>
-            <div className={styles.questionAvatar}>N</div>
-
-            <div className={styles.questionContent}>
-              <h3>How to design a scalable QR code digital menu system?</h3>
-
-              <p>
-                What are the best practices for structuring the database and
-                keeping a QR-based digital menu fast and scalable?
-              </p>
-
-              <span className={styles.questionMeta}>
-                0 replies · 1 month ago · new user
-              </span>
-            </div>
-          </article>
-
-          <article className={styles.questionPreview}>
-            <div className={styles.questionAvatar}>N</div>
-
-            <div className={styles.questionContent}>
-              <h3>
-                How to design a scalable Role-Based Access Control system?
-              </h3>
-
-              <p>
-                I am trying to understand how to structure permissions and roles
-                for different types of users.
-              </p>
-
-              <span className={styles.questionMeta}>
-                0 replies · 1 month ago · new user
-              </span>
-            </div>
-          </article>
+          {/* QuestionCard components will be rendered here later. */}
         </div>
       </section>
     </section>
