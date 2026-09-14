@@ -164,3 +164,48 @@ const parseThresholdParam = (rawThreshold) => {
 
     return { value: parsed, error: null };
 };
+
+// ============================================================
+// SEMANTIC SEARCH CONTROLLER
+// ============================================================
+
+const searchQuestionsSemantic = async (req, res, next) => {
+    try {
+        const { query, k: rawK, threshold: rawThreshold } = req.query;
+
+        if (typeof query !== "string" || query.trim().length < 3) {
+            return res.status(400).json({
+                success: false,
+                message: "query must be at least 3 characters.",
+            });
+        }
+
+        const { value: k, error: kError } = parseKParam(rawK);
+
+        if (kError) {
+            return res.status(400).json({ success: false, message: kError });
+        }
+
+        const { value: threshold, error: thresholdError } =
+            parseThresholdParam(rawThreshold);
+
+        if (thresholdError) {
+            return res.status(400).json({ success: false, message: thresholdError });
+        }
+
+        const result = await searchQuestionsSemanticService({
+            query: query.trim(),
+            k,
+            threshold,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Semantic search completed successfully",
+            data: result.data,
+            meta: result.meta,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
