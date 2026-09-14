@@ -1,50 +1,133 @@
 .dashboard {
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+/* Welcome section */
+.welcome {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #f97316;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.welcome h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.welcome p {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Feature cards */
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   margin-bottom: 32px;
 }
 
-.header h1 {
-  margin: 0;
-  color: #0f172a;
-  font-size: 28px;
-}
-
-.header p {
-  margin: 6px 0 0;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.askButton {
-  padding: 10px 18px;
-  border: 0;
-  border-radius: 8px;
-  background: #f97316;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.askButton:hover {
-  background: #ea580c;
-}
-
-.questionsSection {
+.featureCard {
+  padding: 20px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
 }
 
-.sectionHeader {
+.featureIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 14px;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #f97316;
+}
+
+.featureCard h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.featureCard p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Statistics section */
+.statsSection {
+  margin-bottom: 32px;
+}
+
+.statsIntro {
+  margin-bottom: 14px;
+}
+
+.statsIntro h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.statsIntro p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.statCard {
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.statLabel {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.statValue {
+  display: block;
+  margin-top: 8px;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Discussion feed */
+.feedSection {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.feedHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -53,33 +136,60 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.sectionHeader h2 {
+.feedTitle h2 {
   margin: 0;
   color: #0f172a;
-  font-size: 17px;
+  font-size: 18px;
 }
 
-.sectionHeader span {
-  color: #94a3b8;
+.feedTitle p {
+  margin: 5px 0 0;
+  color: #64748b;
   font-size: 12px;
 }
 
+.feedButton {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: #f97316;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Question list is intentionally empty until API data is connected. */
 .questionList {
-  min-height: 180px;
+  min-height: 160px;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 600px) {
-  .header {
+  .welcome h1 {
+    font-size: 24px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedHeader {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .askButton {
+  .feedButton {
     width: 100%;
-  }
-
-  .sectionHeader {
-    align-items: flex-start;
-    flex-direction: column;
   }
 }
