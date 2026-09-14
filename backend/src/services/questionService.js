@@ -1,4 +1,5 @@
 import Question from "../models/Question.js";
+<<<<<<< HEAD
 import QuestionVector from "../models/QuestionVector.js";
 import { embedContent } from "../ai/gemini.js";
 
@@ -64,3 +65,25 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
 export {
     searchQuestionsSemanticService,
 };
+=======
+
+// GET /api/questions
+const getQuestionsService = async ({ search, onlyMine, userId }) => {
+  const questions = await Question.findMany({
+    search: search || null,
+    userId: onlyMine ? userId : null,
+  });
+
+  return {
+    questions,
+    meta: {
+      limit: 100,
+      total: questions.length,
+      sortBy: "newest",
+      sortOrder: "desc",
+    },
+  };
+};
+
+export { getQuestionsService };
+>>>>>>> bc1e00c (feat(service): add fetchQuestions service logic for T-10)
