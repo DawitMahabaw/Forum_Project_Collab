@@ -1,15 +1,33 @@
 .shell {
+  display: flex;
   min-height: 100vh;
   background: #f8fafc;
 }
 
+.content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
 .page {
-  min-height: 100vh;
+  flex: 1;
   padding: 24px 28px 36px;
 }
 
-@media (max-width: 920px) {
+@media (max-width: 900px) {
+  .shell {
+    flex-direction: column;
+  }
+
   .page {
-    padding: 16px 18px 28px;
+    padding: 18px 20px 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 16px;
   }
 }
