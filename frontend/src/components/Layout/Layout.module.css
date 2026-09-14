@@ -1,0 +1,15 @@
+.shell {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 24px 28px 36px;
+}
+
+@media (max-width: 920px) {
+  .page {
+    padding: 16px 18px 28px;
+  }
+}
