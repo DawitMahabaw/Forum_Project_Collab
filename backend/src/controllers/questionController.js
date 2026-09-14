@@ -351,3 +351,41 @@ const validateQuestionUpdate = ({ title, content }) => {
 
     return null;
 };
+
+// ============================================================
+// UPDATE QUESTION CONTROLLER
+// ============================================================
+
+const updateQuestion = async (req, res, next) => {
+    try {
+        const { questionHash } = req.params;
+
+        const validationError = validateQuestionUpdate(req.body);
+
+        if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid question identifier." });
+        }
+
+        if (validationError) {
+            return res.status(400).json({ success: false, message: validationError });
+        }
+
+        const question = await updateQuestionService({
+            questionHash,
+            userId: req.user.userId,
+
+            title: req.body.title.trim(),
+            content: req.body.content.trim(),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Question updated successfully.",
+            data: question,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
