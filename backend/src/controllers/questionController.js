@@ -389,3 +389,30 @@ const updateQuestion = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// DELETE QUESTION CONTROLLER
+// ===========================================================
+
+const deleteQuestion = async (req, res, next) => {
+    try {
+        const { questionHash } = req.params;
+
+        if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid question identifier." });
+        }
+
+        await deleteQuestionService({
+            questionHash,
+            userId: req.user.userId,
+        });
+
+        return res
+            .status(200)
+            .json({ success: true, message: "Question deleted successfully." });
+    } catch (error) {
+        next(error);
+    }
+};
