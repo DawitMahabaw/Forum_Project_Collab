@@ -147,3 +147,20 @@ const parseKParam = (rawK) => {
 
     return { value: parsed, error: null };
 };
+
+const parseThresholdParam = (rawThreshold) => {
+    if (rawThreshold === undefined) {
+        return { value: undefined, error: null };
+    }
+
+    const parsed = Number(rawThreshold);
+
+    if (Number.isNaN(parsed) || parsed < 0 || parsed > 1) {
+        return {
+            value: null,
+            error: "threshold must be a number between 0 and 1.",
+        };
+    }
+
+    return { value: parsed, error: null };
+};
