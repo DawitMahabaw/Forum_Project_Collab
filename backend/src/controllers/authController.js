@@ -4,34 +4,72 @@ import {
   getCurrentUser,
 } from "../services/authService.js";
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isPlainObject = (value) =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+const validateTextField = (value, fieldName) => {
+  if (value === undefined || value === null || value === "") {
+    return `${fieldName} is required.`;
+  }
+
+  if (typeof value !== "string") {
+    return `${fieldName} must be text.`;
+  }
+
+  if (!value.trim()) {
+    return `${fieldName} is required.`;
+  }
+
+  return null;
+};
+
+const validatePasswordField = (password) => {
+  if (password === undefined || password === null || password === "") {
+    return "Password is required.";
+  }
+
+  if (typeof password !== "string") {
+    return "Password must be text.";
+  }
+
+  return null;
+};
+
 // ============================================================
 // REGISTRATION INPUT VALIDATION
 // ============================================================
 
-const validateRegistrationInput = ({
-  firstName,
-  lastName,
-  email,
-  password,
-}) => {
+const validateRegistrationInput = (input) => {
+  if (!isPlainObject(input)) {
+    return "Request body must be a JSON object.";
+  }
+
+  const { firstName, lastName, email, password } = input;
+
   // ----------------------------------------------------------
   // Check required fields one by one.
   // ----------------------------------------------------------
 
-  if (!firstName || !firstName.trim()) {
-    return "First name is required.";
+  const firstNameError = validateTextField(firstName, "First name");
+  if (firstNameError) {
+    return firstNameError;
   }
 
-  if (!lastName || !lastName.trim()) {
-    return "Last name is required.";
+  const lastNameError = validateTextField(lastName, "Last name");
+  if (lastNameError) {
+    return lastNameError;
   }
 
-  if (!email || !email.trim()) {
-    return "Email is required.";
+  const emailError = validateTextField(email, "Email");
+  if (emailError) {
+    return emailError;
   }
 
-  if (!password) {
-    return "Password is required.";
+  const passwordError = validatePasswordField(password);
+  if (passwordError) {
+    return passwordError;
   }
 
   // ----------------------------------------------------------
@@ -54,8 +92,6 @@ const validateRegistrationInput = ({
   // Validate email format.
   // ----------------------------------------------------------
 
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   if (!emailPattern.test(email.trim())) {
     return "Please provide a valid email address.";
   }
@@ -75,28 +111,34 @@ const validateRegistrationInput = ({
 // LOGIN INPUT VALIDATION
 // ============================================================
 
-const validateLoginInput = ({ email, password }) => {
+const validateLoginInput = (input) => {
+  if (!isPlainObject(input)) {
+    return "Request body must be a JSON object.";
+  }
+
+  const { email, password } = input;
+
   // ----------------------------------------------------------
   // Check email first.
   // ----------------------------------------------------------
 
-  if (!email || !email.trim()) {
-    return "Email is required.";
+  const emailError = validateTextField(email, "Email");
+  if (emailError) {
+    return emailError;
   }
 
   // ----------------------------------------------------------
   // Check password separately.
   // ----------------------------------------------------------
 
-  if (!password) {
-    return "Password is required.";
+  const passwordError = validatePasswordField(password);
+  if (passwordError) {
+    return passwordError;
   }
 
   // ----------------------------------------------------------
   // Validate email format.
   // ----------------------------------------------------------
-
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!emailPattern.test(email.trim())) {
     return "Please provide a valid email address.";
@@ -120,18 +162,13 @@ const register = async (req, res, next) => {
     // Extract registration data from the request body.
     // --------------------------------------------------------
 
-    const { firstName, lastName, email, password } = req.body;
 
     // --------------------------------------------------------
     // Validate the incoming data.
     // --------------------------------------------------------
 
-    const validationError = validateRegistrationInput({
-      firstName,
-      lastName,
-      email,
-      password,
-    });
+
+    const validationError = validateRegistrationInput(req.body);
 
     if (validationError) {
       return res.status(400).json({
@@ -139,6 +176,8 @@ const register = async (req, res, next) => {
         message: validationError,
       });
     }
+
+    const { firstName, lastName, email, password } = req.body;
 
     // --------------------------------------------------------
     // Normalize user input before sending it to the service.
@@ -205,16 +244,12 @@ const login = async (req, res, next) => {
     // Extract login credentials.
     // --------------------------------------------------------
 
-    const { email, password } = req.body;
 
     // --------------------------------------------------------
     // Validate the credentials.
     // --------------------------------------------------------
 
-    const validationError = validateLoginInput({
-      email,
-      password,
-    });
+    const validationError = validateLoginInput(req.body);
 
     if (validationError) {
       return res.status(400).json({
@@ -222,6 +257,8 @@ const login = async (req, res, next) => {
         message: validationError,
       });
     }
+
+    const { email, password } = req.body;
 
     // Normalize the email before authentication.
     const normalizedEmail = email.trim().toLowerCase();
