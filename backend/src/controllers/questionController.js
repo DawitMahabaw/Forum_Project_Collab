@@ -87,10 +87,41 @@ const searchQuestionsSemantic = async (req, res, next) => {
         next(error);
     }
 };
+
+// ============================================================
+// ANSWER FIT CONTROLLER
+// ============================================================
+
+// Handles:
+// POST /api/questions/:questionHash/answer-fit
+//
+// Evaluates whether a proposed answer fits the selected question.
+const assessAnswerAgainstQuestion = async (req, res, next) => {
+    try {
+    // Read the question identifier from the URL.
+    const { questionHash } = req.params;
+
+    // Validate the question identifier.
+    if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+        return res.status(400).json({
+        success: false,
+        message: "Invalid question identifier.",
+    });
+    }
+
+
+    } catch (error) {
+    // Handles question-not-found and Gemini/provider errors.
+    next(error);
+    }
+};
+
+
 // ============================================================
 // EXPORT CONTROLLERS
 // ============================================================
 
 export {
     searchQuestionsSemantic,
+    assessAnswerAgainstQuestion,
 };
