@@ -46,6 +46,8 @@ const Sidebar = () => {
           <MessageSquare size={20} />
           <span>Evangadi Forum</span>
         </button>
+
+        <p className={styles.tagline}>Learn together. Ask with context.</p>
       </div>
 
       <nav className={styles.navigation} aria-label="Main navigation">
