@@ -1,13 +1,69 @@
 import { FileText, HelpCircle, MessageCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
+import QuestionCard from "../../components/QuestionCard/QuestionCard.jsx";
+import { getQuestions } from "../../services/questionService.js";
+
 import styles from "./Dashboard.module.css";
 
 // Main dashboard for browsing community questions.
 const Dashboard = () => {
   const { user } = useAuth();
 
+  const [questions, setQuestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const firstName = user?.firstName || "there";
+
+  // Load questions from the question service.
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        setIsLoading(true);
+        setError("");
+
+        const data = await getQuestions();
+
+        // Support either:
+        // 1. an array returned directly
+        // 2. an object such as { questions: [...] }
+        const questionList = Array.isArray(data) ? data : data?.questions || [];
+
+        setQuestions(questionList);
+      } catch (err) {
+        console.error("Failed to load questions:", err);
+
+        setError("Unable to load questions right now. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadQuestions();
+  }, []);
+
+  // Calculate dashboard statistics from the loaded questions.
+  const statistics = useMemo(() => {
+    const replies = questions.reduce(
+      (total, question) => total + (question.answerCount || 0),
+      0,
+    );
+
+    const unanswered = questions.filter(
+      (question) => !question.answerCount,
+    ).length;
+
+    const yours = questions.filter((question) => question.isOwner).length;
+
+    return {
+      questions: questions.length,
+      replies,
+      unanswered,
+      yours,
+    };
+  }, [questions]);
 
   return (
     <section className={styles.dashboard}>
@@ -69,22 +125,34 @@ const Dashboard = () => {
         <div className={styles.statsGrid}>
           <article className={styles.statCard}>
             <span className={styles.statLabel}>Questions</span>
-            <strong className={styles.statValue}>—</strong>
+
+            <strong className={styles.statValue}>
+              {isLoading ? "—" : statistics.questions}
+            </strong>
           </article>
 
           <article className={styles.statCard}>
             <span className={styles.statLabel}>Replies</span>
-            <strong className={styles.statValue}>—</strong>
+
+            <strong className={styles.statValue}>
+              {isLoading ? "—" : statistics.replies}
+            </strong>
           </article>
 
           <article className={styles.statCard}>
             <span className={styles.statLabel}>Unanswered</span>
-            <strong className={styles.statValue}>—</strong>
+
+            <strong className={styles.statValue}>
+              {isLoading ? "—" : statistics.unanswered}
+            </strong>
           </article>
 
           <article className={styles.statCard}>
             <span className={styles.statLabel}>Yours</span>
-            <strong className={styles.statValue}>—</strong>
+
+            <strong className={styles.statValue}>
+              {isLoading ? "—" : statistics.yours}
+            </strong>
           </article>
         </div>
       </section>
@@ -103,9 +171,35 @@ const Dashboard = () => {
           </button>
         </div>
 
-        <div className={styles.questionList}>
-          {/* QuestionCard components will be rendered here when API data is connected. */}
-        </div>
+        {/* Loading state */}
+        {isLoading && (
+          <div className={styles.state}>
+            <p>Loading questions...</p>
+          </div>
+        )}
+
+        {/* Error state */}
+        {!isLoading && error && (
+          <div className={styles.state}>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && !error && questions.length === 0 && (
+          <div className={styles.state}>
+            <p>No questions have been posted yet.</p>
+          </div>
+        )}
+
+        {/* Question list */}
+        {!isLoading && !error && questions.length > 0 && (
+          <div className={styles.questionList}>
+            {questions.map((question) => (
+              <QuestionCard key={question.questionId} question={question} />
+            ))}
+          </div>
+        )}
       </section>
     </section>
   );
