@@ -4,6 +4,9 @@ import {
 } from "../services/questionService.js";
 import env from "../config/env.js";
 
+import {  assessAnswerAgainstQuestionService,
+} from "../services/aiService.js";
+
 // ============================================================
 // SEMANTIC SEARCH VALIDATION
 // ============================================================
@@ -170,13 +173,14 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
     }
 };
 
+//! ---------------NEED TO BE CHECKED-------------
 
-const assessAnswerAgainstQuestion = async (req, res) => {
-    return res.status(501).json({
-        success: false,
-        message: "Answer fitness evaluation is not implemented yet.",
-    });
-};
+// const assessAnswerAgainstQuestion = async (req, res) => {
+//     return res.status(501).json({
+//         success: false,
+//         message: "Answer fitness evaluation is not implemented yet.",
+//     });
+// };
 
 // ============================================================
 // EXPORT CONTROLLERS
