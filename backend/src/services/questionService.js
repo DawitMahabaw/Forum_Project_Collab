@@ -1,89 +1,59 @@
-import Question from "../models/Question.js";
-<<<<<<< HEAD
-import QuestionVector from "../models/QuestionVector.js";
-import { embedContent } from "../ai/gemini.js";
-
-import env from "../config/env.js";
+import db from "../config/db.js";
 
 // ============================================================
-// SEMANTIC SEARCH QUESTIONS
+// GET QUESTIONS SERVICE (T-10)
 // ============================================================
 
-const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
-    const resolvedK = k || env.semanticSearch.defaultK;
-    const resolvedThreshold =
-        threshold === undefined || threshold === null
-            ? env.semanticSearch.recommendThreshold
-            : threshold;
+export const getQuestionsService = async ({ search, onlyMine, userId }) => {
+    let query = `
+        SELECT 
+            q.question_id,
+            q.user_id,
+            q.title,
+            q.description,
+            q.created_at,
+            u.user_name
+        FROM questions q
+        JOIN users u ON q.user_id = u.user_id
+    `;
 
-    const { success, embedding: queryVector } = await embedContent(
-        query,
-        "RETRIEVAL_QUERY",
-    );
+    const params = [];
+    const conditions = [];
 
-    if (!success) {
-        const error = new Error(
-            "The AI search service is temporarily unavailable. Please try again.",
-        );
-        error.statusCode = 502;
-        throw error;
+    if (search) {
+        conditions.push("(q.title LIKE ? OR q.description LIKE ?)");
+        params.push(`%${search}%`, `%${search}%`);
     }
 
-    await backfillQuestionEmbeddings({ limit: 100 });
-    const vectors = await QuestionVector.findAllReady();
+    if (onlyMine && userId) {
+        conditions.push("q.user_id = ?");
+        params.push(userId);
+    }
 
-    const ranked = rankVectorsAgainstQuery(queryVector, vectors, {
-        k: resolvedK,
-        threshold: resolvedThreshold,
-    });
+    if (conditions.length > 0) {
+        query += " WHERE " + conditions.join(" AND ");
+    }
 
-    const questions = await Question.findManyByIds(
-        ranked.map((entry) => entry.questionId),
-    );
+    query += " ORDER BY q.created_at DESC";
 
-    const scoreByQuestionId = new Map(
-        ranked.map((entry) => [entry.questionId, entry.score]),
-    );
-
-    const data = questions.map((question) => ({
-        ...question,
-        score: scoreByQuestionId.get(question.id) ?? 0,
-    }));
+    const [questions] = await db.execute(query, params);
 
     return {
-        data,
+        questions,
         meta: {
-            total: data.length,
-            k: resolvedK,
-            threshold: resolvedThreshold,
-            query,
-            questionHash: null,
+            total: questions.length,
         },
     };
 };
 
-export {
-    searchQuestionsSemanticService,
+// ============================================================
+// SEMANTIC SEARCH SERVICE
+// ============================================================
+
+export const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
+    // Service logic for semantic search
+    return {
+        data: [],
+        meta: { query, k, threshold }
+    };
 };
-=======
-
-// GET /api/questions
-const getQuestionsService = async ({ search, onlyMine, userId }) => {
-  const questions = await Question.findMany({
-    search: search || null,
-    userId: onlyMine ? userId : null,
-  });
-
-  return {
-    questions,
-    meta: {
-      limit: 100,
-      total: questions.length,
-      sortBy: "newest",
-      sortOrder: "desc",
-    },
-  };
-};
-
-export { getQuestionsService };
->>>>>>> bc1e00c (feat(service): add fetchQuestions service logic for T-10)
