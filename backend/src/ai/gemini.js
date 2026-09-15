@@ -89,6 +89,7 @@ const generateContent = async (prompt) => {
     if (text) {
       return text;
     }
+    console.error(`Gemini generateContent returned no text for ${model}.`);
   }
 
   // Return a service error when all Gemini models fail.
@@ -97,4 +98,6 @@ const generateContent = async (prompt) => {
   );
   error.statusCode = 503;
   throw error;
-};;
+};
+
+export { generateContent };
