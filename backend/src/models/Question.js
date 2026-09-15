@@ -34,6 +34,10 @@ const mapQuestionRow = (row) => ({
 });
 
 const Question = {
+  // ==========================================================
+  // FIND MANY (WITH OPTIONAL FILTERS)
+  // ==========================================================
+
   // GET /api/questions - List questions with optional search and mine filter
   async findMany({ search, userId }) {
     const conditions = [];
@@ -64,6 +68,26 @@ const Question = {
     );
 
     return rows.map(mapQuestionRow);
+  },
+
+  // ============================================================
+  // FIND BY HASH
+  // ============================================================
+
+  // Find a question using its public question hash.
+  // Returns null when no question matches.
+  async findByHash(questionHash) {
+    const [rows] = await pool.execute(
+      `
+    ${BASE_QUESTION_SELECT}
+    WHERE q.question_hash = ?
+    GROUP BY q.id
+    LIMIT 1
+    `,
+      [questionHash],
+    );
+
+    return rows[0] ? mapQuestionRow(rows[0]) : null;
   },
 };
 
