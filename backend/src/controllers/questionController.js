@@ -101,6 +101,9 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
     // Read the question identifier from the URL.
     const { questionHash } = req.params;
 
+    // Read the proposed answer from the request body.
+    const { answerText } = req.body;
+
     // Validate the question identifier.
     if (!QUESTION_HASH_PATTERN.test(questionHash)) {
         return res.status(400).json({
@@ -108,7 +111,13 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
         message: "Invalid question identifier.",
     });
     }
-
+    // Validate that an answer was provided.
+    if (typeof answerText !== "string" || answerText.trim().length < 20) {
+        return res.status(400).json({
+        success: false,
+        message: "answerText must contain at least 20 characters.",
+        });
+    }
 
     } catch (error) {
     // Handles question-not-found and Gemini/provider errors.
