@@ -38,6 +38,16 @@ const getSingleQuestionService = async (questionHash) => {
     error.statusCode = 404;
     throw error;
     }
+    const answers = await Answer.findManyByQuestionId(question.id);
+
+    return {
+        question,
+        answers,
+        answersMeta: {
+        limit: 100,
+        total: answers.length,
+        },
+    };
 
 
 };;
