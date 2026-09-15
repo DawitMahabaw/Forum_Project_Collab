@@ -40,3 +40,4 @@ const mapQuestionRow = (row) => ({
         lastName: row.author_last_name,
     },
 });
+
