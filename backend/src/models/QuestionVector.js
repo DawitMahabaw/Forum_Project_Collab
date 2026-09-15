@@ -1,1 +1,7 @@
-// Question vector model
+const QuestionVector = {
+  async findAllReady() {
+    return [];
+  },
+};
+
+export default QuestionVector;

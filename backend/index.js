@@ -1,5 +1,5 @@
 import express from "express";
-
+import questionRoutes from "./src/routes/questionRoutes.js";
 // Importing and initializing the  automatic database initialization for authentication schema
 import { initializeDatabase } from "./src/config/initDb.js";
 await initializeDatabase();
@@ -27,6 +27,8 @@ app.get("/", (req, res) => {
     message: "AI Powered Evangadi Forum API is running.",
   });
 });
+
+app.use("/api/questions", questionRoutes);
 
 
 app.use("/api/auth", authRoutes);
