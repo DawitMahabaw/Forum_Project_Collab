@@ -1,15 +1,23 @@
 import { FileText, HelpCircle, MessageCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 import QuestionCard from "../../components/QuestionCard/QuestionCard.jsx";
-import { getQuestions } from "../../services/questionService.js";
+import {
+  getQuestions,
+  searchQuestions,
+} from "../../services/questionService.js";
 
 import styles from "./Dashboard.module.css";
 
-// Main dashboard for browsing community questions.
 const Dashboard = () => {
   const { user } = useAuth();
+
+  // Read the search term from the URL.
+  // Example: /dashboard?search=react
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("search")?.trim() || "";
 
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,18 +25,24 @@ const Dashboard = () => {
 
   const firstName = user?.firstName || "there";
 
-  // Load questions from the question service.
+  // Load questions whenever the search term changes.
   useEffect(() => {
     const loadQuestions = async () => {
       try {
         setIsLoading(true);
         setError("");
 
-        const data = await getQuestions();
+        // If there is a search term, use the search API.
+        // Otherwise, load the normal question feed.
+        const data = searchTerm
+          ? await searchQuestions(searchTerm)
+          : await getQuestions();
 
-        // Support either:
-        // 1. an array returned directly
-        // 2. an object such as { questions: [...] }
+        // Support both:
+        // [question1, question2]
+        //
+        // and:
+        // { questions: [question1, question2] }
         const questionList = Array.isArray(data) ? data : data?.questions || [];
 
         setQuestions(questionList);
@@ -42,7 +56,7 @@ const Dashboard = () => {
     };
 
     loadQuestions();
-  }, []);
+  }, [searchTerm]);
 
   // Calculate dashboard statistics from the loaded questions.
   const statistics = useMemo(() => {
@@ -79,7 +93,7 @@ const Dashboard = () => {
         </p>
       </header>
 
-      {/* Main dashboard feature cards */}
+      {/* Main feature cards */}
       <section className={styles.featureGrid}>
         <article className={styles.featureCard}>
           <div className={styles.featureIcon}>
@@ -114,7 +128,7 @@ const Dashboard = () => {
         </article>
       </section>
 
-      {/* Statistics section */}
+      {/* Forum statistics */}
       <section className={styles.statsSection}>
         <div className={styles.statsIntro}>
           <h2>Forum activity</h2>
@@ -188,11 +202,15 @@ const Dashboard = () => {
         {/* Empty state */}
         {!isLoading && !error && questions.length === 0 && (
           <div className={styles.state}>
-            <p>No questions have been posted yet.</p>
+            <p>
+              {searchTerm
+                ? `No questions found for "${searchTerm}".`
+                : "No questions have been posted yet."}
+            </p>
           </div>
         )}
 
-        {/* Question list */}
+        {/* Question results */}
         {!isLoading && !error && questions.length > 0 && (
           <div className={styles.questionList}>
             {questions.map((question) => (
