@@ -47,20 +47,17 @@ const AuthPage = () => {
     setError("");
     setSuccess("");
 
-    const email = formData.email.trim().toLowerCase();
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailPattern.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    if (!formData.password.trim()) {
-      setError("Password is required.");
-      return;
-    }
-
     if (isRegistering) {
+      if (!formData.firstName.trim()) {
+        setError("First name is required.");
+        return;
+      }
+
+      if (!formData.lastName.trim()) {
+        setError("Last name is required.");
+        return;
+      }
+
       if (formData.firstName.trim().length < 2) {
         setError("First name must contain at least 2 characters.");
         return;
@@ -70,7 +67,22 @@ const AuthPage = () => {
         setError("Last name must contain at least 2 characters.");
         return;
       }
+    }
 
+    const email = formData.email.trim().toLowerCase();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!formData.password) {
+      setError("Password is required.");
+      return;
+    }
+
+    if (isRegistering) {
       if (formData.password.length < 8) {
         setError("Password must contain at least 8 characters.");
         return;

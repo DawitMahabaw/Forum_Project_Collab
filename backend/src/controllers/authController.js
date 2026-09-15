@@ -102,14 +102,6 @@ const validateLoginInput = ({ email, password }) => {
     return "Please provide a valid email address.";
   }
 
-  // ----------------------------------------------------------
-  // Validate password length.
-  // ----------------------------------------------------------
-
-  if (password.length < 8) {
-    return "Password must contain at least 8 characters.";
-  }
-
   return null;
 };
 
