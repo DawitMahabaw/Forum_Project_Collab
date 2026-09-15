@@ -118,6 +118,22 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
         message: "answerText must contain at least 20 characters.",
         });
     }
+    
+    // This also throws a 404 error when the question does not exist.
+    const { question } = await getSingleQuestionService(questionHash);
+
+    // Evaluate the proposed answer against the question context.
+    const data = await assessAnswerAgainstQuestionService({
+        question,
+        answerText: answerText.trim(),
+    });
+
+    // Return the AI-generated evaluation.
+    return res.status(200).json({
+        success: true,
+        message: "Answer fit assessed",
+        data,
+    });
 
     } catch (error) {
     // Handles question-not-found and Gemini/provider errors.
