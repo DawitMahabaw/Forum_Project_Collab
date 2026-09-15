@@ -42,3 +42,8 @@ const getAnswerFit = async (questionHash, answerText) => {
 
   return response.data.data;
 };
+
+// ============================================================
+// EXPORT
+// ============================================================
+export { getAnswerFit };
