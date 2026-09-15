@@ -10,7 +10,7 @@ const router = express.Router();
 router.get("/search", authenticate, searchQuestionsSemantic);
 
 
-// POST /api/questions/:questionHash/answer-fit
+// Authentication is required before evaluating an answer.
 router.post(
   "/:questionHash/answer-fit",
   authenticate,
