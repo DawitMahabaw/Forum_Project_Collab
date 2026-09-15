@@ -24,3 +24,27 @@ const magnitude = (vector) => {
 
     return Math.sqrt(sumOfSquares);
 };
+
+// ------------------------------------------------------------
+// COSINE SIMILARITY
+// ------------------------------------------------------------
+const cosineSimilarity = (vectorA, vectorB) => {
+    if (
+        !Array.isArray(vectorA) ||
+        !Array.isArray(vectorB) ||
+        vectorA.length === 0 ||
+        vectorB.length === 0 ||
+        vectorA.length !== vectorB.length
+    ) {
+        return 0;
+    }
+
+    const magnitudeA = magnitude(vectorA);
+    const magnitudeB = magnitude(vectorB);
+
+    if (magnitudeA === 0 || magnitudeB === 0) {
+        return 0;
+    }
+
+    return dotProduct(vectorA, vectorB) / (magnitudeA * magnitudeB);
+};
