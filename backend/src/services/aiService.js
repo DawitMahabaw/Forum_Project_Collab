@@ -48,7 +48,7 @@ Rules:
 
   // Parse the structured AI response.
   const parsed = parseJsonResponse(rawText);
-  
+
   // Accept only supported evaluation levels.
   const allowedLevels = ["strong", "partial", "weak"];
   const level = allowedLevels.includes(parsed.level) ? parsed.level : "partial";
@@ -59,4 +59,12 @@ Rules:
       : "The AI could not generate detailed feedback for this answer.";
 
   return { level, note };
-};;;
+};
+
+// ============================================================
+// EXPORT
+// ============================================================
+
+export {
+  assessAnswerAgainstQuestionService,
+};
