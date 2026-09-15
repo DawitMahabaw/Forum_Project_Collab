@@ -1,8 +1,8 @@
-import api from "./api.js";
+import { apiClient } from "./api.js";
 
 // Get all questions for the Dashboard.
 export const getQuestions = async (params = {}) => {
-  const response = await api.get("/questions", {
+  const response = await apiClient.get("/questions", {
     params,
   });
 
@@ -11,7 +11,7 @@ export const getQuestions = async (params = {}) => {
 
 // Search questions using the backend question endpoint.
 export const searchQuestions = async (searchTerm) => {
-  const response = await api.get("/questions", {
+  const response = await apiClient.get("/questions", {
     params: {
       search: searchTerm,
     },
@@ -22,7 +22,7 @@ export const searchQuestions = async (searchTerm) => {
 
 // Get one question by its ID.
 export const getQuestionById = async (questionId) => {
-  const response = await api.get(`/questions/${questionId}`);
+  const response = await apiClient.get(`/questions/${questionId}`);
 
   return response.data;
 };
