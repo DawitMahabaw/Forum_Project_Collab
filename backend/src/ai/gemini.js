@@ -73,5 +73,23 @@ const generateContent = async (prompt) => {
       },
     });
 
+    // Try the next model when Gemini returns an error.
+    if (!response.ok) {
+      continue;
+    }
+
+    const data = parseJson(response.body, model, "generateContent");
+
+    // Extract generated text from Gemini's response.
+    const text = data?.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim();
+
+    if (text) {
+      return text;
+    }
   }
+
+  
 };
