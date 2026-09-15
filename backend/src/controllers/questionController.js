@@ -120,8 +120,8 @@ const searchQuestionsSemantic = async (req, res, next) => {
 // ============================================================
 // EXPORT CONTROLLERS
 // ============================================================
-
 export {
     getQuestions,
     searchQuestionsSemantic,
+    assessAnswerAgainstQuestion,
 };
