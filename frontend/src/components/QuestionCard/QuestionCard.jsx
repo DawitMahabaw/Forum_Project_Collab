@@ -1,36 +1,51 @@
 import { MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import styles from "./QuestionCard.module.css";
 
-// Displays one question in the discussion feed.
+// Reusable card for displaying one forum question.
 const QuestionCard = ({ question }) => {
-  const { title, description, replies, createdAt, authorName, isMine } =
-    question;
+  const navigate = useNavigate();
+
+  // Navigate to the question details page.
+  const handleClick = () => {
+    navigate(`/questions/${question.questionId}`);
+  };
+
+  // Create initials for the question author's avatar.
+  const getInitials = () => {
+    const first = question.firstName?.[0] || "";
+    const last = question.lastName?.[0] || "";
+
+    return `${first}${last}`.toUpperCase() || "U";
+  };
 
   return (
-    <article className={`${styles.card} ${isMine ? styles.mine : ""}`}>
-      <div className={styles.avatar} aria-hidden="true">
-        {authorName?.charAt(0)?.toUpperCase() || "U"}
-      </div>
+    <article className={styles.card} onClick={handleClick}>
+      <div className={styles.avatar}>{getInitials()}</div>
 
       <div className={styles.content}>
-        <h3 className={styles.title}>{title}</h3>
+        <h3 className={styles.title}>{question.title}</h3>
 
-        <p className={styles.description}>{description}</p>
+        <p className={styles.excerpt}>{question.description}</p>
 
         <div className={styles.meta}>
-          <span className={styles.replies}>
-            <MessageCircle size={14} aria-hidden="true" />
-            {replies ?? 0} replies
+          <span>
+            {question.firstName} {question.lastName}
           </span>
 
-          <span>{createdAt}</span>
+          <span>•</span>
 
-          <span>{authorName}</span>
+          <span>{question.createdAt}</span>
 
-          {isMine && <span className={styles.yours}>YOURS</span>}
+          <span className={styles.replies}>
+            <MessageCircle size={14} />
+            {question.answerCount || 0} replies
+          </span>
         </div>
       </div>
+
+      {question.isOwner && <span className={styles.yours}>YOURS</span>}
     </article>
   );
 };
