@@ -91,5 +91,10 @@ const generateContent = async (prompt) => {
     }
   }
 
-  
-};
+  // Return a service error when all Gemini models fail.
+  const error = new Error(
+    "The AI service is busy right now. Please try again in a moment.",
+  );
+  error.statusCode = 503;
+  throw error;
+};;
