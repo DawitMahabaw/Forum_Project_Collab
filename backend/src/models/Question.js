@@ -21,3 +21,22 @@ const BASE_QUESTION_SELECT = `
     INNER JOIN users u ON u.user_id = q.user_id
     LEFT JOIN answers a ON a.question_id = q.id
 `;
+
+// ------------------------------------------------------------
+// MAP A RAW DATABASE ROW TO OUR API SHAPE
+// ------------------------------------------------------------
+
+const mapQuestionRow = (row) => ({
+    id: row.id,
+    questionHash: row.question_hash,
+    title: row.title,
+    content: row.content,
+    answerCount: Number(row.answer_count) || 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    author: {
+        id: row.author_id,
+        firstName: row.author_first_name,
+        lastName: row.author_last_name,
+    },
+});
