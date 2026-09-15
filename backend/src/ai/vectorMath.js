@@ -11,3 +11,16 @@ const dotProduct = (vectorA, vectorB) => {
 
     return sum;
 };
+
+// ------------------------------------------------------------
+// MAGNITUDE (LENGTH) OF A VECTOR
+// ------------------------------------------------------------
+const magnitude = (vector) => {
+    let sumOfSquares = 0;
+
+    for (let i = 0; i < vector.length; i += 1) {
+        sumOfSquares += vector[i] * vector[i];
+    }
+
+    return Math.sqrt(sumOfSquares);
+};
