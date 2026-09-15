@@ -45,3 +45,12 @@ export async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
     return { success: false, error, embedding: null };
   }
 }
+
+// =============================================================
+//                   GENERATE CONTENT
+// =============================================================
+
+// Generate text using the configured Gemini model.
+const generateContent = async (prompt) => {
+
+};
