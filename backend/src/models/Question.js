@@ -35,6 +35,26 @@ const mapQuestionRow = (row) => ({
   },
 });
 
+const Question = {
+  // ---------------------------------------------------------
+  // FIND BY PUBLIC HASH IDENTIFIER
+  // ---------------------------------------------------------
+  // TASK REQUIREMENT: Accepts the question public hash to retrieve requested question.
+  // Returns mapped object details if found, or returns null if question does not exist.
+  async findByHash(questionHash) {
+    const [rows] = await pool.execute(
+      `
+      ${BASE_QUESTION_SELECT}
+      WHERE q.question_hash = ?
+      LIMIT 1
+      `,
+      [questionHash],
+    );
+
+    // Safely reads the primary array item or falls back to null for 404 validation
+    return rows[0] ? mapQuestionRow(rows[0]) : null;
+  },
+};
 
 
 export default Question;
