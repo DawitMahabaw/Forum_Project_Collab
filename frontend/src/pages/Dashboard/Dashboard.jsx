@@ -13,7 +13,7 @@ const Dashboard = () => {
     <section className={styles.dashboard}>
       {/* Welcome section */}
       <header className={styles.welcome}>
-        <span className={styles.eyebrow}>FORUM HOME</span>
+        <p className={styles.eyebrow}>FORUM HOME</p>
 
         <h1>Good to see you, {firstName}.</h1>
 
@@ -58,52 +58,53 @@ const Dashboard = () => {
         </article>
       </section>
 
-      {/* Statistics will be populated from the API later. */}
+      {/* Statistics section */}
       <section className={styles.statsSection}>
-        <p className={styles.sectionIntro}>
-          Figures below describe the newest threads in this feed (up to 100 from
-          the API).
-        </p>
+        <div className={styles.statsIntro}>
+          <h2>Forum activity</h2>
+
+          <p>Figures below describe the newest threads in this feed.</p>
+        </div>
 
         <div className={styles.statsGrid}>
           <article className={styles.statCard}>
-            <span>Questions</span>
-            <strong>—</strong>
+            <span className={styles.statLabel}>Questions</span>
+            <strong className={styles.statValue}>—</strong>
           </article>
 
           <article className={styles.statCard}>
-            <span>Replies</span>
-            <strong>—</strong>
+            <span className={styles.statLabel}>Replies</span>
+            <strong className={styles.statValue}>—</strong>
           </article>
 
           <article className={styles.statCard}>
-            <span>Unanswered</span>
-            <strong>—</strong>
+            <span className={styles.statLabel}>Unanswered</span>
+            <strong className={styles.statValue}>—</strong>
           </article>
 
           <article className={styles.statCard}>
-            <span>Yours</span>
-            <strong>—</strong>
+            <span className={styles.statLabel}>Yours</span>
+            <strong className={styles.statValue}>—</strong>
           </article>
         </div>
       </section>
 
-      {/* Questions will be rendered here from the API later. */}
+      {/* Discussion feed */}
       <section className={styles.feedSection}>
         <div className={styles.feedHeader}>
-          <div>
+          <div className={styles.feedTitle}>
             <h2>Discussion feed</h2>
 
             <p>Your threads use a slim left accent in this list.</p>
           </div>
 
-          <button type="button" className={styles.sortButton}>
+          <button type="button" className={styles.feedButton}>
             NEWEST THREADS
           </button>
         </div>
 
         <div className={styles.questionList}>
-          {/* QuestionCard components will be rendered here later. */}
+          {/* QuestionCard components will be rendered here when API data is connected. */}
         </div>
       </section>
     </section>
