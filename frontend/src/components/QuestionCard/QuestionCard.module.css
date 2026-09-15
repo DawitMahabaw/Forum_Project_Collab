@@ -1,37 +1,46 @@
 .card {
   display: flex;
+  position: relative;
   gap: 14px;
-  padding: 18px 20px;
-  border-bottom: 1px solid #e2e8f0;
-  border-left: 3px solid transparent;
-  background: #ffffff;
-}
 
-.card:last-child {
-  border-bottom: 0;
+  padding: 18px 20px;
+
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .card:hover {
-  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 6%);
+  transform: translateY(-1px);
 }
 
-.mine {
-  border-left-color: #f97316;
-}
-
+/* User avatar */
 .avatar {
   display: grid;
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
+
+  width: 40px;
+  height: 40px;
+
   place-items: center;
+
   border-radius: 50%;
   background: #ffedd5;
   color: #c2410c;
+
   font-size: 13px;
   font-weight: 700;
 }
 
+/* Main question content */
 .content {
   min-width: 0;
   flex: 1;
@@ -39,57 +48,98 @@
 
 .title {
   margin: 0;
+
   color: #0f172a;
-  font-size: 15px;
+
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.4;
 }
 
-.description {
+.excerpt {
+  display: -webkit-box;
+
   margin: 6px 0 10px;
+
   overflow: hidden;
+
   color: #64748b;
+
   font-size: 13px;
   line-height: 1.5;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
+/* Author and question information */
 .meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 6px;
+
   color: #94a3b8;
-  font-size: 11px;
+
+  font-size: 12px;
 }
 
 .replies {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+
+  margin-left: 6px;
+
+  color: #64748b;
 }
 
+/* Shows when the current user owns the question */
 .yours {
-  padding: 3px 6px;
-  border-radius: 4px;
+  position: absolute;
+  top: 18px;
+  right: 20px;
+
+  padding: 4px 7px;
+
+  border-radius: 5px;
+
   background: #fff7ed;
   color: #ea580c;
+
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
+/* Smaller screens */
 @media (max-width: 600px) {
   .card {
-    padding: 16px;
+    gap: 10px;
+    padding: 14px;
   }
 
-  .description {
-    white-space: normal;
+  .avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 11px;
+  }
+
+  .title {
+    padding-right: 50px;
+    font-size: 14px;
+  }
+
+  .excerpt {
+    font-size: 12px;
   }
 
   .meta {
-    gap: 8px;
+    font-size: 11px;
+  }
+
+  .yours {
+    top: 14px;
+    right: 14px;
   }
 }
