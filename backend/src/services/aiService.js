@@ -6,10 +6,7 @@ import { generateContent } from "../ai/gemini.js";
 // ============================================================
 
 // Evaluate whether a draft answer addresses the selected question.
-const assessAnswerAgainstQuestionService = async ({
-  question,
-  answerText,
-}) => {
+const assessAnswerAgainstQuestionService = async ({ question, answerText }) => {
   // Build a prompt containing both question context and
   // the proposed answer.
   const prompt = `
@@ -46,6 +43,13 @@ Rules:
 - The note should be constructive and specific.
 `.trim();
 
+  // Send the prompt to Gemini.
+  const rawText = await generateContent(prompt);
+
+  // Parse the structured AI response.
+  const parsed = parseJsonResponse(rawText);
+
+
 
   return { level, note };
-};
+};;
