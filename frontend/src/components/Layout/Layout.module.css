@@ -9,6 +9,8 @@
   flex: 1;
   min-width: 0;
   flex-direction: column;
+
+  margin-left: 240px;
 }
 
 .page {
@@ -19,6 +21,10 @@
 @media (max-width: 900px) {
   .shell {
     flex-direction: column;
+  }
+
+  .content {
+    margin-left: 0;
   }
 
   .page {
