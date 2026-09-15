@@ -26,6 +26,19 @@ const getQuestionsService = async ({ search, onlyMine, userId }) => {
 };
 
 // ============================================================
+// GET SINGLE QUESTION
+// ============================================================
+
+// Retrieve one question and its answers.
+const getSingleQuestionService = async (questionHash) => {
+    const question = await Question.findByHash(questionHash);
+
+
+};
+
+
+
+// ============================================================
 // SEMANTIC SEARCH QUESTIONS
 // ============================================================
 
