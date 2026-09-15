@@ -1,11 +1,21 @@
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
   display: flex;
   flex-direction: column;
+
   width: 240px;
-  min-height: 100vh;
+  height: 100vh;
+
   padding: 20px 16px;
+
   background: #ffffff;
   border-right: 1px solid #e2e8f0;
+
+  overflow-y: auto;
+  z-index: 30;
 }
 
 .header {
@@ -145,11 +155,18 @@
 
 @media (max-width: 900px) {
   .sidebar {
+    position: static;
+
     width: 100%;
+    height: auto;
     min-height: auto;
+
     padding: 12px 20px;
+
     border-right: 0;
     border-bottom: 1px solid #e2e8f0;
+
+    overflow-y: visible;
   }
 
   .navigation {
