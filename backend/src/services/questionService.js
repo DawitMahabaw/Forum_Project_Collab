@@ -1,59 +1,66 @@
-import db from "../config/db.js";
+import Question from "../models/Question.js";
+import QuestionVector from "../models/QuestionVector.js";
+import { embedContent } from "../ai/gemini.js";
+
+import env from "../config/env.js";
 
 // ============================================================
-// GET QUESTIONS SERVICE (T-10)
+// SEMANTIC SEARCH QUESTIONS
 // ============================================================
 
-export const getQuestionsService = async ({ search, onlyMine, userId }) => {
-    let query = `
-        SELECT 
-            q.question_id,
-            q.user_id,
-            q.title,
-            q.description,
-            q.created_at,
-            u.user_name
-        FROM questions q
-        JOIN users u ON q.user_id = u.user_id
-    `;
+const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
+    const resolvedK = k || env.semanticSearch.defaultK;
+    const resolvedThreshold =
+        threshold === undefined || threshold === null
+            ? env.semanticSearch.recommendThreshold
+            : threshold;
 
-    const params = [];
-    const conditions = [];
+    const { success, embedding: queryVector } = await embedContent(
+        query,
+        "RETRIEVAL_QUERY",
+    );
 
-    if (search) {
-        conditions.push("(q.title LIKE ? OR q.description LIKE ?)");
-        params.push(`%${search}%`, `%${search}%`);
+    if (!success) {
+        const error = new Error(
+            "The AI search service is temporarily unavailable. Please try again.",
+        );
+        error.statusCode = 502;
+        throw error;
     }
 
-    if (onlyMine && userId) {
-        conditions.push("q.user_id = ?");
-        params.push(userId);
-    }
+    await backfillQuestionEmbeddings({ limit: 100 });
+    const vectors = await QuestionVector.findAllReady();
 
-    if (conditions.length > 0) {
-        query += " WHERE " + conditions.join(" AND ");
-    }
+    const ranked = rankVectorsAgainstQuery(queryVector, vectors, {
+        k: resolvedK,
+        threshold: resolvedThreshold,
+    });
 
-    query += " ORDER BY q.created_at DESC";
+    const questions = await Question.findManyByIds(
+        ranked.map((entry) => entry.questionId),
+    );
 
-    const [questions] = await db.execute(query, params);
+    const scoreByQuestionId = new Map(
+        ranked.map((entry) => [entry.questionId, entry.score]),
+    );
+
+    const data = questions.map((question) => ({
+        ...question,
+        score: scoreByQuestionId.get(question.id) ?? 0,
+    }));
 
     return {
-        questions,
+        data,
         meta: {
-            total: questions.length,
+            total: data.length,
+            k: resolvedK,
+            threshold: resolvedThreshold,
+            query,
+            questionHash: null,
         },
     };
 };
 
-// ============================================================
-// SEMANTIC SEARCH SERVICE
-// ============================================================
-
-export const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
-    // Service logic for semantic search
-    return {
-        data: [],
-        meta: { query, k, threshold }
-    };
+export {
+    searchQuestionsSemanticService,
 };

@@ -1,5 +1,4 @@
 import {
-    getQuestionsService,
     searchQuestionsSemanticService
 } from "../services/questionService.js";
 import env from "../config/env.js";
@@ -12,8 +11,6 @@ const parseKParam = (rawK) => {
     if (rawK === undefined) {
         return { value: undefined, error: null };
     }
-
-    const parsed = Number(rawK);
 
     if (
         !Number.isInteger(parsed) ||
@@ -44,32 +41,6 @@ const parseThresholdParam = (rawThreshold) => {
     }
 
     return { value: parsed, error: null };
-};
-
-// ============================================================
-// GET QUESTIONS CONTROLLER (T-10)
-// ============================================================
-
-const getQuestions = async (req, res, next) => {
-    try {
-        const { search, mine } = req.query;
-        const onlyMine = mine === "true" || mine === "1";
-
-        const { questions, meta } = await getQuestionsService({
-            search: typeof search === "string" ? search.trim() : "",
-            onlyMine,
-            userId: req.user?.userId,
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Questions fetched successfully.",
-            data: questions,
-            meta,
-        });
-    } catch (error) {
-        next(error);
-    }
 };
 
 // ============================================================
@@ -116,12 +87,10 @@ const searchQuestionsSemantic = async (req, res, next) => {
         next(error);
     }
 };
-
 // ============================================================
 // EXPORT CONTROLLERS
 // ============================================================
+
 export {
-    getQuestions,
     searchQuestionsSemantic,
-    assessAnswerAgainstQuestion,
 };
