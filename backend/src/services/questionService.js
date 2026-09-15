@@ -32,9 +32,15 @@ const getQuestionsService = async ({ search, onlyMine, userId }) => {
 // Retrieve one question and its answers.
 const getSingleQuestionService = async (questionHash) => {
     const question = await Question.findByHash(questionHash);
+  // Return a 404 when the question does not exist.
+    if (!question) {
+    const error = new Error("Question not found.");
+    error.statusCode = 404;
+    throw error;
+    }
 
 
-};
+};;
 
 
 
