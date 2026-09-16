@@ -47,3 +47,10 @@ const createAnswer = async (req, res, next) => {
       userId: req.user.userId,
       content: content.trim(),
     });
+
+
+     return res.status(201).json({
+      success: true,
+      message: "Answer posted successfully",
+      data: answer,
+    });
