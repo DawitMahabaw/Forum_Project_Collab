@@ -33,3 +33,10 @@ const createAnswer = async (req, res, next) => {
       questionId,
       content,
     });
+
+     if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
