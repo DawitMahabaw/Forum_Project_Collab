@@ -76,3 +76,8 @@ const getAnswerId = (value) => {
 
   
 };
+
+const updateAnswer = async (req, res, next) => {
+
+    try {
+    const content = req.body.content;
