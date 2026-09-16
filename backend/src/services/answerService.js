@@ -64,3 +64,14 @@ const updateAnswerService = async ({ answerId, userId, content }) => {
 
     throw error;
   }
+
+   if (Number(answer.userId) !== Number(userId)) {
+    
+    const error = new Error("You can only edit your own answer.");
+
+   
+    error.statusCode = 403;
+
+   
+    throw error;
+  }
