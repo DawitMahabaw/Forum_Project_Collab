@@ -63,3 +63,11 @@ const createAnswer = async (req, res, next) => {
 
 
 const getAnswerId = (value) => {
+
+    const answerId = Number(value);
+
+    if (!Number.isSafeInteger(answerId) || answerId < 1) {
+    const error = new Error("Answer identifier must be a positive integer.");
+    error.statusCode = 400;
+    throw error;
+  }
