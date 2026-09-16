@@ -13,3 +13,8 @@ const validateCreateAnswerInput = ({ questionId, content }) => {
    if (!Number.isInteger(Number(questionId))) {
     return "questionId must be an integer.";
   }
+
+
+   if (!content || content.trim().length < 20) {
+    return "content must contain at least 20 characters.";
+  }
