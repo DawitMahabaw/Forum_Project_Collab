@@ -132,3 +132,11 @@ const deleteAnswer = async (req, res, next) => {
 };
 
 export { createAnswer, deleteAnswer, updateAnswer };
+
+
+
+backend/src/controllers/answerController.js
+backend/src/routes/answerRoutes.js
+backend/src/services/answerService.js
+backend/src/models/Answer.js
+backend/src/models/Question.js
