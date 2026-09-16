@@ -89,6 +89,24 @@ const Question = {
 
     return rows[0] ? mapQuestionRow(rows[0]) : null;
   },
+
+    // ---------------------------------------------------------
+  // FIND BY ID (INTERNAL USE)
+  // ---------------------------------------------------------
+  
+  async findById(id) {
+    const [rows] = await pool.execute(
+      `
+      ${BASE_QUESTION_SELECT}
+      WHERE q.id = ?
+      GROUP BY q.id
+      LIMIT 1
+      `,
+      [id],
+    );
+
+    return rows[0] ? mapQuestionRow(rows[0]) : null;
+  },
 };
 
 export default Question;
