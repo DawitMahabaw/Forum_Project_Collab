@@ -1,13 +1,30 @@
-// backend/src/models/Answer.js
 import pool from "../config/db.js";
 
 const Answer = {
-  // ---------------------------------------------------------
-  // TASK REQUIREMENT: Retrieve related answers
-  // ---------------------------------------------------------
-  async findManyByQuestionId(questionId) {
-    // THIS WAS THE MISSING PART: Actually querying the database
+
+    async create({ questionId, userId, content }) {
+        
+
+            const [result] = await pool.execute(
+
+
+                `
+      INSERT INTO answers
+        (question_id, user_id, content)
+      VALUES
+        (?, ?, ?)
+      `,
+       
+       [questionId, userId, content],
+    );
+
+      return result.insertId;
+  },
+
+  async findById(id) {
+    // Execute a SELECT query.
     const [rows] = await pool.execute(
+      // SELECT chooses which columns we want from the database.
       `
       SELECT
         a.id,
@@ -16,19 +33,36 @@ const Answer = {
         a.content,
         a.created_at,
         a.updated_at,
+     
+        
         u.user_id    AS author_id,
         u.first_name AS author_first_name,
         u.last_name  AS author_last_name
+      
       FROM answers a
+
+    
+  
       INNER JOIN users u ON u.user_id = a.user_id
-      WHERE a.question_id = ?
-      ORDER BY a.created_at ASC
+
+    
+     
+      WHERE a.id = ?
+
+      LIMIT 1
       `,
-      [questionId],
+
+      
+      [id],
     );
 
-    // Formats raw data to match the camelCase structure the team uses
-    return rows.map((row) => ({
+     if (!rows[0]) {
+      
+    }
+
+        const row = rows[0];
+
+         return {
       id: row.id,
       questionId: row.question_id,
       userId: row.user_id,
@@ -40,8 +74,42 @@ const Answer = {
         firstName: row.author_first_name,
         lastName: row.author_last_name,
       },
-    }));
+    };
+  },
+
+   async updateOwned(id, userId, content) {
+    
+    const [result] = await pool.execute(
+      
+
+
+      `UPDATE answers SET content = ? WHERE id = ? AND user_id = ?`,
+
+      
+
+
+      [content, id, userId],
+    );
+
+       return result.affectedRows > 0 ? this.findById(id) : null;
+  },
+
+ 
+  
+  async deleteOwned(id, userId) {
+    
+    const [result] = await pool.execute(
+      
+      `DELETE FROM answers WHERE id = ? AND user_id = ?`,
+
+      
+      [id, userId],
+    );
+       return result.affectedRows > 0;
   },
 };
+
+
+
 
 export default Answer;

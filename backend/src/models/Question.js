@@ -34,7 +34,6 @@ const mapQuestionRow = (row) => ({
   questionHash: row.question_hash,
   title: row.title,
   content: row.content,
-  userId: row.user_id,
   answerCount: Number(row.answer_count) || 0,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
@@ -47,23 +46,144 @@ const mapQuestionRow = (row) => ({
 
 const Question = {
   // ---------------------------------------------------------
-  // FIND BY PUBLIC HASH IDENTIFIER
+  // CREATE QUESTION
   // ---------------------------------------------------------
-  // TASK REQUIREMENT: Accepts the public hash, retrieves the single question,
-  // and safely handles question-not-found cases by returning null.
-  async findByHash(questionHash) {
+
+  async create({ questionHash, userId, title, content }) {
+    const [result] = await pool.execute(
+      `
+      INSERT INTO questions
+        (question_hash, user_id, title, content)
+      VALUES
+        (?, ?, ?, ?)
+      `,
+      [questionHash, userId, title, content],
+    );
+
+    return {
+      id: result.insertId,
+      questionHash,
+      userId,
+      title,
+      content,
+    };
+  },
+
+  // ---------------------------------------------------------
+  // FIND MANY (WITH OPTIONAL FILTERS)
+  // ---------------------------------------------------------
+
+  async findMany({ search, userId }) {
+    const conditions = [];
+    const params = [];
+
+    if (search) {
+      conditions.push("(q.title LIKE ? OR q.content LIKE ?)");
+      const likeTerm = `%${search}%`;
+      params.push(likeTerm, likeTerm);
+    }
+
+    if (userId) {
+      conditions.push("q.user_id = ?");
+      params.push(userId);
+    }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
     const [rows] = await pool.execute(
       `
       ${BASE_QUESTION_SELECT}
-      WHERE q.question_hash = ?
+      ${whereClause}
       GROUP BY q.id
-      LIMIT 1
+      ORDER BY q.created_at DESC
       `,
+      params,
+    );
+
+    return rows.map(mapQuestionRow);
+  },
+
+  // ---------------------------------------------------------
+  // FIND BY HASH
+  // ---------------------------------------------------------
+  async findByHash(questionHash) {
+    const [rows] = await pool.execute(
+      `
+    ${BASE_QUESTION_SELECT}
+    WHERE q.question_hash = ?
+    GROUP BY q.id
+    LIMIT 1
+    `,
       [questionHash],
     );
 
-    // Safely reads the primary element if found, or returns null for 404 validation
     return rows[0] ? mapQuestionRow(rows[0]) : null;
+  },
+
+  // ---------------------------------------------------------
+  // FIND BY ID (INTERNAL USE)
+  // ---------------------------------------------------------
+
+  async findById(id) {
+    const [rows] = await pool.execute(
+      `
+      ${BASE_QUESTION_SELECT}
+      WHERE q.id = ?
+      GROUP BY q.id
+      LIMIT 1
+      `,
+      [id],
+    );
+
+    return rows[0] ? mapQuestionRow(rows[0]) : null;
+  },
+
+  async updateOwnedByHash(questionHash, userId, { title, content }) {
+    const [result] = await pool.execute(
+      `UPDATE questions
+       SET title = ?, content = ?
+       WHERE question_hash = ? AND user_id = ?`,
+      [title, content, questionHash, userId],
+    );
+
+    return result.affectedRows > 0 ? this.findByHash(questionHash) : null;
+  },
+
+  async deleteOwnedByHash(questionHash, userId) {
+    const [result] = await pool.execute(
+      `DELETE FROM questions WHERE question_hash = ? AND user_id = ?`,
+      [questionHash, userId],
+    );
+
+    return result.affectedRows > 0;
+  },
+
+  // ---------------------------------------------------------
+  // FIND MANY BY IDS (PRESERVING ORDER)
+  // ---------------------------------------------------------
+
+  async findManyByIds(ids) {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const placeholders = ids.map(() => "?").join(", ");
+
+    const [rows] = await pool.execute(
+      `
+      ${BASE_QUESTION_SELECT}
+      WHERE q.id IN (${placeholders})
+      GROUP BY q.id
+      `,
+      ids,
+    );
+
+    const rowsById = new Map(rows.map((row) => [row.id, mapQuestionRow(row)]));
+
+    return ids
+      .map((id) => rowsById.get(id))
+      .filter((question) => Boolean(question));
   },
 };
 
