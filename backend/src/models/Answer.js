@@ -108,3 +108,11 @@ const Answer = {
       
       [id, userId],
     );
+       return result.affectedRows > 0;
+  },
+};
+
+
+
+
+export default Answer;
