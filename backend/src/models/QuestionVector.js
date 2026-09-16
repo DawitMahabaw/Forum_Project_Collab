@@ -28,15 +28,7 @@ const QuestionVector = {
     // ---------------------------------------------------------
     // FIND ALL READY VECTORS
     // ---------------------------------------------------------
-    //
-    // Powers semantic search across ALL questions
-    // (GET /api/questions/search).
-    //
-    // Only 'ready' vectors are returned, since 'failed' rows have
-    // no embedding to compare against.
-    //
-    // excludeQuestionId is optional and is used by "similar
-    // questions" to avoid recommending a question to itself.
+
     async findAllReady({ excludeQuestionId } = {}) {
         const params = [];
         let whereClause = "WHERE status = 'ready'";
