@@ -15,6 +15,10 @@
   font-weight: 800;
 }
 
+.brand{
+  padding-left: 50px;
+}
+
 .brand p {
   max-width: 520px;
   margin: 7px 0 0;
