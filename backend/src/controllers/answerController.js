@@ -40,3 +40,10 @@ const createAnswer = async (req, res, next) => {
         message: validationError,
       });
     }
+
+
+     const answer = await createAnswerService({
+      questionId: Number(questionId),
+      userId: req.user.userId,
+      content: content.trim(),
+    });
