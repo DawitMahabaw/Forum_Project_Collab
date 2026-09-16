@@ -1,0 +1,259 @@
+/* Main dashboard container */
+.dashboard {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* -------------------------------------------------- */
+/* Welcome section */
+/* -------------------------------------------------- */
+
+.welcome {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #ea580c;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.welcome h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.welcome > p:last-child {
+  max-width: 720px;
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* -------------------------------------------------- */
+/* Feature cards */
+/* -------------------------------------------------- */
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 34px;
+}
+
+.featureCard {
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.featureIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 16px;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.featureCard h2 {
+  margin: 0 0 7px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.featureCard p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* -------------------------------------------------- */
+/* Statistics */
+/* -------------------------------------------------- */
+
+.statsSection {
+  padding-top: 28px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.statsIntro {
+  margin-bottom: 16px;
+}
+
+.statsIntro h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 19px;
+  font-weight: 750;
+}
+
+.statsIntro p {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.statCard {
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.statLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statValue {
+  display: block;
+  color: #0f172a;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+/* -------------------------------------------------- */
+/* Discussion feed */
+/* -------------------------------------------------- */
+
+.feedSection {
+  margin-top: 34px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.feedHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.feedTitle h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.feedTitle p {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.feedButton {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border: 1px solid #fed7aa;
+  border-radius: 7px;
+  background: #fff7ed;
+  color: #ea580c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------- */
+/* Question list */
+/* -------------------------------------------------- */
+
+.questionList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* -------------------------------------------------- */
+/* Loading / error / empty states */
+/* -------------------------------------------------- */
+
+.state {
+  display: flex;
+  min-height: 160px;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.state p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* -------------------------------------------------- */
+/* Responsive layout */
+/* -------------------------------------------------- */
+
+@media (max-width: 1000px) {
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .welcome h1 {
+    font-size: 28px;
+  }
+
+  .featureCard {
+    padding: 18px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .feedSection {
+    padding: 18px;
+  }
+
+  .feedHeader {
+    flex-direction: column;
+  }
+
+  .feedButton {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,11 +1,12 @@
+// backend/src/models/Answer.js
 import pool from "../config/db.js";
 
 const Answer = {
   // ---------------------------------------------------------
   // TASK REQUIREMENT: Retrieve related answers
   // ---------------------------------------------------------
-  // Fetches only the community answers linked to this question.
   async findManyByQuestionId(questionId) {
+    // THIS WAS THE MISSING PART: Actually querying the database
     const [rows] = await pool.execute(
       `
       SELECT
@@ -26,6 +27,7 @@ const Answer = {
       [questionId],
     );
 
+    // Formats raw data to match the camelCase structure the team uses
     return rows.map((row) => ({
       id: row.id,
       questionId: row.question_id,
