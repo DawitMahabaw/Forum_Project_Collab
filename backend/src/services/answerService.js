@@ -43,3 +43,24 @@ const createAnswerService = async ({ questionId, userId, content }) => {
   });
  return Answer.findById(answerId);
 };
+
+
+const updateAnswerService = async ({ answerId, userId, content }) => {
+ 
+  
+  const answer = await Answer.findById(answerId);
+
+  
+  if (!answer) {
+    
+    
+    
+    const error = new Error("Answer not found.");
+
+   
+    error.statusCode = 404;
+
+  
+
+    throw error;
+  }
