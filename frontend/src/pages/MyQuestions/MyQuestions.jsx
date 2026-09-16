@@ -14,6 +14,9 @@ const MyQuestions = () => {
   // Check if questions are loading
   const [isLoading, setIsLoading] = useState(true);
 
+  // Store error message
+  const [error, setError] = useState("");
+
   useEffect(() => {
     const loadQuestions = async () => {
       try {
@@ -22,6 +25,11 @@ const MyQuestions = () => {
 
         // Save the questions
         setQuestions(data.questions);
+      } catch (requestError) {
+        // Show error message if request fails
+        setError(
+          requestError.response?.data?.message || "Could not load your topics.",
+        );
       } finally {
         // Stop loading
         setIsLoading(false);
@@ -54,6 +62,26 @@ const MyQuestions = () => {
 
       {/* Show loading message */}
       {isLoading && <div className={styles.state}>Loading your topics…</div>}
+
+      {/* Show error message */}
+      {error && (
+        <div className={styles.error} role="alert">
+          {error}
+        </div>
+      )}
+
+      {/* Show message when there are no questions */}
+      {!isLoading && !error && !questions.length && (
+        <div className={styles.state}>
+          <h3>You have not posted a question yet</h3>
+
+          <p>Ask your first question to start your personal topic list.</p>
+
+          <button onClick={() => navigate("/questions/ask")} type="button">
+            Ask a question
+          </button>
+        </div>
+      )}
     </section>
   );
 };
