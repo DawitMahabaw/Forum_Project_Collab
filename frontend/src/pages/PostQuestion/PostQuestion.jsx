@@ -8,6 +8,7 @@ const PostQuestion = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     if (!title.trim()) {
@@ -32,6 +33,7 @@ const PostQuestion = () => {
     }
 
     setError("");
+    setLoading(true);
 
     try {
       const response = await createQuestion({
@@ -42,6 +44,8 @@ const PostQuestion = () => {
       console.log("Question created:", response);
     } catch (error) {
       console.error("Failed to create question:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,7 +92,9 @@ const PostQuestion = () => {
           </div>
 
           <div className={styles.actions}>
-            <button type="submit">Post Question</button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Posting..." : "Post Question"}
+            </button>
           </div>
         </form>
       </section>
