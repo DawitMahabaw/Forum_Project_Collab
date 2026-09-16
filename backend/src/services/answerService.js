@@ -94,3 +94,19 @@ const deleteAnswerService = async ({ answerId, userId }) => {
    
     throw error;
   }
+
+
+   
+  if (Number(answer.userId) !== Number(userId)) {
+  
+    const error = new Error("You can only delete your own answer.");
+
+    
+    error.statusCode = 403;
+
+    throw error;
+  }
+
+
+  await Answer.deleteOwned(answerId, userId);
+};
