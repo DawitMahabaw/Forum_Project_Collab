@@ -88,3 +88,24 @@ const updateAnswer = async (req, res, next) => {
         message: "content must contain at least 20 characters.",
       });
     }
+
+     const answer = await updateAnswerService({
+      answerId: getAnswerId(req.params.answerId),
+      userId: req.user.userId,
+      content: content.trim(),
+    });
+
+
+    
+    return res.status(200).json({
+      success: true,
+      message: "Answer updated successfully.",
+      data: answer,
+    });
+
+    } catch (error) {
+    next(error);
+  }
+
+ 
+};
