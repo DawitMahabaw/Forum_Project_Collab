@@ -1,10 +1,12 @@
 import express from "express";
 import {
-    getQuestions,
-    searchQuestionsSemantic,
-    assessAnswerAgainstQuestion,
+  getQuestions,
+  getSingleQuestion,
+  searchQuestionsSemantic,
+  assessAnswerAgainstQuestion,
 } from "../controllers/questionController.js";
 import authenticate from "../middleware/authMiddleware.js";
+
 
 const router = express.Router();
 
@@ -13,6 +15,9 @@ router.get("/", authenticate, getQuestions);
 
 // GET /api/questions/search?query=...
 router.get("/search", authenticate, searchQuestionsSemantic);
+
+// GET /api/questions/:questionHash
+router.get("/:questionHash", authenticate, getSingleQuestion);
 
 
 // Authentication is required before evaluating an answer.

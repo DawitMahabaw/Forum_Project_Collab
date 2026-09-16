@@ -1,5 +1,11 @@
+// Import the MySQL connection pool from the team database configuration.
 import pool from "../config/db.js";
 
+// ============================================================
+// SHARED SELECT FRAGMENT
+// ============================================================
+// TASK REQUIREMENT: Retrieves necessary fields for the single question detail view.
+// Perfectly mirrors all your teammate's exact selection fields.
 const BASE_QUESTION_SELECT = `
   SELECT
     q.id,
@@ -18,6 +24,11 @@ const BASE_QUESTION_SELECT = `
   LEFT JOIN answers a ON a.question_id = q.id
 `;
 
+// ------------------------------------------------------------
+// DATA ROW MAPPER FOR FRONTEND COMPATIBILITY
+// ------------------------------------------------------------
+// TASK REQUIREMENT: Formats database snake_case columns cleanly into camelCase
+// objects to match normal JavaScript/JSON frontend conventions.
 const mapQuestionRow = (row) => ({
   id: row.id,
   questionHash: row.question_hash,

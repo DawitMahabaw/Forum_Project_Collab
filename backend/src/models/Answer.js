@@ -69,9 +69,6 @@ const Answer = {
       content: row.content,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-
-      
-      
       author: {
         id: row.author_id,
         firstName: row.author_first_name,
