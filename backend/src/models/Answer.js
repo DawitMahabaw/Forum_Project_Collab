@@ -17,3 +17,6 @@ const Answer = {
        
        [questionId, userId, content],
     );
+
+      return result.insertId;
+  },
