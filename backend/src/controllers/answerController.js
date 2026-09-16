@@ -60,3 +60,6 @@ const createAnswer = async (req, res, next) => {
     next(error);
   }
 };
+
+
+const getAnswerId = (value) => {
