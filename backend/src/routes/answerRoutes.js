@@ -19,3 +19,6 @@ router.put("/:answerId", authenticate, updateAnswer);
 
 
 router.delete("/:answerId", authenticate, deleteAnswer);
+
+
+export default router;
