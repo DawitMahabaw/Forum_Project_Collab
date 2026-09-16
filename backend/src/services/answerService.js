@@ -75,3 +75,6 @@ const updateAnswerService = async ({ answerId, userId, content }) => {
    
     throw error;
   }
+
+   return Answer.updateOwned(answerId, userId, content);
+};
