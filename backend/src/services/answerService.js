@@ -31,3 +31,15 @@ const createAnswerService = async ({ questionId, userId, content }) => {
     
     throw error;
   }
+
+  const answerId = await Answer.create({
+
+     questionId: question.id,
+
+      userId,
+
+   
+    content,
+  });
+ return Answer.findById(answerId);
+};
