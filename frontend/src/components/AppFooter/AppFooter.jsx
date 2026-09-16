@@ -11,6 +11,10 @@ const AppFooter = () => {
           A practice space for technical Q&A, peer feedback, and AI-assisted
           search, built for Evangadi learners and mentors.
         </p>
+
+        <small className={styles.copyright}>
+          © 2026 Evangadi Forum. For educational use.
+        </small>
       </div>
 
       <nav className={styles.links} aria-label="Footer navigation">
@@ -19,10 +23,6 @@ const AppFooter = () => {
         <a href="#terms">Terms</a>
         <a href="#contact">Contact</a>
       </nav>
-
-      <p className={styles.copyright}>
-        © 2026 Evangadi Forum. For educational use.
-      </p>
     </footer>
   );
 };
