@@ -109,3 +109,26 @@ const updateAnswer = async (req, res, next) => {
 
  
 };
+
+
+const deleteAnswer = async (req, res, next) => {
+
+    
+  try {
+    await deleteAnswerService({
+      answerId: getAnswerId(req.params.answerId),
+      userId: req.user.userId,
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Answer deleted successfully." });
+
+       } catch (error) {
+    next(error);
+  }
+
+  // Pass unexpected errors to the centralized Express error handler.
+};
+
+export { createAnswer, deleteAnswer, updateAnswer };
