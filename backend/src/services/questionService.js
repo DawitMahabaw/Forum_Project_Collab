@@ -5,8 +5,96 @@ import { embedContent } from "../ai/gemini.js";
 import env from "../config/env.js";
 
 // ============================================================
+// GET QUESTIONS SERVICE (T-10)
+// ============================================================
+
+const getQuestionsService = async ({ search, onlyMine, userId }) => {
+    const questions = await Question.findMany({
+        search: search || null,
+        userId: onlyMine ? userId : null,
+    });
+
+    return {
+        questions,
+        meta: {
+            limit: 100,
+            total: questions.length,
+            sortBy: "newest",
+            sortOrder: "desc",
+        },
+    };
+};
+
+// ============================================================
+// GET SINGLE QUESTION
+// ============================================================
+
+// Retrieve one question and its answers.
+const getSingleQuestionService = async (questionHash) => {
+    const question = await Question.findByHash(questionHash);
+  // Return a 404 when the question does not exist.
+    if (!question) {
+    const error = new Error("Question not found.");
+    error.statusCode = 404;
+    throw error;
+    }
+    const answers = await Answer.findManyByQuestionId(question.id);
+
+    return {
+        question,
+        answers,
+        answersMeta: {
+        limit: 100,
+        total: answers.length,
+        },
+    };
+
+
+};;
+
+
+
+// ============================================================
 // SEMANTIC SEARCH QUESTIONS
 // ============================================================
+
+const cosineSimilarity = (vectorA, vectorB) => {
+    if (
+        !Array.isArray(vectorA) ||
+        !Array.isArray(vectorB) ||
+        vectorA.length !== vectorB.length
+    ) {
+        return -1;
+    }
+
+    let dotProduct = 0;
+    let magnitudeA = 0;
+    let magnitudeB = 0;
+
+    for (let i = 0; i < vectorA.length; i++) {
+        dotProduct += vectorA[i] * vectorB[i];
+        magnitudeA += vectorA[i] * vectorA[i];
+        magnitudeB += vectorB[i] * vectorB[i];
+    }
+
+    if (magnitudeA === 0 || magnitudeB === 0) {
+        return -1;
+    }
+
+    return dotProduct / (Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB));
+};
+
+const rankVectorsAgainstQuery = (queryVector, vectors, { k }) => {
+    return vectors
+        .map((entry) => ({
+            ...entry,
+            score: cosineSimilarity(queryVector, entry.vector),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, k);
+};
+
+const backfillQuestionEmbeddings = async () => null;
 
 const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
     const resolvedK = k || env.semanticSearch.defaultK;
@@ -36,9 +124,10 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
         threshold: resolvedThreshold,
     });
 
-    const questions = await Question.findManyByIds(
-        ranked.map((entry) => entry.questionId),
-    );
+    const questionIds = ranked.map((entry) => entry.questionId);
+    const questions = questionIds.length
+        ? await Question.findManyByIds(questionIds)
+        : [];
 
     const scoreByQuestionId = new Map(
         ranked.map((entry) => [entry.questionId, entry.score]),
@@ -62,5 +151,7 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
 };
 
 export {
+    getQuestionsService,
+    getSingleQuestionService,
     searchQuestionsSemanticService,
 };
