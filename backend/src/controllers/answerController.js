@@ -22,3 +22,5 @@ const validateCreateAnswerInput = ({ questionId, content }) => {
 
   
 }
+
+const createAnswer = async (req, res, next) => {
