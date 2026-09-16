@@ -8,15 +8,27 @@ const createAnswerService = async ({ questionId, userId, content }) => {
   const question = await Question.findById(questionId);
 
   if (!question) {
-    
-    // Create an Error object containing the message.
+   
+
     const error = new Error("Question not found.");
 
     
-    // 404 means "Not Found".
+   
     error.statusCode = 404;
 
-    // "throw" stops execution and sends the error back
-    // through the application's error-handling flow.
+    
+
+    throw error;
+  }
+
+  if (question.author.id === userId) {
+
+   
+    const error = new Error("You cannot answer your own question.");
+
+    
+    error.statusCode = 400;
+
+  
     throw error;
   }
