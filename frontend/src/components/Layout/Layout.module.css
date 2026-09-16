@@ -1,17 +1,48 @@
 .shell {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #f7f9fc;
 }
 
 .content {
   min-width: 0;
   min-height: 100vh;
-  margin-left: 240px;
+  margin-left: 210px;
+  display: flex;
+  flex-direction: column;
 }
 
 .page {
-  min-height: 100vh;
-  padding: 100px 28px 36px;
+  display: flex;
+  min-height: calc(100vh - 56px);
+  flex: 1;
+  flex-direction: column;
+  padding: 19px 25px 0;
+}
+
+.page > footer {
+  flex-shrink: 0;
+  margin-top: 28px;
+  margin-right: -25px;
+  margin-left: -25px;
+  padding: 36px 43px;
+  background: #ffffff;
+}
+
+.page > footer strong {
+  font-size: 18px;
+}
+
+.page > footer p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.page > footer small {
+  font-size: 12px;
+}
+
+.page > footer a {
+  font-size: 14px;
 }
 
 /* Tablet and mobile */
@@ -22,12 +53,25 @@
   }
 
   .page {
-    padding: 92px 20px 28px;
+    min-height: 0;
+    padding: 20px 20px 0;
+  }
+
+  .page > footer {
+    margin-right: -20px;
+    margin-left: -20px;
+    padding: 28px 20px;
   }
 }
 
 @media (max-width: 600px) {
   .page {
-    padding: 80px 16px 24px;
+    padding: 16px 16px 0;
+  }
+
+  .page > footer {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding: 24px 16px;
   }
 }
