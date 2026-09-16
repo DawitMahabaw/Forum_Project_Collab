@@ -22,3 +22,12 @@ const createAnswerService = async ({ questionId, userId, content }) => {
   }
 
   if (question.author.id === userId) {
+
+     const error = new Error("You cannot answer your own question.");
+
+ 
+    error.statusCode = 400;
+
+    
+    throw error;
+  }
