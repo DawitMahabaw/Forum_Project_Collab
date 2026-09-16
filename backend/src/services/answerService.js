@@ -110,3 +110,5 @@ const deleteAnswerService = async ({ answerId, userId }) => {
 
   await Answer.deleteOwned(answerId, userId);
 };
+
+export { createAnswerService, deleteAnswerService, updateAnswerService };
