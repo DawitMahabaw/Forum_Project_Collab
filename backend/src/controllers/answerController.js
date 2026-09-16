@@ -54,3 +54,9 @@ const createAnswer = async (req, res, next) => {
       message: "Answer posted successfully",
       data: answer,
     });
+
+
+     } catch (error) {
+    next(error);
+  }
+};
