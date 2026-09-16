@@ -19,6 +19,19 @@ const PostQuestion = () => {
     return "";
   };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const validationError = validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setError("");
+  };
+
   return (
     <section className={styles.page}>
       <header className={styles.header}>
@@ -33,7 +46,8 @@ const PostQuestion = () => {
       </header>
 
       <section className={styles.card}>
-        <form>
+        <form onSubmit={handleSubmit}>
+          {error && <p className={styles.error}>{error}</p>}
           <div className={styles.field}>
             <label htmlFor="title">Question title</label>
 
