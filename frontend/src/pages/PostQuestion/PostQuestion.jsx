@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { createQuestion } from "../../services/questionService.js";
+
 import styles from "./PostQuestion.module.css";
 
 const PostQuestion = () => {
@@ -19,7 +21,7 @@ const PostQuestion = () => {
     return "";
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const validationError = validateForm();
@@ -30,6 +32,17 @@ const PostQuestion = () => {
     }
 
     setError("");
+
+    try {
+      const response = await createQuestion({
+        title: title.trim(),
+        description: description.trim(),
+      });
+
+      console.log("Question created:", response);
+    } catch (error) {
+      console.error("Failed to create question:", error);
+    }
   };
 
   return (
