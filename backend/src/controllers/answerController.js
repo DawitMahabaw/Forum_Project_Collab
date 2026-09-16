@@ -25,5 +25,11 @@ const validateCreateAnswerInput = ({ questionId, content }) => {
 
 const createAnswer = async (req, res, next) => {
 
-    try {
+    try{
     const { questionId, content } = req.body;
+  
+
+    const validationError = validateCreateAnswerInput({
+      questionId,
+      content,
+    });
