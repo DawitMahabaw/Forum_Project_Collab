@@ -1,28 +1,36 @@
 .navbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.25fr) auto;
+  grid-template-columns: minmax(360px, 0.85fr) minmax(420px, 1.35fr) minmax(0, auto);
   align-items: center;
   gap: 24px;
   position: sticky;
   top: 0;
   z-index: 20;
-  min-height: 68px;
+  min-height: 80px;
   padding: 12px 28px;
   background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e8edf3;
 }
 
 .titleBlock h1 {
   margin: 0;
-  color: #0f172a;
-  font-size: 18px;
-  font-weight: 700;
+  color: #192236;
+  font-size: 20px;
+  font-weight: 800;
+  margin-left: 20px;
 }
 
 .titleBlock p {
   margin: 4px 0 0;
-  color: #64748b;
-  font-size: 12px;
+  color: #52647b;
+  font-size: 13px;
+   margin-left: 20px;
+}
+
+.searchArea {
+  position: relative;
+  min-width: 0;
+  margin-left: -18px;
 }
 
 .search {
@@ -30,65 +38,186 @@
   align-items: center;
   gap: 10px;
   height: 38px;
-  padding: 0 14px;
-  border: 1px solid #dbe3ee;
-  border-radius: 12px;
-  background: #f1f5f9;
-  color: #475569;
+  padding: 0 13px;
+  border: 1px solid #dfe7f0;
+  border-radius: 10px;
+  background: #f3f6fa;
+  color: #4a617d;
+  margin-left: 80px;
+}
+
+.searchWithAi {
+  height: 42px;
+  padding: 0 9px 0 16px;
+  border: 2px solid #ff6f10;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px #ffefe5;
 }
 
 .search input {
   width: 100%;
+  min-width: 0;
   border: 0;
   outline: 0;
   background: transparent;
-  color: #0f172a;
+  color: #172033;
+  font: inherit;
   font-size: 14px;
 }
 
+.searchWithAi input {
+  font-size: 17px;
+}
+
 .search input::placeholder {
-  color: #94a3b8;
+  color: #a3b0c0;
+}
+
+.aiSearchButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 17px;
+  background: #ff7517;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.aiSearchButton:hover {
+  background: #ea5d08;
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 0;
+  z-index: 30;
+  width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #d7e0eb;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 8px 18px rgb(15 23 42 / 9%);
+}
+
+.suggestion {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 16px 12px;
+  border: 0;
+  border-bottom: 1px solid #e8edf3;
+  background: #ffffff;
+  color: #172033;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion:last-child {
+  border-bottom: 0;
+}
+
+.suggestion:hover {
+  background: #fff8f3;
+}
+
+.suggestion strong {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestion span,
+.suggestionState {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.suggestionState {
+  padding: 18px 16px;
+  text-align: center;
 }
 
 .userSection {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-left: 16px;
-  border-left: 1px solid #e2e8f0;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+  padding-left: 12px;
+  border-left: 1px solid #edf1f5;
 }
 
 .userName {
-  color: #0f172a;
+  overflow: hidden;
+  color: #27344b;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #a6e4f0;
+  color: #1f6474;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .logoutButton {
   display: grid;
+  flex: 0 0 auto;
   place-items: center;
-  padding: 5px;
+  padding: 4px 0 4px 8px;
   border: 0;
+  border-left: 1px solid #edf1f5;
   background: transparent;
-  color: #475569;
+  color: #52647b;
   cursor: pointer;
 }
 
 .logoutButton:hover {
-  color: #f97316;
+  color: #f15c16;
 }
 
 @media (max-width: 900px) {
   .navbar {
     grid-template-columns: 1fr auto;
-    gap: 16px;
-    padding: 12px 20px;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+
+  .searchArea {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-left: 0;
   }
 
   .search {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    height: 36px;
+  }
+
+  .searchWithAi {
+    height: 42px;
   }
 
   .userName {
@@ -103,5 +232,19 @@
 
   .titleBlock p {
     display: none;
+  }
+
+  .searchWithAi input {
+    font-size: 14px;
+  }
+
+  .aiSearchButton {
+    gap: 4px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .suggestion strong {
+    font-size: 14px;
   }
 }
