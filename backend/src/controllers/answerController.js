@@ -81,3 +81,10 @@ const updateAnswer = async (req, res, next) => {
 
     try {
     const content = req.body.content;
+
+     if (typeof content !== "string" || content.trim().length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: "content must contain at least 20 characters.",
+      });
+    }
