@@ -1,52 +1,51 @@
 import {
-    getQuestionsService,
-    searchQuestionsSemanticService
+  getQuestionsService,
+  searchQuestionsSemanticService,
 } from "../services/questionService.js";
 import env from "../config/env.js";
 
-import {  assessAnswerAgainstQuestionService,
-} from "../services/aiService.js";
+import { assessAnswerAgainstQuestionService } from "../services/aiService.js";
 
 // ============================================================
 // SEMANTIC SEARCH VALIDATION
 // ============================================================
 
 const parseKParam = (rawK) => {
-    if (rawK === undefined) {
-        return { value: undefined, error: null };
-    }
+  if (rawK === undefined) {
+    return { value: undefined, error: null };
+  }
 
-    const parsed = Number(rawK);
+  const parsed = Number(rawK);
 
-    if (
-        !Number.isInteger(parsed) ||
-        parsed < 1 ||
-        parsed > env.semanticSearch.maxK
-    ) {
-        return {
-            value: null,
-            error: `k must be an integer between 1 and ${env.semanticSearch.maxK}.`,
-        };
-    }
+  if (
+    !Number.isInteger(parsed) ||
+    parsed < 1 ||
+    parsed > env.semanticSearch.maxK
+  ) {
+    return {
+      value: null,
+      error: `k must be an integer between 1 and ${env.semanticSearch.maxK}.`,
+    };
+  }
 
-    return { value: parsed, error: null };
+  return { value: parsed, error: null };
 };
 
 const parseThresholdParam = (rawThreshold) => {
-    if (rawThreshold === undefined) {
-        return { value: undefined, error: null };
-    }
+  if (rawThreshold === undefined) {
+    return { value: undefined, error: null };
+  }
 
-    const parsed = Number(rawThreshold);
+  const parsed = Number(rawThreshold);
 
-    if (Number.isNaN(parsed) || parsed < 0 || parsed > 1) {
-        return {
-            value: null,
-            error: "threshold must be a number between 0 and 1.",
-        };
-    }
+  if (Number.isNaN(parsed) || parsed < 0 || parsed > 1) {
+    return {
+      value: null,
+      error: "threshold must be a number between 0 and 1.",
+    };
+  }
 
-    return { value: parsed, error: null };
+  return { value: parsed, error: null };
 };
 
 // ============================================================
@@ -54,25 +53,25 @@ const parseThresholdParam = (rawThreshold) => {
 // ============================================================
 
 const getQuestions = async (req, res, next) => {
-    try {
-        const { search, mine } = req.query;
-        const onlyMine = mine === "true" || mine === "1";
+  try {
+    const { search, mine } = req.query;
+    const onlyMine = mine === "true" || mine === "1";
 
-        const { questions, meta } = await getQuestionsService({
-            search: typeof search === "string" ? search.trim() : "",
-            onlyMine,
-            userId: req.user?.userId,
-        });
+    const { questions, meta } = await getQuestionsService({
+      search: typeof search === "string" ? search.trim() : "",
+      onlyMine,
+      userId: req.user?.userId,
+    });
 
-        return res.status(200).json({
-            success: true,
-            message: "Questions fetched successfully.",
-            data: questions,
-            meta,
-        });
-    } catch (error) {
-        next(error);
-    }
+    return res.status(200).json({
+      success: true,
+      message: "Questions fetched successfully.",
+      data: questions,
+      meta,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // ============================================================
@@ -80,44 +79,44 @@ const getQuestions = async (req, res, next) => {
 // ============================================================
 
 const searchQuestionsSemantic = async (req, res, next) => {
-    try {
-        const { query, k: rawK, threshold: rawThreshold } = req.query;
+  try {
+    const { query, k: rawK, threshold: rawThreshold } = req.query;
 
-        if (typeof query !== "string" || query.trim().length < 3) {
-            return res.status(400).json({
-                success: false,
-                message: "query must be at least 3 characters.",
-            });
-        }
-
-        const { value: k, error: kError } = parseKParam(rawK);
-
-        if (kError) {
-            return res.status(400).json({ success: false, message: kError });
-        }
-
-        const { value: threshold, error: thresholdError } =
-            parseThresholdParam(rawThreshold);
-
-        if (thresholdError) {
-            return res.status(400).json({ success: false, message: thresholdError });
-        }
-
-        const result = await searchQuestionsSemanticService({
-            query: query.trim(),
-            k,
-            threshold,
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Semantic search completed successfully",
-            data: result.data,
-            meta: result.meta,
-        });
-    } catch (error) {
-        next(error);
+    if (typeof query !== "string" || query.trim().length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: "query must be at least 3 characters.",
+      });
     }
+
+    const { value: k, error: kError } = parseKParam(rawK);
+
+    if (kError) {
+      return res.status(400).json({ success: false, message: kError });
+    }
+
+    const { value: threshold, error: thresholdError } =
+      parseThresholdParam(rawThreshold);
+
+    if (thresholdError) {
+      return res.status(400).json({ success: false, message: thresholdError });
+    }
+
+    const result = await searchQuestionsSemanticService({
+      query: query.trim(),
+      k,
+      threshold,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Semantic search completed successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // ============================================================
@@ -129,7 +128,7 @@ const searchQuestionsSemantic = async (req, res, next) => {
 //
 // Evaluates whether a proposed answer fits the selected question.
 const assessAnswerAgainstQuestion = async (req, res, next) => {
-    try {
+  try {
     // Read the question identifier from the URL.
     const { questionHash } = req.params;
 
@@ -138,39 +137,88 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
 
     // Validate the question identifier.
     if (!QUESTION_HASH_PATTERN.test(questionHash)) {
-        return res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Invalid question identifier.",
-    });
+      });
     }
     // Validate that an answer was provided.
     if (typeof answerText !== "string" || answerText.trim().length < 20) {
-        return res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "answerText must contain at least 20 characters.",
-        });
+      });
     }
-    
+
     // This also throws a 404 error when the question does not exist.
     const { question } = await getSingleQuestionService(questionHash);
 
     // Evaluate the proposed answer against the question context.
     const data = await assessAnswerAgainstQuestionService({
-        question,
-        answerText: answerText.trim(),
+      question,
+      answerText: answerText.trim(),
     });
 
     // Return the AI-generated evaluation.
     return res.status(200).json({
-        success: true,
-        message: "Answer fit assessed",
-        data,
+      success: true,
+      message: "Answer fit assessed",
+      data,
     });
-
-    } catch (error) {
+  } catch (error) {
     // Handles question-not-found and Gemini/provider errors.
     next(error);
+  }
+};
+
+//Similar Questions
+
+const getSimilarQuestions = async (req, res, next) => {
+  try {
+    // Get the question identifier from the URL.
+    const { questionHash } = req.params;
+    // Validate the question hash before continuing.
+    if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid question identifier.",
+      });
     }
+
+    // Read optional semantic-search parameters.
+    const { k: rawK, threshold: rawThreshold } = req.query;
+
+    // Validate k.
+    const { value: k, error: kError } = parseKParam(rawK);
+
+    if (kError) {
+      return res.status(400).json({ success: false, message: kError });
+    }
+    // Validate threshold.
+    const { value: threshold, error: thresholdError } =
+      parseThresholdParam(rawThreshold);
+
+    if (thresholdError) {
+      return res.status(400).json({ success: false, message: thresholdError });
+    }
+
+    // Ask the service to find semantically similar questions.
+    const result = await getSimilarQuestionsService({
+      questionHash,
+      k,
+      threshold,
+    });
+
+    // Return the similar-question results.
+    return res.status(200).json({
+      success: true,
+      message: "Similar questions fetched successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 //! ---------------NEED TO BE CHECKED-------------
@@ -186,8 +234,4 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
 // EXPORT CONTROLLERS
 // ============================================================
 
-export {
-    getQuestions,
-    searchQuestionsSemantic,
-    assessAnswerAgainstQuestion,
-};
+export { getQuestions, searchQuestionsSemantic, assessAnswerAgainstQuestion };
