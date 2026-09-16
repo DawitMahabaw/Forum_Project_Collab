@@ -6,3 +6,5 @@ import {
   deleteAnswer,
   updateAnswer,
 } from "../controllers/answerController.js";
+
+import authenticate from "../middleware/authMiddleware.js";
