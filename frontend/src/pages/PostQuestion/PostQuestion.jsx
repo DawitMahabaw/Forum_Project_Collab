@@ -1,6 +1,24 @@
+import { useState } from "react";
+
 import styles from "./PostQuestion.module.css";
 
 const PostQuestion = () => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
+
+  const validateForm = () => {
+    if (!title.trim()) {
+      return "Question title is required.";
+    }
+
+    if (!description.trim()) {
+      return "Question description is required.";
+    }
+
+    return "";
+  };
+
   return (
     <section className={styles.page}>
       <header className={styles.header}>
@@ -23,6 +41,8 @@ const PostQuestion = () => {
               id="title"
               name="title"
               type="text"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
               placeholder="e.g. How does React use props?"
             />
           </div>
@@ -34,6 +54,8 @@ const PostQuestion = () => {
               id="description"
               name="description"
               rows="10"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
               placeholder="Explain your question, what you have tried, and where you are stuck..."
             />
           </div>
