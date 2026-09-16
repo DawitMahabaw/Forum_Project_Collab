@@ -96,14 +96,6 @@ const validateRegistrationInput = (input) => {
     return "Please provide a valid email address.";
   }
 
-  // ----------------------------------------------------------
-  // Validate password length.
-  // ----------------------------------------------------------
-
-  if (password.length < 8) {
-    return "Password must contain at least 8 characters.";
-  }
-
   return null;
 };
 
@@ -127,10 +119,6 @@ const validateLoginInput = (input) => {
     return emailError;
   }
 
-  // ----------------------------------------------------------
-  // Check password separately.
-  // ----------------------------------------------------------
-
   const passwordError = validatePasswordField(password);
   if (passwordError) {
     return passwordError;
@@ -150,23 +138,10 @@ const validateLoginInput = (input) => {
 // ============================================================
 // REGISTER CONTROLLER
 // ============================================================
-//
-// Handles:
-// POST /api/auth/register
-//
-// ============================================================
 
 const register = async (req, res, next) => {
   try {
-    // --------------------------------------------------------
-    // Extract registration data from the request body.
-    // --------------------------------------------------------
-
-
-    // --------------------------------------------------------
     // Validate the incoming data.
-    // --------------------------------------------------------
-
 
     const validationError = validateRegistrationInput(req.body);
 
@@ -179,15 +154,7 @@ const register = async (req, res, next) => {
 
     const { firstName, lastName, email, password } = req.body;
 
-    // --------------------------------------------------------
     // Normalize user input before sending it to the service.
-    //
-    // Names:
-    //     Remove unnecessary spaces.
-    //
-    // Email:
-    //     Remove spaces and convert to lowercase.
-    // --------------------------------------------------------
 
     const normalizedFirstName = firstName.trim();
 
@@ -195,9 +162,7 @@ const register = async (req, res, next) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // --------------------------------------------------------
     // Call the authentication service.
-    // --------------------------------------------------------
 
     const result = await registerUser({
       firstName: normalizedFirstName,
@@ -206,14 +171,6 @@ const register = async (req, res, next) => {
       password,
     });
 
-    // --------------------------------------------------------
-    // Return the newly created user and JWT.
-    //
-    // IMPORTANT:
-    // The password is NEVER returned.
-    // The password hash is NEVER returned.
-    // --------------------------------------------------------
-
     return res.status(201).json({
       success: true,
       message: "Account created successfully.",
@@ -221,10 +178,6 @@ const register = async (req, res, next) => {
       token: result.token,
     });
   } catch (error) {
-    // --------------------------------------------------------
-    // Send unexpected errors to centralized error handling.
-    // --------------------------------------------------------
-
     next(error);
   }
 };
@@ -232,22 +185,10 @@ const register = async (req, res, next) => {
 // ============================================================
 // LOGIN CONTROLLER
 // ============================================================
-//
-// Handles:
-// POST /api/auth/login
-//
-// ============================================================
 
 const login = async (req, res, next) => {
   try {
-    // --------------------------------------------------------
-    // Extract login credentials.
-    // --------------------------------------------------------
-
-
-    // --------------------------------------------------------
-    // Validate the credentials.
-    // --------------------------------------------------------
+    // Validate the incoming data.
 
     const validationError = validateLoginInput(req.body);
 
@@ -261,18 +202,15 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     // Normalize the email before authentication.
-    const normalizedEmail = email.trim().toLowerCase();
-    
 
-    // Verify credentials through the database service
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Verify credentials through the authentication service.
+
     const result = await loginUser({
       email: normalizedEmail,
       password,
     });
-
-    // --------------------------------------------------------
-    // Return the authenticated user and JWT.
-    // --------------------------------------------------------
 
     return res.status(200).json({
       success: true,
@@ -281,40 +219,25 @@ const login = async (req, res, next) => {
       token: result.token,
     });
   } catch (error) {
-    // --------------------------------------------------------
-    // Send errors to centralized error middleware.
-    // --------------------------------------------------------
-
     next(error);
   }
 };
 
-
-
+// ============================================================
+// GET CURRENT USER CONTROLLER
+// ============================================================
 
 const getMe = async (req, res, next) => {
   try {
-    // --------------------------------------------------------
-    // Get the authenticated user's information.
-    // --------------------------------------------------------
     const user = await getCurrentUser(req.user.userId);
-    // --------------------------------------------------------
-    // Return the authenticated user's information.
-    // --------------------------------------------------------
+
     return res.status(200).json({
       success: true,
       user,
     });
   } catch (error) {
-    // --------------------------------------------------------
-    // Send errors to centralized error middleware.
-    // --------------------------------------------------------
     next(error);
   }
 };
-
-// ============================================================
-// EXPORT CONTROLLERS
-// ============================================================
 
 export { register, login, getMe };
