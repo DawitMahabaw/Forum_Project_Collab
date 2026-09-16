@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 import { createQuestion } from "../../services/questionService.js";
@@ -5,6 +6,8 @@ import { createQuestion } from "../../services/questionService.js";
 import styles from "./PostQuestion.module.css";
 
 const PostQuestion = () => {
+  const navigate = useNavigate();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
@@ -44,6 +47,10 @@ const PostQuestion = () => {
       });
 
       setSuccess(response.message || "Question created successfully.");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (error) {
       console.error("Failed to create question:", error);
 
