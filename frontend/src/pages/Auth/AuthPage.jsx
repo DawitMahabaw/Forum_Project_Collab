@@ -47,41 +47,69 @@ const AuthPage = () => {
     setError("");
     setSuccess("");
 
+    // ==========================================================
+    // REGISTRATION-SPECIFIC VALIDATION
+    // ==========================================================
+
     if (isRegistering) {
+      // Check first name is provided.
       if (!formData.firstName.trim()) {
         setError("First name is required.");
         return;
       }
 
+      // Check last name is provided.
       if (!formData.lastName.trim()) {
         setError("Last name is required.");
         return;
       }
 
+      // Check first name length.
       if (formData.firstName.trim().length < 2) {
         setError("First name must contain at least 2 characters.");
         return;
       }
 
+      // Check last name length.
       if (formData.lastName.trim().length < 2) {
         setError("Last name must contain at least 2 characters.");
         return;
       }
     }
 
+    // ==========================================================
+    // EMAIL VALIDATION
+    // ==========================================================
+
     const email = formData.email.trim().toLowerCase();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    // Check that an email was provided before checking its format.
+    if (!email) {
+      setError("Email is required.");
+      return;
+    }
+
+    // Check email format only after confirming it is not empty.
     if (!emailPattern.test(email)) {
       setError("Please enter a valid email address.");
       return;
     }
 
+    // ==========================================================
+    // PASSWORD VALIDATION
+    // ==========================================================
+
+    // A password is required for both registration and login.
     if (!formData.password) {
       setError("Password is required.");
       return;
     }
 
+    // Only registration requires a minimum password length.
+    // Login sends the supplied password to the backend so that
+    // incorrect credentials receive the generic authentication
+    // error: "Invalid email or password."
     if (isRegistering) {
       if (formData.password.length < 8) {
         setError("Password must contain at least 8 characters.");
@@ -89,10 +117,13 @@ const AuthPage = () => {
       }
     }
 
+    // ==========================================================
+    // SUBMIT AUTHENTICATION REQUEST
+    // ==========================================================
+
     setIsLoading(true);
 
     try {
-      
       if (isRegistering) {
         await register({
           firstName: formData.firstName,
@@ -100,34 +131,35 @@ const AuthPage = () => {
           email,
           password: formData.password,
         });
+
         setSuccess("Registration successful! Please sign in.");
+
         setFormData({
           firstName: "",
           lastName: "",
           email: "",
           password: "",
         });
+
         setShowPassword(false);
         setIsRegistering(false);
         return;
       } else {
-        
         await login({
           email,
           password: formData.password,
         });
       }
 
-      
       const destination = location.state?.from?.pathname || "/dashboard";
       navigate(destination, { replace: true });
-    }  catch (requestError) {
-  setError(
-    requestError instanceof Error
-      ? requestError.message
-      : "Unable to connect to the server. Please try again.",
-  );
-} finally {
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to connect to the server. Please try again.",
+      );
+    } finally {
       setIsLoading(false);
     }
   };
