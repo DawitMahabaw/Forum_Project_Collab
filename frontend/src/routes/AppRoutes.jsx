@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import Layout from "../components/Layout/Layout.jsx";
 
+import PostQuestion from "../pages/PostQuestion/PostQuestion.jsx";
 import AuthPage from "../pages/Auth/AuthPage.jsx";
 import Dashboard from "../pages/Dashboard/Dashboard.jsx";
 import LandingPage from "../pages/Landing/LandingPage.jsx";
@@ -19,6 +20,7 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/post-question" element={<PostQuestion />} />
           </Route>
         </Route>
       </Routes>
