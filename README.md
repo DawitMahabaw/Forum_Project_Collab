@@ -1,907 +1,1106 @@
 # AI-Powered Evangadi Forum
 
-An AI-powered collaborative discussion platform designed to help users ask questions, share knowledge, discover similar questions, receive AI-assisted guidance, and interact with a structured knowledge base.
+An AI-powered community forum designed to allow users to ask questions, share answers, discover similar discussions, and receive AI-assisted guidance.
 
-The project combines a traditional community forum with Artificial Intelligence capabilities such as semantic search, question similarity detection, AI-assisted question and answer evaluation, embeddings, and Retrieval-Augmented Generation (RAG).
+The project is organized into **three development milestones**, with each milestone building on the architecture and functionality of the previous one.
 
-The application is being developed as a collaborative full-stack project using a separate frontend and backend architecture.
+## Project Milestones
+
+```text
+Milestone 1
+Authentication & Application Foundation
+        ↓
+Milestone 2
+Questions, Answers & AI Assistance
+        ↓
+Milestone 3
+RAG Knowledge Base
+```
+
+### Milestone 1 — Authentication & Application Foundation
+
+Establishes the application's core architecture and secure user authentication system.
+
+Key areas:
+
+* User registration
+* User login
+* Password hashing with bcrypt
+* JWT authentication
+* Protected frontend routes
+* Authentication context
+* Axios API configuration
+* Centralized error handling
+* Public landing page
+* Backend MVC architecture
+* MySQL database foundation
+
+**Status: Completed**
 
 ---
 
-## Project Overview
+# Milestone 1 — General Application Flow
 
-The Evangadi Forum is designed as a modern question-and-answer platform where users can:
+Milestone 1 establishes the authentication foundation of the AI-Powered Evangadi Forum.
 
-* Create an account and securely authenticate.
-* Ask technical and educational questions.
-* Browse existing questions.
-* View individual questions and their answers.
-* Submit answers to questions.
-* Search for questions using semantic meaning rather than only exact keywords.
-* Detect questions that are similar or potentially duplicated.
-* Receive AI assistance while drafting questions.
-* Evaluate whether an answer appropriately addresses a question.
-* Upload knowledge-base documents.
-* Search information contained inside uploaded documents.
-* Ask AI questions grounded in the uploaded knowledge base.
-
-The project is organized into three major development milestones.
-
----
-
-# Development Milestones
-
-The project is intentionally divided into three milestones so that the system can be developed incrementally and tested at each stage.
-
-```text
-┌──────────────────────────────────────────┐
-│        AI-POWERED EVANGADI FORUM         │
-└──────────────────────────────────────────┘
-                    │
-        ┌───────────┼───────────┐
-        ↓           ↓           ↓
-  MILESTONE 1   MILESTONE 2   MILESTONE 3
- Authentication  Questions &   Knowledge Base
-                 Answers            / RAG
-```
-
-### Milestone 1 — Authentication
-
-The first milestone establishes the foundation of the application.
-
-It focuses on:
-
-* Project initialization.
-* MySQL database foundation.
-* User registration.
-* Password hashing.
-* User login.
-* JWT authentication.
-* Axios authentication handling.
-* Authentication state management.
-* Protected routes.
-* Public landing page.
-
-The goal is to establish a secure identity and access system before users begin interacting with forum content.
-
----
-
-### Milestone 2 — Questions & Answers
-
-The second milestone builds the core forum functionality on top of the authentication foundation.
-
-It focuses on:
-
-* Creating questions.
-* Listing questions.
-* Viewing question details.
-* Creating answers.
-* Managing a user's questions.
-* Semantic question search.
-* Similar-question detection.
-* Automatic question embeddings.
-* AI question drafting assistance.
-* AI answer-fit evaluation.
-* Main application layout and dashboard functionality.
-
-This milestone transforms the authentication foundation into a functional question-and-answer platform.
-
----
-
-### Milestone 3 — Knowledge Base / RAG
-
-The third milestone introduces the advanced AI knowledge-base functionality.
-
-It focuses on:
-
-* Uploading documents.
-* Processing uploaded documents.
-* Splitting documents into searchable chunks.
-* Generating embeddings.
-* Semantic retrieval.
-* Asking questions against uploaded knowledge.
-* Grounding AI responses in retrieved information.
-* RAG document metadata.
-* Document management.
-* Secure document access.
-* Streaming PDF documents.
-
-This milestone adds the Retrieval-Augmented Generation architecture that allows the AI system to work with project-specific knowledge.
-
----
-
-# Technology Stack
-
-## Frontend
-
-The frontend is built with:
-
-* React
-* React Router
-* Axios
-* Context API
-* CSS Modules
-* Framer Motion
-* Vite
-
-The frontend communicates with the backend through REST API endpoints.
-
----
-
-## Backend
-
-The backend is built with:
-
-* Node.js
-* Express.js
-* MySQL
-* mysql2
-* bcrypt
-* JSON Web Tokens
-* dotenv
-* CORS
-
-The backend follows a modular architecture with separate responsibilities for:
-
-* Routes
-* Controllers
-* Services
-* Models
-* Middleware
-* Configuration
-* AI functionality
-* RAG functionality
-* Utilities
-
-The backend uses **ES Modules (ESM)** throughout the project.
-
----
-
-## Database
-
-The project uses MySQL as its relational database.
-
-The database is responsible for storing application data such as:
-
-* Users
-* Questions
-* Answers
-* AI-related data
-* Knowledge-base documents
-* Question vectors
-
-Database design is introduced incrementally according to the project milestones.
-
----
-
-## Artificial Intelligence
-
-The AI layer uses Google's Gemini ecosystem for generative AI functionality.
-
-AI functionality includes:
-
-* Text generation.
-* Embeddings.
-* Semantic similarity.
-* Question similarity detection.
-* AI question assistance.
-* AI answer evaluation.
-* Retrieval-Augmented Generation.
-
-AI functionality is introduced progressively rather than being added to the application all at once.
-
----
-
-# Milestone 1 — Authentication
-
-## Overview
-
-Milestone 1 establishes the authentication and database foundation required by the rest of the application.
-
-Before users can ask questions or submit answers, the application needs to know:
-
-* Who the user is.
-* How the user registers.
-* How passwords are securely stored.
-* How users log in.
-* How authenticated requests are identified.
-* Which pages require authentication.
-* How authentication state is maintained on the frontend.
-
-Therefore, authentication is implemented first.
-
----
-
-## Milestone 1 Objectives
-
-The main objectives of this milestone are:
-
-* Establish the project structure.
-* Establish the MySQL database foundation.
-* Create the users table.
-* Implement secure user registration.
-* Hash passwords using bcrypt.
-* Implement user login.
-* Generate JWT authentication tokens.
-* Configure Axios for authenticated API requests.
-* Handle unauthorized requests.
-* Maintain authentication state using React Context.
-* Protect authenticated routes.
-* Create the public landing page.
-
----
-
-# Database Foundation
-
-The database foundation provides the persistence layer required by registration and login.
-
-The main database for the project is:
-
-```text
-evangadi_forum_collab
-```
-
-The first authentication table is:
-
-```text
-users
-```
-
-The schema is maintained in:
-
-```text
-backend/db/schema.sql
-```
-
-The schema acts as the database definition and source of truth for the authentication database structure.
-
----
-
-## Users Table
-
-The `users` table contains the information required to identify and authenticate users.
-
-The primary fields are:
-
-```text
-user_id
-first_name
-last_name
-email
-password_hash
-created_at
-updated_at
-```
-
-The `user_id` uniquely identifies each user.
-
-The first and last names store the user's basic profile information.
-
-The email address is unique so that the same email cannot be registered multiple times.
-
-The `password_hash` column stores the bcrypt-generated password hash rather than the user's original password.
-
-The timestamp fields record when the account was created and when it was last updated.
-
----
-
-## Database Configuration
-
-Database connection information is stored in environment variables rather than being hard-coded into the application.
-
-Example configuration:
-
-```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=evangadi_forum_collab
-```
-
-Sensitive credentials are not committed to GitHub.
-
-The backend reads these values through:
-
-```text
-backend/src/config/env.js
-```
-
-The database connection pool is configured through:
-
-```text
-backend/src/config/db.js
-```
-
-Using a connection pool allows the backend to efficiently reuse database connections.
-
----
-
-# Automatic Database Table Initialization
-
-The backend includes a database initialization process.
-
-The initialization logic is located in:
-
-```text
-backend/src/config/initDb.js
-```
-
-The current approach assumes that the MySQL database itself has already been created.
-
-When the backend starts, the initialization process connects to the configured database and ensures that the required authentication table exists.
-
-The basic flow is:
-
-```text
-Backend starts
-      ↓
-Read environment variables
-      ↓
-Connect to MySQL database
-      ↓
-Check whether users table exists
-      ↓
-Create users table if necessary
-      ↓
-Continue application startup
-```
-
-The table is created using:
-
-```sql
-CREATE TABLE IF NOT EXISTS users
-```
-
-This allows a teammate to clone the project, configure their local environment, and start the backend without manually recreating the table.
-
----
-
-# User Model
-
-The database operations for users are handled by:
-
-```text
-backend/src/models/User.js
-```
-
-The User model provides the database operations required by authentication.
-
-The main operations include:
-
-### Create User
-
-Creates a new user record in the `users` table.
-
-The model receives a bcrypt-generated password hash rather than a plain-text password.
-
----
-
-### Find User by Email
-
-Searches for an existing user using their email address.
-
-This operation is required during login because the backend needs to retrieve the stored password hash before comparing it with the password supplied during authentication.
-
----
-
-## Parameterized Queries
-
-Database operations use parameterized queries.
-
-For example:
-
-```js
-await pool.execute(
-  `
-  SELECT
-    user_id,
-    first_name,
-    last_name,
-    email,
-    password_hash
-  FROM users
-  WHERE email = ?
-  LIMIT 1
-  `,
-  [email],
-);
-```
-
-The `?` placeholder prevents user input from being directly inserted into the SQL statement.
-
-This helps protect the application against SQL injection.
-
----
-
-# User Registration
-
-User registration is implemented through:
-
-```text
-POST /api/auth/register
-```
-
-The registration process follows this general flow:
-
-```text
-User submits registration form
-          ↓
-Frontend sends registration request
-          ↓
-Backend receives request
-          ↓
-Validate input
-          ↓
-Check whether email already exists
-          ↓
-Hash password with bcrypt
-          ↓
-Create user in MySQL
-          ↓
-Return registration response
-```
-
-The original password is never stored in the database.
-
-Instead:
-
-```text
-Plain Password
-      ↓
-    bcrypt
-      ↓
-Password Hash
-      ↓
-MySQL users.password_hash
-```
-
----
-
-# Password Security
-
-Passwords are protected using bcrypt.
-
-The application never stores a user's original password in the database.
-
-For example, if a user enters:
-
-```text
-MyPassword123
-```
-
-the database does not store:
-
-```text
-MyPassword123
-```
-
-Instead, it stores a bcrypt-generated hash similar to:
-
-```text
-$2b$...
-```
-
-The exact hash is different for each password because bcrypt uses a salt.
-
-During login, the submitted password is compared against the stored hash.
-
----
-
-# User Login
-
-User login is implemented through:
-
-```text
-POST /api/auth/login
-```
-
-The login process follows:
-
-```text
-User enters email + password
-          ↓
-Backend finds user by email
-          ↓
-Retrieve stored password hash
-          ↓
-Compare submitted password with bcrypt
-          ↓
-Credentials valid?
-       ↙       ↘
-     YES        NO
-      ↓          ↓
-Create JWT    Reject login
-      ↓
-Return token
-```
-
-A successful login results in a signed JWT authentication token.
-
----
-
-# JWT Authentication
-
-JSON Web Tokens are used to identify authenticated users.
-
-The general authentication flow is:
-
-```text
-Login
-  ↓
-Credentials verified
-  ↓
-JWT created
-  ↓
-Token returned to frontend
-  ↓
-Frontend stores authentication state
-  ↓
-Axios attaches token to requests
-  ↓
-Backend verifies token
-  ↓
-Protected resource becomes accessible
-```
-
-JWT functionality is kept separate from the database logic.
-
-Authentication utilities are located under:
-
-```text
-backend/src/utils/
-```
-
----
-
-# Axios Authentication
-
-The frontend communicates with the backend through Axios.
-
-The main Axios configuration is located in:
-
-```text
-frontend/src/services/api.js
-```
-
-The authentication service is located in:
-
-```text
-frontend/src/services/authService.js
-```
-
-The Axios configuration is responsible for attaching the JWT to authenticated requests.
-
-The general request flow is:
-
-```text
-React component
-      ↓
-Service function
-      ↓
-Axios
-      ↓
-JWT attached
-      ↓
-Express API
-      ↓
-Authentication middleware
-      ↓
-Protected controller
-```
-
----
-
-# Authentication Context
-
-Frontend authentication state is managed through:
-
-```text
-frontend/src/context/AuthContext.jsx
-```
-
-The authentication context provides a central place for the application to know whether the current user is authenticated.
-
-This prevents individual components from having to independently manage authentication state.
-
-The context can be used by components and pages that need information about the current authentication state.
-
----
-
-# Protected Routes
-
-Authenticated pages are protected using:
-
-```text
-frontend/src/components/ProtectedRoute.jsx
-```
-
-The basic idea is:
-
-```text
-User requests protected page
-          ↓
-Is user authenticated?
-       ↙       ↘
-     YES        NO
-      ↓          ↓
-Show page    Redirect to auth
-```
-
-This prevents unauthenticated users from accessing pages that require login.
-
----
-
-# Public Landing Page
-
-The public landing page is implemented as part of Milestone 1.
-
-It provides an entry point for users who have not yet authenticated.
-
-The page is located under:
-
-```text
-frontend/src/pages/Landing/
-```
-
-The landing page introduces the application and provides navigation toward authentication.
-
----
-
-# Milestone 1 File Responsibilities
-
-The primary backend files introduced or used by this milestone include:
-
-```text
-backend/
-├── db/
-│   └── schema.sql
-│
-└── src/
-    ├── config/
-    │   ├── db.js
-    │   ├── env.js
-    │   └── initDb.js
-    │
-    ├── controllers/
-    │   └── authController.js
-    │
-    ├── middleware/
-    │   └── authMiddleware.js
-    │
-    ├── models/
-    │   └── User.js
-    │
-    ├── routes/
-    │   └── authRoutes.js
-    │
-    └── utils/
-        ├── hash.js
-        ├── jwt.js
-        └── password.js
-```
-
-The primary frontend authentication files include:
-
-```text
-frontend/
-└── src/
-    ├── components/
-    │   └── ProtectedRoute.jsx
-    │
-    ├── context/
-    │   └── AuthContext.jsx
-    │
-    ├── pages/
-    │   └── Auth/
-    │       ├── AuthPage.jsx
-    │       └── AuthPage.module.css
-    │
-    └── services/
-        ├── api.js
-        └── authService.js
-```
-
----
-
-# Milestone 1 Development Tasks
-
-The milestone is organized around the following major tasks:
-
-| Task                   | Description                                                        |
-| ---------------------- | ------------------------------------------------------------------ |
-| Project Initialization | Establish the shared project structure and development environment |
-| Database Foundation    | Create the database structure required for authentication          |
-| User Registration      | Validate and create new user accounts                              |
-| Password Security      | Hash passwords securely with bcrypt                                |
-| User Login             | Verify credentials and authenticate users                          |
-| JWT Authentication     | Create and verify authentication tokens                            |
-| Axios Authentication   | Attach JWT tokens to authenticated requests                        |
-| Auth Service           | Connect frontend authentication actions to backend APIs            |
-| Authentication UI      | Build the login and registration interface                         |
-| Auth Context           | Manage authentication state across the React application           |
-| Protected Routes       | Restrict access to authenticated pages                             |
-| Landing Page           | Provide the public entry point to the application                  |
-
----
-
-# Milestone 1 Completion Criteria
-
-Milestone 1 is considered complete when the authentication foundation works as an integrated system.
-
-The expected flow is:
+At a high level, the application follows this flow:
 
 ```text
                     USER
                      │
-          ┌──────────┴──────────┐
-          ↓                     ↓
-      Register                Login
-          │                     │
-          └──────────┬──────────┘
-                     ↓
-                  React
-                     ↓
-                  Axios
-                     ↓
-             Express Backend
-                     ↓
-            Authentication Logic
-                     ↓
-                  bcrypt
-                     ↓
-                  MySQL
-                     ↓
-                JWT Token
-                     ↓
-             Authenticated User
-                     ↓
-              Protected Pages
+                     ▼
+              React Frontend
+                     │
+                     ▼
+              React Router
+                     │
+             ┌───────┴────────┐
+             ▼                ▼
+        Landing Page       Auth Page
+                              │
+                       Login / Register
+                              │
+                              ▼
+                         API Request
+                              │
+                              ▼
+                       Axios Service
+                              │
+                              ▼
+                     Express Backend
+                              │
+                              ▼
+                           Route
+                              │
+                              ▼
+                        Controller
+                              │
+                              ▼
+                         Auth Service
+                              │
+                              ▼
+                         User Model
+                              │
+                              ▼
+                         MySQL Database
 ```
 
-The milestone should satisfy the following conditions:
-
-* The project runs successfully.
-* The MySQL database is available.
-* The users table is created successfully.
-* Users can register.
-* Registration validates required information.
-* Passwords are stored as bcrypt hashes.
-* Users can log in.
-* Invalid credentials are rejected.
-* Successful login produces a JWT.
-* Authenticated requests can include the JWT.
-* Protected routes reject unauthenticated users.
-* The frontend maintains authentication state.
-* The public landing page is accessible without authentication.
-* Backend and frontend responsibilities remain separated.
-* Environment variables are used for configuration.
-* No sensitive credentials are committed to Git.
-* The milestone has been tested through frontend/backend integration.
-* Completed changes are reviewed and pushed to the shared repository.
-
----
-
-# Development Workflow
-
-The project is developed collaboratively using Git and GitHub.
-
-Development work is organized around individual tasks.
-
-Branches should describe the task being implemented rather than the developer's name.
-
-Example:
+After successful login:
 
 ```text
-feature/T-04-register-user
-feature/database-user-schema
-feature/T-05-login-user
+User Login
+    │
+    ▼
+Backend verifies credentials
+    │
+    ▼
+JWT generated
+    │
+    ▼
+Frontend receives JWT
+    │
+    ▼
+AuthContext updates authentication state
+    │
+    ▼
+User can access protected routes
 ```
 
-The general workflow is:
+For protected API requests:
 
 ```text
-Task
- ↓
-Create task branch
- ↓
-Implement change
- ↓
-Test locally
- ↓
-Commit changes
- ↓
-Push branch
- ↓
-Create Pull Request
- ↓
-Code Review
- ↓
-QA / Integration
- ↓
-Merge
+React Component
+      │
+      ▼
+Axios Service
+      │
+      ▼
+Axios Interceptor
+      │
+      ▼
+Attach JWT
+      │
+      ▼
+Express API
+      │
+      ▼
+Authentication Middleware
+      │
+      ▼
+Protected Controller
+      │
+      ▼
+Response
 ```
 
-Small, focused commits are preferred because they make the development history easier to understand and review.
-
 ---
 
-# Environment Configuration
+# Milestone 1 — Backend Architecture
 
-Environment files contain local configuration values and must not be committed to the repository.
-
-The repository provides example environment files so that each developer can create their own local configuration.
-
-Typical backend environment variables include:
-
-```env
-PORT=4000
-
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=evangadi_forum_collab
-```
-
-Actual passwords and other sensitive credentials must remain local.
-
----
-
-# Current Project Status
-
-## Milestone 1 — Authentication
-
-**Status:** In Development / Completion Stage
-
-The current milestone establishes the authentication foundation and prepares the project for the question-and-answer functionality that will be developed in the next milestone.
-
----
-
-# Future Development
-
-The README will evolve together with the project.
-
-When Milestone 2 begins, its architecture, features, implementation details, API behavior, and completion criteria will be added to this README under a new:
+The backend follows a layered MVC-style architecture:
 
 ```text
-Milestone 2 — Questions & Answers
+Request
+   ↓
+Route
+   ↓
+Controller
+   ↓
+Service
+   ↓
+Model
+   ↓
+MySQL
 ```
 
-section.
+### Backend Responsibilities
 
-Milestone 3 will subsequently add:
+| Layer          | Responsibility                               |
+| -------------- | -------------------------------------------- |
+| `routes/`      | Defines API endpoints                        |
+| `controllers/` | Handles HTTP requests and responses          |
+| `services/`    | Contains application/business logic          |
+| `models/`      | Communicates with the database               |
+| `middleware/`  | Authentication and shared request processing |
+| `config/`      | Environment and database configuration       |
+| `utils/`       | Reusable helper functionality                |
+
+### Important Milestone 1 Files
 
 ```text
-Milestone 3 — Knowledge Base / RAG
+backend/
+├── index.js
+├── src/
+│   ├── config/
+│   │   ├── env.js
+│   │   └── db.js
+│   │
+│   ├── controllers/
+│   │   └── authController.js
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── errorMiddleware.js
+│   │
+│   ├── models/
+│   │   └── User.js
+│   │
+│   ├── routes/
+│   │   └── authRoutes.js
+│   │
+│   ├── services/
+│   │   └── authService.js
+│   │
+│   └── utils/
+│       ├── password.js
+│       └── jwt.js
+│
+└── db/
+    └── schema.sql
 ```
 
-This keeps the README as a single project-level source of documentation while allowing each milestone to maintain its own detailed technical documentation.
+`index.js` starts the Express server and connects the application's middleware and routes.
+
+`env.js` manages environment configuration, while `db.js` provides the MySQL database connection.
+
+`authRoutes.js` defines authentication endpoints such as:
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+```
+
+`authController.js` handles HTTP requests and responses.
+
+`authService.js` contains the main authentication logic.
+
+`User.js` handles user-related database operations.
+
+`password.js` manages password hashing and verification using bcrypt.
+
+`jwt.js` manages JWT creation and verification.
+
+`authMiddleware.js` protects routes that require authentication.
+
+`errorMiddleware.js` provides centralized backend error handling.
+
+`schema.sql` defines the database structure.
 
 ---
 
-# Project Vision
+# Milestone 1 — Frontend Architecture
 
-The final goal is to combine the usefulness of a community-driven question-and-answer platform with modern AI capabilities.
+The frontend follows this general structure:
 
-The completed platform will connect:
+```text
+User
+ ↓
+React Page
+ ↓
+Frontend Service
+ ↓
+Axios
+ ↓
+Backend API
+```
+
+Important areas include:
+
+```text
+frontend/src/
+├── components/
+├── context/
+├── pages/
+├── routes/
+├── services/
+├── utils/
+├── App.jsx
+├── main.jsx
+└── index.css
+```
+
+`main.jsx` starts the React application.
+
+`App.jsx` provides the main application structure.
+
+`AppRoutes.jsx` defines frontend navigation.
+
+`LandingPage.jsx` provides the public entry point.
+
+`AuthPage.jsx` provides login and registration.
+
+`AuthContext.jsx` manages authentication state across the application.
+
+`ProtectedRoute.jsx` prevents unauthenticated users from accessing protected pages.
+
+`api.js` provides the centralized Axios configuration.
+
+`authService.js` contains frontend authentication API functions.
+
+`auth.js` contains reusable authentication utilities.
+
+CSS Modules are used for page and component-specific styling.
+
+---
+
+# Milestone 2 — Questions, Answers & AI Assistance
+
+Milestone 2 builds the main forum functionality on top of the authentication foundation created in Milestone 1.
+
+The focus is now on:
+
+* Creating questions
+* Viewing questions
+* Searching questions
+* Viewing question details
+* Posting answers
+* Preventing users from answering their own questions
+* Semantic search
+* Similar-question discovery
+* AI Draft Coach
+* AI Answer Fit evaluation
+* User-specific question management
+
+**Status: In Progress / Current Milestone**
+
+---
+
+# Milestone 2 — General Application Flow
+
+The main forum flow extends the architecture from Milestone 1:
+
+```text
+                         USER
+                           │
+                           ▼
+                    React Frontend
+                           │
+                           ▼
+                     Forum Page
+                           │
+                           ▼
+                    Frontend Service
+                           │
+                           ▼
+                         Axios
+                           │
+                           ▼
+                    Express Backend
+                           │
+                           ▼
+                         Route
+                           │
+                           ▼
+                      Controller
+                           │
+                           ▼
+                       Service
+                           │
+                  ┌────────┴────────┐
+                  ▼                 ▼
+                Model          AI Service
+                  │                 │
+                  ▼                 ▼
+                MySQL          AI / Vectors
+```
+
+For authenticated question creation:
+
+```text
+User
+ ↓
+Post Question
+ ↓
+Axios
+ ↓
+JWT attached
+ ↓
+Auth Middleware
+ ↓
+Question Controller
+ ↓
+Question Service
+ ↓
+Question Model
+ ↓
+MySQL
+```
+
+For AI-powered question processing:
+
+```text
+Question
+   ↓
+Question Service
+   ↓
+AI / Embedding Service
+   ↓
+Generate Vector
+   ↓
+Store Question + Vector
+```
+
+---
+
+# Milestone 2 — Questions
+
+The question system allows authenticated users to create and manage forum questions.
+
+A question contains information such as:
+
+```text
+Question
+├── Title
+├── Description
+├── Author
+├── Question Hash
+├── Creation Date
+└── Vector Representation
+```
+
+The backend follows:
+
+```text
+POST /api/questions
+        ↓
+questionRoutes.js
+        ↓
+questionController.js
+        ↓
+questionService.js
+        ↓
+Question.js
+        ↓
+MySQL
+```
+
+When appropriate, the question can also be processed into an embedding for semantic search.
+
+---
+
+# Milestone 2 — Question Retrieval
+
+Questions can be retrieved through the API.
+
+The system supports:
+
+```text
+Get all questions
+Search questions
+Get my questions
+Get a specific question
+Get similar questions
+```
+
+A simplified flow is:
+
+```text
+Dashboard
+   ↓
+questionService.js
+   ↓
+Axios
+   ↓
+GET /api/questions
+   ↓
+Question Controller
+   ↓
+Question Service
+   ↓
+Question Model
+   ↓
+MySQL
+   ↓
+Questions
+```
+
+Query parameters allow the frontend to request specific results, such as a user's own questions or keyword-based searches.
+
+---
+
+# Milestone 2 — Semantic Search
+
+One of the major AI features introduced in Milestone 2 is **semantic search**.
+
+Traditional keyword search looks for matching words.
+
+Semantic search attempts to find questions with similar **meaning**, even when the exact words are different.
+
+```text
+User Search
+     ↓
+Create Embedding
+     ↓
+Compare With Question Vectors
+     ↓
+Calculate Similarity
+     ↓
+Rank Results
+     ↓
+Return Similar Questions
+```
+
+The system uses vector representations of questions and similarity calculations to identify related discussions.
+
+This allows the forum to discover questions that may be duplicates or closely related even when users phrase them differently.
+
+---
+
+# Milestone 2 — Question Similarity
+
+The application can also find questions related to a specific question.
+
+```text
+Existing Question
+       ↓
+Question Vector
+       ↓
+Compare Against Other Vectors
+       ↓
+Similarity Score
+       ↓
+Ranked Similar Questions
+```
+
+This supports the goal of helping users discover existing discussions before creating duplicate questions.
+
+---
+
+# Milestone 2 — Answers
+
+Authenticated users can answer questions.
+
+The answer flow is:
+
+```text
+User
+ ↓
+Question Detail
+ ↓
+Write Answer
+ ↓
+Axios
+ ↓
+JWT
+ ↓
+Auth Middleware
+ ↓
+Answer Controller
+ ↓
+Answer Service
+ ↓
+Answer Model
+ ↓
+MySQL
+```
+
+The application also prevents a user from answering their own question when the business rules require this restriction.
+
+The question and answer relationship is:
+
+```text
+User
+ │
+ ├── creates → Question
+ │
+ └── creates → Answer
+
+Question
+   │
+   └── has many → Answers
+```
+
+---
+
+# Milestone 2 — AI Draft Coach
+
+The **Draft Coach** helps a user improve a question before submitting it.
+
+The general flow is:
+
+```text
+User Writes Question
+        ↓
+Draft Coach
+        ↓
+AI Service
+        ↓
+Analyze Question
+        ↓
+Return Feedback
+        ↓
+User Improves Draft
+        ↓
+Submit Question
+```
+
+The goal is to provide useful guidance such as improving clarity, completeness, or technical detail before the question becomes a public forum post.
+
+---
+
+# Milestone 2 — AI Answer Fit
+
+The **Answer Fit** feature evaluates whether an answer appropriately addresses the question.
+
+Conceptually:
+
+```text
+Question
+   +
+Answer
+   ↓
+AI Service
+   ↓
+Evaluate Relevance
+   ↓
+Return Feedback / Evaluation
+```
+
+This is different from Draft Coach:
+
+```text
+Draft Coach
+→ Helps improve a question BEFORE submission
+
+Answer Fit
+→ Evaluates an answer AGAINST an existing question
+```
+
+---
+
+# Milestone 2 — Frontend Pages
+
+The main frontend functionality introduced in Milestone 2 includes:
+
+```text
+Dashboard
+   │
+   ├── Browse Questions
+   ├── Search
+   └── Open Question
+
+Post Question
+   │
+   └── Draft Coach
+
+Question Detail
+   │
+   ├── Question
+   ├── Answers
+   └── Answer Fit
+
+My Questions
+   │
+   └── User's Questions
+```
+
+The application also introduces reusable interface components such as:
+
+```text
+Layout
+Navbar
+Sidebar
+QuestionCard
+MarkdownContent
+Footer
+ProtectedRoute
+```
+
+These components help maintain a consistent application structure as the project grows.
+
+---
+
+# Milestone 2 — Service Architecture
+
+The frontend communicates with the backend through dedicated services:
+
+```text
+frontend/src/services/
+
+api.js
+authService.js
+questionService.js
+answerService.js
+ragService.js
+```
+
+For Milestone 2:
+
+```text
+Question Page
+      ↓
+questionService.js
+      ↓
+api.js
+      ↓
+Axios
+      ↓
+Backend API
+```
+
+And:
+
+```text
+Answer Page
+      ↓
+answerService.js
+      ↓
+api.js
+      ↓
+Axios
+      ↓
+Backend API
+```
+
+This keeps API communication separate from UI components.
+
+---
+
+# Milestone 2 — Backend Structure
+
+The backend now expands beyond authentication:
+
+```text
+backend/src/
+├── config/
+│
+├── controllers/
+│   ├── answerController.js
+│   ├── authController.js
+│   ├── documentController.js
+│   └── questionController.js
+│
+├── middleware/
+│
+├── models/
+│   ├── Answer.js
+│   ├── Document.js
+│   ├── Question.js
+│   ├── QuestionVector.js
+│   └── User.js
+│
+├── routes/
+│   ├── answerRoutes.js
+│   ├── authRoutes.js
+│   ├── documentRoutes.js
+│   └── questionRoutes.js
+│
+├── services/
+│   ├── aiService.js
+│   ├── answerService.js
+│   ├── authService.js
+│   ├── questionService.js
+│   └── ragService.js
+│
+└── utils/
+```
+
+The same architectural principle from Milestone 1 remains:
+
+```text
+Route
+  ↓
+Controller
+  ↓
+Service
+  ↓
+Model / AI Service
+  ↓
+Database / AI System
+```
+
+---
+
+# Milestone 2 — AI Architecture
+
+AI functionality is separated from normal CRUD logic.
+
+```text
+Question / Answer
+       │
+       ▼
+Application Service
+       │
+       ├───────────────┐
+       ▼               ▼
+Database Logic      AI Logic
+                       │
+                       ▼
+                 AI / Embeddings
+```
+
+This separation makes the AI features easier to extend and maintain.
+
+The project uses vector representations to support semantic search and related-question discovery.
+
+---
+
+# Database Responsibilities
+
+The database provides persistent storage for application data.
+
+Milestone 1 established the user structure.
+
+Milestone 2 extends the data model for:
 
 ```text
 Users
-  ↓
-Authentication
-  ↓
-Questions & Answers
-  ↓
-Semantic Search
-  ↓
-AI Assistance
-  ↓
-Knowledge Base
-  ↓
-Retrieval-Augmented Generation
-  ↓
-Grounded AI Responses
+Questions
+Answers
+Question Vectors
 ```
 
-The project is therefore developed incrementally, beginning with a reliable authentication and database foundation and progressively adding forum functionality and advanced AI capabilities.
+Conceptually:
+
+```text
+User
+ │
+ ├── Questions
+ │      │
+ │      ├── Vector
+ │      └── Answers
+ │
+ └── Answers
+```
+
+The database stores the actual forum information, while vector data supports semantic discovery.
+
+---
+
+# Complete Milestone 2 Flow
+
+The main architecture can now be understood as:
+
+```text
+                         USER
+                           │
+                           ▼
+                    React Frontend
+                           │
+                           ▼
+                       React Router
+                           │
+                           ▼
+                         Page
+                           │
+                           ▼
+                   Frontend Service
+                           │
+                           ▼
+                         Axios
+                           │
+                           ▼
+                  Authentication/JWT
+                           │
+                           ▼
+                    Express Backend
+                           │
+                           ▼
+                         Route
+                           │
+                           ▼
+                      Controller
+                           │
+                           ▼
+                       Service
+                      /       \
+                     /         \
+                    ▼           ▼
+                 Model       AI Service
+                   │             │
+                   ▼             ▼
+                MySQL       AI / Vectors
+```
+
+---
+
+# Milestone 1 → Milestone 2
+
+Milestone 2 depends directly on the foundation created in Milestone 1.
+
+```text
+Milestone 1
+Authentication
+     │
+     ├── JWT
+     ├── AuthContext
+     ├── ProtectedRoute
+     └── Axios Interceptor
+             │
+             ▼
+Milestone 2
+Forum Functionality
+     │
+     ├── Questions
+     ├── Answers
+     ├── Search
+     ├── Semantic Search
+     ├── Draft Coach
+     └── Answer Fit
+```
+
+Authentication is therefore not a separate feature anymore; it becomes part of the security foundation for forum operations.
+
+---
+
+# API Overview
+
+### Authentication
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+```
+
+### Questions
+
+```text
+POST /api/questions
+GET  /api/questions
+GET  /api/questions/search
+GET  /api/questions/:questionHash
+GET  /api/questions/:questionHash/similar
+POST /api/questions/draft-coach
+POST /api/questions/:questionHash/answer-fit
+```
+
+### Answers
+
+```text
+POST /api/answers
+```
+
+Additional RAG/document endpoints will be introduced as part of Milestone 3.
+
+---
+
+# Security Foundation
+
+The application uses several layers of security:
+
+```text
+Password
+   ↓
+bcrypt hashing
+   ↓
+Stored password hash
+
+Login
+   ↓
+JWT
+   ↓
+Protected request
+   ↓
+Authentication Middleware
+   ↓
+Protected resource
+```
+
+Authentication determines **who the user is**.
+
+Authorization determines **what the authenticated user is allowed to do**.
+
+These concepts become increasingly important as users create questions, answers, and documents.
+
+---
+
+# Current Architecture Mental Model
+
+The most important architectural flow is:
+
+```text
+USER
+ ↓
+REACT
+ ↓
+PAGE / COMPONENT
+ ↓
+FRONTEND SERVICE
+ ↓
+AXIOS
+ ↓
+EXPRESS ROUTE
+ ↓
+CONTROLLER
+ ↓
+SERVICE
+ ↓
+MODEL
+ ↓
+MYSQL
+```
+
+When AI functionality is involved:
+
+```text
+USER
+ ↓
+REACT
+ ↓
+FRONTEND SERVICE
+ ↓
+API
+ ↓
+CONTROLLER
+ ↓
+SERVICE
+ ↓
+AI SERVICE
+ ↓
+AI / EMBEDDING SYSTEM
+```
+
+When semantic search is involved:
+
+```text
+SEARCH QUESTION
+      ↓
+EMBEDDING
+      ↓
+VECTOR
+      ↓
+SIMILARITY CALCULATION
+      ↓
+RANK RESULTS
+      ↓
+RELATED QUESTIONS
+```
+
+---
+
+# Future Milestone
+
+### Milestone 3 — RAG Knowledge Base
+
+The final milestone will extend the AI capabilities by introducing a document-based knowledge system using **Retrieval-Augmented Generation (RAG)**.
+
+Planned capabilities include:
+
+* PDF document upload
+* Secure document processing
+* PDF text extraction
+* Text chunking
+* Embeddings for document chunks
+* Semantic document search
+* Grounded AI answers
+* Document metadata
+* PDF preview
+* Document management
+* Retrieval-based AI responses
+
+The conceptual flow will become:
+
+```text
+PDF Document
+     ↓
+Extract Text
+     ↓
+Split Into Chunks
+     ↓
+Create Embeddings
+     ↓
+Store Chunks + Vectors
+     ↓
+User Question
+     ↓
+Semantic Retrieval
+     ↓
+Relevant Chunks
+     ↓
+AI Model
+     ↓
+Grounded Answer
+```
+
+---
+
+# Project Architecture Summary
+
+The project progressively evolves through three layers of functionality:
+
+```text
+                 AI-POWERED EVANGADI FORUM
+                           │
+          ┌────────────────┼────────────────┐
+          ▼                ▼                ▼
+     Milestone 1      Milestone 2      Milestone 3
+   Authentication     Forum + AI          RAG
+          │                │                │
+          ▼                ▼                ▼
+       Users          Questions         Documents
+       Login           Answers           Chunks
+       JWT             Search            Embeddings
+       Security        Semantic Search   Retrieval
+                       Draft Coach        Grounded AI
+                       Answer Fit
+```
+
+Each milestone builds on the previous one rather than creating a separate application.
+
+The final system therefore combines:
+
+```text
+Secure Authentication
+        +
+Forum Questions & Answers
+        +
+Semantic Search
+        +
+AI Assistance
+        +
+RAG Knowledge Retrieval
+        ↓
+AI-Powered Evangadi Forum
+```
+
+---
+
+# Project Status
+
+| Milestone   | Focus                                   | Status      |
+| ----------- | --------------------------------------- | ----------- |
+| Milestone 1 | Authentication & Application Foundation | Completed   |
+| Milestone 2 | Questions, Answers & AI Assistance      | In Progress |
+| Milestone 3 | RAG Knowledge Base                      | Planned     |
+
+The project follows a modular architecture so that authentication, forum functionality, AI services, and RAG functionality can evolve independently while remaining part of the same application.
