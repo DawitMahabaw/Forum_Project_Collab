@@ -4,6 +4,9 @@ import {
 } from "../services/questionService.js";
 import env from "../config/env.js";
 
+import {  assessAnswerAgainstQuestionService,
+} from "../services/aiService.js";
+
 // ============================================================
 // SEMANTIC SEARCH VALIDATION
 // ============================================================
@@ -121,12 +124,63 @@ const searchQuestionsSemantic = async (req, res, next) => {
 // ANSWER FIT CONTROLLER
 // ============================================================
 
-const assessAnswerAgainstQuestion = async (req, res) => {
-    return res.status(501).json({
+// Handles:
+// POST /api/questions/:questionHash/answer-fit
+//
+// Evaluates whether a proposed answer fits the selected question.
+const assessAnswerAgainstQuestion = async (req, res, next) => {
+    try {
+    // Read the question identifier from the URL.
+    const { questionHash } = req.params;
+
+    // Read the proposed answer from the request body.
+    const { answerText } = req.body;
+
+    // Validate the question identifier.
+    if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+        return res.status(400).json({
         success: false,
-        message: "Answer fitness evaluation is not implemented yet.",
+        message: "Invalid question identifier.",
     });
+    }
+    // Validate that an answer was provided.
+    if (typeof answerText !== "string" || answerText.trim().length < 20) {
+        return res.status(400).json({
+        success: false,
+        message: "answerText must contain at least 20 characters.",
+        });
+    }
+    
+    // This also throws a 404 error when the question does not exist.
+    const { question } = await getSingleQuestionService(questionHash);
+
+    // Evaluate the proposed answer against the question context.
+    const data = await assessAnswerAgainstQuestionService({
+        question,
+        answerText: answerText.trim(),
+    });
+
+    // Return the AI-generated evaluation.
+    return res.status(200).json({
+        success: true,
+        message: "Answer fit assessed",
+        data,
+    });
+
+    } catch (error) {
+    // Handles question-not-found and Gemini/provider errors.
+    next(error);
+    }
 };
+
+//! ---------------NEED TO BE CHECKED-------------
+
+// const assessAnswerAgainstQuestion = async (req, res) => {
+//     return res.status(501).json({
+//         success: false,
+//         message: "Answer fitness evaluation is not implemented yet.",
+//     });
+// };
 
 // ============================================================
 // EXPORT CONTROLLERS

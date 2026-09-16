@@ -45,3 +45,59 @@ export async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
     return { success: false, error, embedding: null };
   }
 }
+
+// =============================================================
+//                   GENERATE CONTENT
+// =============================================================
+
+// Generate text using the configured Gemini model.
+const generateContent = async (prompt) => {
+  // Fail early when the API key is missing.
+  assertApiKeyConfigured();
+
+  // Try the primary model and configured fallback model.
+  for (const model of generationModels()) {
+    const response = await requestGemini({
+      model,
+      operation: "generateContent",
+      endpoint: "generateContent",
+      attempts: GENERATION_ATTEMPTS_PER_MODEL,
+
+      // Send the evaluation prompt to Gemini.
+      payload: {
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+    });
+
+    // Try the next model when Gemini returns an error.
+    if (!response.ok) {
+      continue;
+    }
+
+    const data = parseJson(response.body, model, "generateContent");
+
+    // Extract generated text from Gemini's response.
+    const text = data?.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim();
+
+    if (text) {
+      return text;
+    }
+    console.error(`Gemini generateContent returned no text for ${model}.`);
+  }
+
+  // Return a service error when all Gemini models fail.
+  const error = new Error(
+    "The AI service is busy right now. Please try again in a moment.",
+  );
+  error.statusCode = 503;
+  throw error;
+};
+
+export { generateContent };

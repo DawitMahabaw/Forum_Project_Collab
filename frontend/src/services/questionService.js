@@ -26,3 +26,24 @@ export const getQuestionById = async (questionId) => {
 
   return response.data;
 };
+
+// ============================================================
+// AI ANSWER FIT
+// ============================================================
+
+// Ask the backend to evaluate an answer against a question.
+const getAnswerFit = async (questionHash, answerText) => {
+  const response = await api.post(
+    `/questions/${questionHash}/answer-fit`,
+    {
+      answerText,
+    },
+  );
+
+  return response.data.data;
+};
+
+// ============================================================
+// EXPORT
+// ============================================================
+export { getAnswerFit };

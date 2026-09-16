@@ -26,6 +26,35 @@ const getQuestionsService = async ({ search, onlyMine, userId }) => {
 };
 
 // ============================================================
+// GET SINGLE QUESTION
+// ============================================================
+
+// Retrieve one question and its answers.
+const getSingleQuestionService = async (questionHash) => {
+    const question = await Question.findByHash(questionHash);
+  // Return a 404 when the question does not exist.
+    if (!question) {
+    const error = new Error("Question not found.");
+    error.statusCode = 404;
+    throw error;
+    }
+    const answers = await Answer.findManyByQuestionId(question.id);
+
+    return {
+        question,
+        answers,
+        answersMeta: {
+        limit: 100,
+        total: answers.length,
+        },
+    };
+
+
+};;
+
+
+
+// ============================================================
 // SEMANTIC SEARCH QUESTIONS
 // ============================================================
 
@@ -123,5 +152,6 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
 
 export {
     getQuestionsService,
+    getSingleQuestionService,
     searchQuestionsSemanticService,
 };
