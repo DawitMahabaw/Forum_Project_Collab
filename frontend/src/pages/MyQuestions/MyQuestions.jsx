@@ -11,48 +11,43 @@ import { listQuestions } from "../../services/questionService.js";
 import styles from "./MyQuestions.module.css";
 
 const MyQuestions = () => {
-  // Used to move between pages
+  // Allows the user to navigate to different pages
   const navigate = useNavigate();
 
-  // Store the user's questions
+  // Store the user's questions and page status
   const [questions, setQuestions] = useState([]);
-
-  // Check if questions are loading
   const [isLoading, setIsLoading] = useState(true);
-
-  // Store error message
   const [error, setError] = useState("");
 
-  // Run when the page opens
+  // Fetch the user's questions when the component loads
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        // Get only questions created by the current user
+        // Request only questions created by the current user
         const data = await listQuestions({ mine: true });
 
-        // Save the questions
+        // Save the returned questions in state
         setQuestions(data.questions);
       } catch (requestError) {
-        // Show error if the request fails
+        // Display the server error message if the request fails
         setError(
           requestError.response?.data?.message || "Could not load your topics.",
         );
       } finally {
-        // Stop loading
+        // Loading is finished whether the request succeeds or fails
         setIsLoading(false);
       }
     };
 
-    // Call the function
     loadQuestions();
   }, []);
 
   return (
     <section className={styles.page}>
+      {/* Page header containing the title and new question button */}
       <header className={styles.hero}>
         <div>
           <span>Your workspace</span>
-
           <h2>Your topics</h2>
 
           <p>
@@ -61,40 +56,41 @@ const MyQuestions = () => {
           </p>
         </div>
 
-        {/* Button to create a new question */}
+        {/* Navigate to the page for creating a new question */}
         <button onClick={() => navigate("/questions/ask")} type="button">
           <Plus size={17} />
           New question
         </button>
       </header>
 
-      {/* Show loading message */}
+      {/* Show a loading message while questions are being fetched */}
       {isLoading && <div className={styles.state}>Loading your topics…</div>}
 
-      {/* Show error message */}
+      {/* Show an error message when the request fails */}
       {error && (
         <div className={styles.error} role="alert">
           {error}
         </div>
       )}
 
-      {/* Show message if user has no questions */}
+      {/* Show an empty state when the user has no questions */}
       {!isLoading && !error && !questions.length && (
         <div className={styles.state}>
           <h3>You have not posted a question yet</h3>
 
           <p>Ask your first question to start your personal topic list.</p>
 
+          {/* Allow the user to create their first question */}
           <button onClick={() => navigate("/questions/ask")} type="button">
             Ask a question
           </button>
         </div>
       )}
 
-      {/* Show questions when they exist */}
+      {/* Display the questions when they are successfully loaded */}
       {!isLoading && !error && questions.length > 0 && (
         <section className={styles.list}>
-          {/* Go through each question */}
+          {/* Create a QuestionCard for each question */}
           {questions.map((question) => (
             <QuestionCard key={question.questionHash} question={question} />
           ))}
