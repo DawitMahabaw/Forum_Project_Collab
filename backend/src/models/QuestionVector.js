@@ -1,6 +1,10 @@
 import pool from "../config/db.js";
 
 const QuestionVector = {
+    // ---------------------------------------------------------
+    // FIND QUESTIONS THAT NEED AN EMBEDDING
+    // ---------------------------------------------------------
+
     async findQuestionsNeedingEmbedding(limit = 100) {
         const [rows] = await pool.execute(
             `
@@ -21,6 +25,44 @@ const QuestionVector = {
         }));
     },
 
+    // ---------------------------------------------------------
+    // FIND ALL READY VECTORS
+    // ---------------------------------------------------------
+    //
+    // Powers semantic search across ALL questions
+    // (GET /api/questions/search).
+    //
+    // Only 'ready' vectors are returned, since 'failed' rows have
+    // no embedding to compare against.
+    //
+    // excludeQuestionId is optional and is used by "similar
+    // questions" to avoid recommending a question to itself.
+    async findAllReady({ excludeQuestionId } = {}) {
+        const params = [];
+        let whereClause = "WHERE status = 'ready'";
+
+        if (excludeQuestionId) {
+            whereClause += " AND question_id != ?";
+            params.push(excludeQuestionId);
+        }
+
+        const [rows] = await pool.execute(
+            `
+            SELECT question_id, embedding
+            FROM question_vectors
+            ${whereClause}
+            `,
+            params,
+        );
+
+        return rows.map((row) => ({
+            questionId: row.question_id,
+            embedding:
+                typeof row.embedding === "string"
+                    ? JSON.parse(row.embedding)
+                    : row.embedding,
+        }));
+    },
 
     async findAllReady() {
         return [];
