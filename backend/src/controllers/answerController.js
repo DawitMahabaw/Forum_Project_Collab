@@ -18,3 +18,7 @@ const validateCreateAnswerInput = ({ questionId, content }) => {
    if (!content || content.trim().length < 20) {
     return "content must contain at least 20 characters.";
   }
+   return null;
+
+  
+}
