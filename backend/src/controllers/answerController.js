@@ -71,3 +71,8 @@ const getAnswerId = (value) => {
     error.statusCode = 400;
     throw error;
   }
+
+   return answerId;
+
+  
+};
