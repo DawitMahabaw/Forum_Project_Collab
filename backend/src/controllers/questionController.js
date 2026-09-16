@@ -171,12 +171,13 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
   }
 };
 
-//Similar Questions
+//Similar Questions Controller
 
 const getSimilarQuestions = async (req, res, next) => {
   try {
     // Get the question identifier from the URL.
     const { questionHash } = req.params;
+
     // Validate the question hash before continuing.
     if (!QUESTION_HASH_PATTERN.test(questionHash)) {
       return res.status(400).json({
@@ -194,6 +195,7 @@ const getSimilarQuestions = async (req, res, next) => {
     if (kError) {
       return res.status(400).json({ success: false, message: kError });
     }
+
     // Validate threshold.
     const { value: threshold, error: thresholdError } =
       parseThresholdParam(rawThreshold);
