@@ -9,6 +9,7 @@ const PostQuestion = () => {
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
 
   const validateForm = () => {
     if (!title.trim()) {
@@ -33,6 +34,7 @@ const PostQuestion = () => {
     }
 
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
@@ -41,9 +43,14 @@ const PostQuestion = () => {
         description: description.trim(),
       });
 
-      console.log("Question created:", response);
+      setSuccess(response.message || "Question created successfully.");
     } catch (error) {
       console.error("Failed to create question:", error);
+
+      setError(
+        error.response?.data?.message ||
+          "Unable to create question. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -65,6 +72,7 @@ const PostQuestion = () => {
       <section className={styles.card}>
         <form onSubmit={handleSubmit}>
           {error && <p className={styles.error}>{error}</p>}
+          {success && <p className={styles.success}>{success}</p>}
           <div className={styles.field}>
             <label htmlFor="title">Question title</label>
 
