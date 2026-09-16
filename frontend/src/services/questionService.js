@@ -9,11 +9,12 @@ export const getQuestions = async (params = {}) => {
   return response.data;
 };
 
-// Search questions by keyword.
-export const searchQuestions = async (searchTerm) => {
+// Search questions by keyword or the server's AI/semantic search mode.
+export const searchQuestions = async (searchTerm, { mode = "keyword" } = {}) => {
   const response = await apiClient.get("/api/questions", {
     params: {
       search: searchTerm,
+      ...(mode === "ai" ? { mode: "ai" } : {}),
     },
   });
 
