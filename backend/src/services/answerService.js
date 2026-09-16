@@ -78,3 +78,19 @@ const updateAnswerService = async ({ answerId, userId, content }) => {
 
    return Answer.updateOwned(answerId, userId, content);
 };
+
+
+const deleteAnswerService = async ({ answerId, userId }) => {
+ 
+  const answer = await Answer.findById(answerId);
+
+
+  if (!answer) {
+    const error = new Error("Answer not found.");
+
+   
+    error.statusCode = 404;
+
+   
+    throw error;
+  }
