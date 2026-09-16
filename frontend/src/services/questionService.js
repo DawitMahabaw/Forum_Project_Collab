@@ -27,6 +27,12 @@ export const getQuestionById = async (questionId) => {
   return response.data;
 };
 
+// Create a new question.
+export const createQuestion = async (questionData) => {
+  const response = await apiClient.post("/api/questions", questionData);
+
+  return response.data;
+};
 // ============================================================
 // AI ANSWER FIT
 // ============================================================
