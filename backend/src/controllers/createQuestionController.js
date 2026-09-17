@@ -2,7 +2,7 @@ import { createQuestionService } from "../services/createQuestionService.js";
 
 const createQuestion = async (req, res, next) => {
   try {
-    const { title, description } = req.body;
+    const { title, content } = req.body;
 
     if (typeof title !== "string" || !title.trim()) {
       return res.status(400).json({
@@ -11,7 +11,7 @@ const createQuestion = async (req, res, next) => {
       });
     }
 
-    if (typeof description !== "string" || !description.trim()) {
+    if (typeof content !== "string" || !content.trim()) {
       return res.status(400).json({
         success: false,
         message: "Question description is required.",
@@ -22,7 +22,7 @@ const createQuestion = async (req, res, next) => {
 
     const question = await createQuestionService({
       title: title.trim(),
-      content: description.trim(),
+      content: content.trim(),
       userId,
     });
 
