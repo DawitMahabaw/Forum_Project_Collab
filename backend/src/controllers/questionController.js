@@ -81,7 +81,7 @@ const getQuestions = async (req, res, next) => {
 // ============================================================
 const getSingleQuestion = async (req, res, next) => {
   try {
-    // TASK REQUIREMENT: Accept the question public identifier
+    // Accept the question public identifier
     const { questionHash } = req.params;
 
     //  Handle invalid identifiers
@@ -222,7 +222,8 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
 // ============================================================
 
 export {
-    getQuestions,
-    searchQuestionsSemantic,
-    assessAnswerAgainstQuestion,
+  getQuestions,
+  getSingleQuestion,
+  searchQuestionsSemantic,
+  assessAnswerAgainstQuestion,
 };
