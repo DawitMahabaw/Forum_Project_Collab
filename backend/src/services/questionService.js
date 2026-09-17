@@ -403,7 +403,14 @@ Rules:
 };
 
 export {
+    backfillQuestionEmbeddings,
+    createQuestionWithVectorService,
+    deleteQuestionService,
     getQuestionsService,
     getSingleQuestionService,
     searchQuestionsSemanticService,
+    getSimilarQuestionsService,
+    draftCoach,
+    evaluateAnswerFit,
+    updateQuestionService,
 };
