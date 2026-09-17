@@ -351,13 +351,410 @@ const QuestionDetail = () => {
       setIsSaving(false);
     }
   };
+  const startAnswerEdit = (answer) => {
+    setEditingAnswerId(answer.id);
+    setAnswerDraft(answer.content);
+    setAnswerError("");
+  };
 
-  {
-    fit && (
-      <div className={`${styles.fitPanel} ${styles[`fit${fit.level}`]}`}>
-        <b>{fit.level} fit</b>
-        <p>{fit.note}</p>
+  // Save the edited answer without reloading the whole page.
+  const saveAnswerEdit = async (answerId) => {
+    if (answerDraft.trim().length < 20) {
+      setAnswerError("An answer must contain at least 20 characters.");
+      return;
+    }
+
+    setIsSaving(true);
+    setAnswerError("");
+
+    try {
+      const updated = await updateAnswer(answerId, answerDraft.trim());
+      setAnswers((current) =>
+        current.map((item) => (item.id === answerId ? updated : item)),
+      );
+      setEditingAnswerId(null);
+      setAnswerDraft("");
+      setToast("Your answer has been updated.");
+    } catch (requestError) {
+      setAnswerError(
+        requestError.response?.data?.message || "Could not update the answer.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Show an in-app confirmation dialog instead of window.confirm().
+  const requestDelete = (type, answer = null) => {
+    setPendingDelete({ type, answerId: answer?.id || null });
+  };
+
+  // Delete the explicitly confirmed owned question or answer.
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+
+    setIsDeleting(true);
+
+    try {
+      if (pendingDelete.type === "question") {
+        await deleteQuestion(questionHash);
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
+      await deleteAnswer(pendingDelete.answerId);
+      setAnswers((current) =>
+        current.filter((answer) => answer.id !== pendingDelete.answerId),
+      );
+      setPendingDelete(null);
+      setToast("Your answer has been deleted.");
+    } catch (requestError) {
+      const message =
+        requestError.response?.data?.message || "Could not delete this post.";
+      if (pendingDelete.type === "question") setError(message);
+      else setAnswerError(message);
+      setPendingDelete(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className={styles.state}>Loading this discussion...</div>;
+  }
+
+  if (error || !question) {
+    return (
+      <div className={styles.error} role="alert">
+        {error || "Question not found."}
       </div>
     );
   }
-}
+
+  const isOwnQuestion = Number(question.author?.id) === Number(user?.userId);
+
+  return (
+    <section className={styles.page}>
+      {toast && (
+        <div className={styles.toast} role="status">
+          <CheckCircle2 size={17} />
+          {toast}
+          <button
+            aria-label="Dismiss notification"
+            onClick={() => setToast("")}
+            type="button"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
+      <button
+        className={styles.back}
+        onClick={() => navigate("/dashboard")}
+        type="button"
+      >
+        <ArrowLeft size={17} />
+        Back to feed
+      </button>
+
+      <div className={styles.layout}>
+        <div className={styles.main}>
+          <article className={styles.questionCard}>
+            <header className={styles.author}>
+              <span className={styles.avatar}>
+                {getInitials(question.author)}
+              </span>
+              <p>
+                <b>
+                  {question.author?.firstName} {question.author?.lastName}
+                </b>
+                <small>Posted {formatDate(question.createdAt)}</small>
+              </p>
+            </header>
+
+            {questionDraft ? (
+              <>
+                <label
+                  className={styles.editLabel}
+                  htmlFor="question-edit-title"
+                >
+                  Question title
+                </label>
+                <input
+                  className={styles.questionTitleInput}
+                  id="question-edit-title"
+                  onChange={(event) =>
+                    setQuestionDraft((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                  value={questionDraft.title}
+                />
+                <label
+                  className={styles.editLabel}
+                  htmlFor="question-edit-content"
+                >
+                  Question details
+                </label>
+                <MarkdownEditor
+                  ariaLabel="Question details"
+                  inputRef={questionEditTextareaRef}
+                  minLength={10}
+                  onChange={(content) =>
+                    setQuestionDraft((current) => ({ ...current, content }))
+                  }
+                  placeholder="Include all of the context that someone needs to answer your question."
+                  value={questionDraft.content}
+                />
+                <div className={styles.editActions}>
+                  <button
+                    disabled={isSaving}
+                    onClick={() => setQuestionDraft(null)}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={isSaving}
+                    onClick={saveQuestionEdit}
+                    type="button"
+                  >
+                    {isSaving ? "Saving..." : "Save changes"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1>{question.title}</h1>
+                <MarkdownContent
+                  className={styles.questionBody}
+                  content={question.content}
+                />
+              </>
+            )}
+
+            {isOwnQuestion && !questionDraft && (
+              <div className={styles.ownerActions}>
+                <button onClick={startQuestionEdit} type="button">
+                  <Pencil size={14} /> Edit
+                </button>
+                <button onClick={() => requestDelete("question")} type="button">
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
+            )}
+
+            <footer>
+              <button
+                className={styles.shareButton}
+                onClick={handleShareQuestion}
+                type="button"
+              >
+                <Share2 size={15} />
+                Share
+              </button>
+              <span>
+                <MessageSquare size={15} />
+                {answers.length} {answers.length === 1 ? "Answer" : "Answers"}
+              </span>
+            </footer>
+          </article>
+
+          <h2 className={styles.answersHeading}>
+            Community Answers ({answers.length})
+          </h2>
+
+          {!answers.length && (
+            <div className={styles.emptyAnswers}>
+              No answers yet - be the first to share something helpful.
+            </div>
+          )}
+
+          {answers.map((answer) => {
+            const isOwnAnswer =
+              Number(answer.author?.id) === Number(user?.userId);
+            const isEditing = editingAnswerId === answer.id;
+
+            return (
+              <article className={styles.answerCard} key={answer.id}>
+                <header className={styles.author}>
+                  <span className={`${styles.avatar} ${styles.answerAvatar}`}>
+                    {getInitials(answer.author)}
+                  </span>
+                  <p>
+                    <b>
+                      {answer.author?.firstName} {answer.author?.lastName}
+                    </b>
+                    <small>{formatDate(answer.createdAt)}</small>
+                  </p>
+                </header>
+
+                {isEditing ? (
+                  <>
+                    <MarkdownEditor
+                      ariaLabel="Answer"
+                      inputRef={answerEditTextareaRef}
+                      minLength={20}
+                      onChange={setAnswerDraft}
+                      placeholder="Share what you know, including useful steps or examples."
+                      value={answerDraft}
+                    />
+                    <div className={styles.editActions}>
+                      <button
+                        disabled={isSaving}
+                        onClick={() => {
+                          setEditingAnswerId(null);
+                          setAnswerDraft("");
+                        }}
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        disabled={isSaving}
+                        onClick={() => saveAnswerEdit(answer.id)}
+                        type="button"
+                      >
+                        {isSaving ? "Saving..." : "Save changes"}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <MarkdownContent content={answer.content} />
+                )}
+
+                {isOwnAnswer && !isEditing && (
+                  <div className={styles.ownerActions}>
+                    <button
+                      onClick={() => startAnswerEdit(answer)}
+                      type="button"
+                    >
+                      <Pencil size={14} /> Edit
+                    </button>
+                    <button
+                      onClick={() => requestDelete("answer", answer)}
+                      type="button"
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+
+          {isOwnQuestion ? (
+            <p className={styles.ownNotice}>
+              You cannot answer your own question, but you can return later to
+              review community replies.
+            </p>
+          ) : (
+            <form className={styles.answerForm} onSubmit={handleSubmitAnswer}>
+              <h2>Add your answer</h2>
+              <MarkdownEditor
+                ariaLabel="New answer"
+                inputRef={answerTextareaRef}
+                minLength={20}
+                onChange={(value) => {
+                  setAnswerText(value);
+                  setFit(null);
+                }}
+                placeholder="Share what you know, include steps or examples, and keep the answer focused on this question."
+                value={answerText}
+              />
+              <div className={styles.answerTools}>
+                <button
+                  disabled={isCheckingFit}
+                  onClick={handleCheckFit}
+                  type="button"
+                >
+                  <Sparkles size={16} />
+                  {isCheckingFit ? "Checking..." : "Check answer fit"}
+                </button>
+                <small>Optional AI feedback before you publish.</small>
+              </div>
+              {fit && (
+                <div
+                  className={`${styles.fitPanel} ${styles[`fit${fit.level}`]}`}
+                >
+                  <b>{fit.level} fit</b>
+                  <p>{fit.note}</p>
+                </div>
+              )}
+              {answerError && (
+                <div className={styles.error} role="alert">
+                  {answerError}
+                </div>
+              )}
+              <button
+                className={styles.submitAnswer}
+                disabled={isSubmitting}
+                type="submit"
+              >
+                {isSubmitting ? "Posting..." : "Post Answer"}
+                <Send size={16} />
+              </button>
+            </form>
+          )}
+        </div>
+
+        <aside className={styles.related}>
+          <h2>Related Questions</h2>
+          {similarQuestions.length === 0 && <p>No related questions found.</p>}
+          {similarQuestions.map((item) => (
+            <Link
+              key={item.questionHash}
+              to={`/questions/${item.questionHash}`}
+            >
+              <b>{item.title}</b>
+              <small>
+                {item.author?.firstName} {item.author?.lastName} -{" "}
+                {typeof item.score === "number"
+                  ? `${Math.round(item.score * 100)}% match`
+                  : "Related topic"}
+              </small>
+            </Link>
+          ))}
+        </aside>
+      </div>
+
+      {pendingDelete && (
+        <div className={styles.modalBackdrop} role="presentation">
+          <section
+            aria-describedby="delete-post-copy"
+            aria-modal="true"
+            className={styles.modal}
+            role="dialog"
+          >
+            <h2>Delete this {pendingDelete.type}?</h2>
+            <p id="delete-post-copy">
+              {pendingDelete.type === "question"
+                ? "This question and every answer on it will be permanently removed."
+                : "This answer will be permanently removed from the discussion."}
+            </p>
+            <div>
+              <button
+                disabled={isDeleting}
+                onClick={() => setPendingDelete(null)}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isDeleting}
+                onClick={confirmDelete}
+                type="button"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </section>
+  );
+};
+
+export default QuestionDetail;
