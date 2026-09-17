@@ -28,6 +28,46 @@ const parseJsonResponse = (rawText) => {
 };
 
 // ============================================================
+// DRAFT COACH
+// ============================================================
+const generateQuestionDraftCoachService = async ({ title, content }) => {
+  const prompt = `
+You are a helpful coach for a technical Q&A forum, similar to
+Stack Overflow. A user is drafting a question. Give short,
+specific, actionable tips that would help other developers
+answer it well.
+
+Question title (may be empty): "${title || ""}"
+Question content draft:
+"""
+${content}
+"""
+
+Respond with STRICT JSON ONLY, no markdown, no commentary,
+matching exactly this shape:
+
+{
+  "tips": ["short actionable tip", "short actionable tip"]
+}
+
+Rules:
+- Return 2 to 4 tips.
+- Each tip must be one short sentence.
+- Focus on clarity, missing context, code snippets, error
+  messages, and expected vs actual behavior.
+- If the draft is already excellent, return a single
+  encouraging tip instead of inventing filler feedback.
+`.trim();
+
+  const rawText = await generateContent(prompt);
+  const parsed = parseJsonResponse(rawText);
+
+  const tips = Array.isArray(parsed.tips) ? parsed.tips : [];
+
+  return { tips };
+};
+
+// ============================================================
 // ANSWER FIT
 // ============================================================
 const assessAnswerAgainstQuestionService = async ({ question, answerText }) => {
