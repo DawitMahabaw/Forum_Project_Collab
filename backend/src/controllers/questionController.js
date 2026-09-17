@@ -1,6 +1,7 @@
 import {
-    getQuestionsService,
-    searchQuestionsSemanticService
+  getQuestionsService,
+  searchQuestionsSemanticService,
+  getSingleQuestionService
 } from "../services/questionService.js";
 import env from "../config/env.js";
 
