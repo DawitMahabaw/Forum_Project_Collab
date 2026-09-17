@@ -32,7 +32,6 @@ const assertApiKeyConfigured = () => {
   }
 };
 
-
 const requestGemini = async ({
   model,
   operation,
@@ -95,11 +94,6 @@ const parseJson = (body, model, operation) => {
   }
 };
 
-
-
-
-
-
 export async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
   if (
     !GEMINI_API_KEY ||
@@ -148,6 +142,11 @@ export async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
     return { success: false, error, embedding: null };
   }
 }
+
+// Return the configured primary model followed by a known stable fallback.
+const generationModels = () => [
+  ...new Set([env.geminiModel, env.geminiFallbackModel].filter(Boolean)),
+];
 
 // =============================================================
 //                   GENERATE CONTENT
@@ -203,4 +202,4 @@ const generateContent = async (prompt) => {
   throw error;
 };
 
-export { generateContent };
+export { embedContent, generateContent };
