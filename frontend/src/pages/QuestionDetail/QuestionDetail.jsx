@@ -1,10 +1,3 @@
-// ============================================================
-// QUESTION DETAIL PAGE
-// ============================================================
-//
-// Displays one discussion, related questions, answers, and
-// professional inline editing for posts owned by the current user.
-
 import {
   ArrowLeft,
   Bold,
@@ -23,7 +16,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import MarkdownContent from "../../components/MarkdownContent/MarkdownContent.jsx";
+// import MarkdownContent from "../../components/MarkdownContent/MarkdownContent.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
   createAnswer,
