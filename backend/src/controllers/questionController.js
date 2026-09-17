@@ -75,6 +75,41 @@ const getQuestions = async (req, res, next) => {
     }
 };
 
+
+// ============================================================
+// SINGLE QUESTION DETAILS CONTROLLER 
+// ============================================================
+const getSingleQuestion = async (req, res, next) => {
+  try {
+    // TASK REQUIREMENT: Accept the question public identifier
+    const { questionHash } = req.params;
+
+    //  Handle invalid identifiers
+    if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid question identifier.",
+      });
+    }
+
+    //  Retrieve requested question and related answers together
+    const { question, answers, answersMeta } = await getSingleQuestionService(questionHash);
+
+    // TASK REQUIREMENT: Return question and discussion information
+    return res.status(200).json({
+      success: true,
+      message: "Question fetched successfully",
+      question,
+      answers,
+      answersMeta,
+    });
+  } catch (error) {
+    // Handle database errors
+    next(error);
+  }
+};
+
+
 // ============================================================
 // SEMANTIC SEARCH CONTROLLER
 // ============================================================
