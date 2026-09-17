@@ -133,6 +133,67 @@ const cosineSimilarity = (vectorA, vectorB) => {
     return dotProduct / (Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB));
 };
 
+const updateQuestionService = async ({
+    questionHash,
+    userId,
+    title,
+    content,
+}) => {
+    const question = await Question.findByHash(questionHash);
+
+    if (!question) {
+        const error = new Error("Question not found.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (Number(question.author.id) !== Number(userId)) {
+        const error = new Error("You can only edit your own question.");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    const updatedQuestion = await Question.updateOwnedByHash(questionHash, userId, {
+        title,
+        content,
+    });
+
+    try {
+        const embeddingResult = await embedContent(
+            buildEmbeddingText({ title, content }),
+            "RETRIEVAL_DOCUMENT",
+        );
+
+        await QuestionVector.upsert({
+            questionId: updatedQuestion.id,
+            embedding: embeddingResult.success ? embeddingResult.embedding : null,
+            status: embeddingResult.success ? "ready" : "failed",
+        });
+    } catch (embeddingError) {
+        console.warn("Question embedding refresh failed:", embeddingError.message);
+    }
+
+    return updatedQuestion;
+};
+
+const deleteQuestionService = async ({ questionHash, userId }) => {
+    const question = await Question.findByHash(questionHash);
+
+    if (!question) {
+        const error = new Error("Question not found.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (Number(question.author.id) !== Number(userId)) {
+        const error = new Error("You can only delete your own question.");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    await Question.deleteOwnedByHash(questionHash, userId);
+};
+
 const rankVectorsAgainstQuery = (queryVector, vectors, { k }) => {
     return vectors
         .map((entry) => ({
