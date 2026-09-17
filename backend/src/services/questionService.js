@@ -25,33 +25,34 @@ const getQuestionsService = async ({ search, onlyMine, userId }) => {
     };
 };
 
-// ============================================================
-// GET SINGLE QUESTION
-// ============================================================
 
-// Retrieve one question and its answers.
+// ============================================================
+// SINGLE QUESTION DETAILS SERVICE 
+// ============================================================
 const getSingleQuestionService = async (questionHash) => {
-    const question = await Question.findByHash(questionHash);
-  // Return a 404 when the question does not exist.
-    if (!question) {
+  // Retrieve the requested question by public hash
+  const question = await Question.findByHash(questionHash);
+
+  //Handle question-not-found cases safely
+  if (!question) {
     const error = new Error("Question not found.");
     error.statusCode = 404;
     throw error;
-    }
-    const answers = await Answer.findManyByQuestionId(question.id);
+  }
 
-    return {
-        question,
-        answers,
-        answersMeta: {
-        limit: 100,
-        total: answers.length,
-        },
-    };
+  // Retrieve related answers using the internal question ID
+  const answers = await Answer.findManyByQuestionId(question.id);
 
-
-};;
-
+  // TASK REQUIREMENT: Return question and discussion information
+  return {
+    question,
+    answers,
+    answersMeta: {
+      limit: 100,
+      total: answers.length,
+    },
+  };
+};
 
 
 // ============================================================
