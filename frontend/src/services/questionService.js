@@ -31,31 +31,56 @@ const deleteQuestion = async (questionHash) => {
   await api.delete(`/questions/${questionHash}`);
 };
 
-// Get the normal question feed.
-export const getQuestions = async (params = {}) => {
-  const response = await apiClient.get("/api/questions", {
-    params,
+// ============================================================
+// LIST QUESTIONS
+// ============================================================
+const listQuestions = async ({ search = "", mine = false } = {}) => {
+  const response = await api.get("/questions", {
+    params: { search: search || undefined, mine: mine ? "true" : undefined },
   });
 
-  return response.data;
+  return { questions: response.data.data || [], meta: response.data.meta };
 };
 
-// Search questions by keyword.
-export const searchQuestions = async (searchTerm) => {
-  const response = await apiClient.get("/api/questions", {
-    params: {
-      search: searchTerm,
-    },
-  });
+// ============================================================
+// GET ONE QUESTION
+// ============================================================
 
-  return response.data;
+const getQuestion = async (questionHash) => {
+  const response = await api.get(`/questions/${questionHash}`);
+
+  return {
+    question: response.data.question,
+    answers: response.data.answers || [],
+    answersMeta: response.data.answersMeta,
+  };
 };
 
-// Get one question by ID.
-export const getQuestionById = async (questionId) => {
-  const response = await apiClient.get(`/api/questions/${questionId}`);
+// ============================================================
+// SEARCH QUESTIONS
+// ============================================================
+const searchQuestions = async (query) => {
+  const response = await api.get("/questions/search", { params: { query } });
 
-  return response.data;
+  return { results: response.data.data || [], meta: response.data.meta };
+};
+
+// ============================================================
+// GET SIMILAR QUESTIONS
+// ============================================================
+const getSimilarQuestions = async (questionHash) => {
+  const response = await api.get(`/questions/${questionHash}/similar`);
+
+  return { results: response.data.data || [] };
+};
+
+// ============================================================
+// AI DRAFT COACH
+// ============================================================
+const getDraftCoach = async ({ title, content }) => {
+  const response = await api.post("/questions/draft-coach", { title, content });
+
+  return response.data.data;
 };
 
 // ============================================================
@@ -77,4 +102,14 @@ const getAnswerFit = async (questionHash, answerText) => {
 // ============================================================
 // EXPORT
 // ============================================================
-export { getAnswerFit };
+export {
+  createQuestion,
+  deleteQuestion,
+  getAnswerFit,
+  getDraftCoach,
+  getQuestion,
+  getSimilarQuestions,
+  listQuestions,
+  searchQuestions,
+  updateQuestion,
+};
