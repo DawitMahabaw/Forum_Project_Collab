@@ -33,9 +33,6 @@ const assertApiKeyConfigured = () => {
 };
 
 
-
-
-// Execute one Gemini REST operation with timeout-aware retries.
 const requestGemini = async ({
   model,
   operation,
