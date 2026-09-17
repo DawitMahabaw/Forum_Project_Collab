@@ -5,7 +5,8 @@ import {
 } from "../services/questionService.js";
 import env from "../config/env.js";
 
-import { assessAnswerAgainstQuestionService } from "../services/aiService.js";
+import { 
+  generateQuestionDraftCoachService,assessAnswerAgainstQuestionService } from "../services/aiService.js";
 
 // ============================================================
 // SEMANTIC SEARCH VALIDATION
@@ -155,6 +156,13 @@ const searchQuestionsSemantic = async (req, res, next) => {
   }
 };
 
+
+
+
+
+
+
+
 // ============================================================
 // ANSWER FIT CONTROLLER
 // ============================================================
@@ -268,6 +276,50 @@ const getSimilarQuestions = async (req, res, next) => {
 //     });
 // };
 
+
+// ============================================================
+// DRAFT COACH CONTROLLER
+// 
+
+const generateQuestionDraftCoach = async (req, res, next) => {
+  try {
+    // Get title and content from the request body.
+    const { title, content } = req.body;
+
+    // Make sure title is actually a string.
+    const normalizedTitle = typeof title === "string" ? title.trim() : "";
+
+    // Draft coaching is allowed even when the user has only
+    // partially written the question.
+    //
+    // But completely empty input is not useful.
+
+    if (!normalizedTitle && !normalizedContent) {
+      return res.status(400).json({
+        success: false,
+        message: "Write a title or some details before requesting suggestions.",
+      });
+    }
+
+    const data = await generateQuestionDraftCoachService({
+      title: normalizedTitle,
+      content: normalizedContent,
+    });
+
+    // Return the AI-generated suggestions.
+    return res.status(200).json({
+      success: true,
+      message: "Draft suggestions generated",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
 // ============================================================
 // EXPORT CONTROLLERS
 // ============================================================
@@ -275,6 +327,6 @@ const getSimilarQuestions = async (req, res, next) => {
 export {
   getQuestions,
   getSingleQuestion,
-  searchQuestionsSemantic,
+  searchQuestionsSemantic,generateQuestionDraftCoach,
   assessAnswerAgainstQuestion,
 };
