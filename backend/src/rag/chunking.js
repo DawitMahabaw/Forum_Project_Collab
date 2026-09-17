@@ -20,3 +20,12 @@ export const splitText = (text, chunkSize = 1000, chunkOverlap = 120) => {
     return [];
   }
 };
+// Text Chunking Module for RAG Pipeline
+
+export const splitText = (text, chunkSize = 1000, chunkOverlap = 120) => {
+  if (typeof text !== "string") {
+    return [];
+  }
+
+  const normalized = text.replace(/\s+/g, " ");
+};
