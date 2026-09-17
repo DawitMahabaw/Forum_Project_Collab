@@ -6,16 +6,20 @@ import styles from "./QuestionCard.module.css";
 // Reusable card for displaying one forum question.
 const QuestionCard = ({ question }) => {
   const navigate = useNavigate();
+  const questionHash = question.questionHash || question.question_hash;
+  const author = question.author || {};
 
   // Navigate to the question details page.
   const handleClick = () => {
-    navigate(`/questions/${question.questionId}`);
+    if (questionHash) {
+      navigate(`/questions/${encodeURIComponent(questionHash)}`);
+    }
   };
 
   // Create initials for the question author's avatar.
   const getInitials = () => {
-    const first = question.firstName?.[0] || "";
-    const last = question.lastName?.[0] || "";
+    const first = author.firstName?.[0] || "";
+    const last = author.lastName?.[0] || "";
 
     return `${first}${last}`.toUpperCase() || "U";
   };
@@ -31,7 +35,7 @@ const QuestionCard = ({ question }) => {
 
         <div className={styles.meta}>
           <span>
-            {question.firstName} {question.lastName}
+            {author.firstName} {author.lastName}
           </span>
 
           <span>•</span>

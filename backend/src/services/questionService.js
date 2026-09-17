@@ -5,7 +5,6 @@ import Answer from "../models/Answer.js";
 import { generateHash } from "../utils/hash.js";
 import { embedContent } from "../ai/gemini.js";
 import { cosineSimilarity } from "../ai/vectorMath.js";
-import { generateJson } from "../ai/generateText.js";
 
 import env from "../config/env.js";
 
@@ -167,13 +166,36 @@ const rankVectorsAgainstQuery = (queryVector, vectors, { k }) => {
     return vectors
         .map((entry) => ({
             ...entry,
-            score: cosineSimilarity(queryVector, entry.vector),
+            score: cosineSimilarity(queryVector, entry.embedding),
         }))
+        .filter((entry) => entry.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, k);
 };
 
-const backfillQuestionEmbeddings = async () => null;
+const backfillQuestionEmbeddings = async ({ limit = 10 } = {}) => {
+    const pendingQuestions = await QuestionVector.findQuestionsNeedingEmbedding(limit);
+    let embedded = 0;
+
+    for (const question of pendingQuestions) {
+        const result = await embedContent(
+            buildEmbeddingText(question),
+            "RETRIEVAL_DOCUMENT",
+        );
+
+        await QuestionVector.upsert({
+            questionId: question.id,
+            embedding: result.success ? result.embedding : null,
+            status: result.success ? "ready" : "failed",
+        });
+
+        if (result.success) {
+            embedded += 1;
+        }
+    }
+
+    return { attempted: pendingQuestions.length, embedded };
+};
 
 const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
     const resolvedK = k || env.semanticSearch.defaultK;
@@ -191,16 +213,16 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
         const error = new Error(
             "The AI search service is temporarily unavailable. Please try again.",
         );
-        error.statusCode = 502;
+        error.statusCode = 503;
+        error.expose = true;
         throw error;
     }
 
-    await backfillQuestionEmbeddings({ limit: 100 });
+    await backfillQuestionEmbeddings({ limit: env.semanticSearch.backfillLimit });
     const vectors = await QuestionVector.findAllReady();
 
     const ranked = rankVectorsAgainstQuery(queryVector, vectors, {
         k: resolvedK,
-        threshold: resolvedThreshold,
     });
 
     const questionIds = ranked.map((entry) => entry.questionId);
@@ -212,10 +234,12 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
         ranked.map((entry) => [entry.questionId, entry.score]),
     );
 
-    const data = questions.map((question) => ({
-        ...question,
-        score: scoreByQuestionId.get(question.id) ?? 0,
-    }));
+    const data = questions
+        .map((question) => ({
+            ...question,
+            score: scoreByQuestionId.get(question.id) ?? 0,
+        }))
+        .filter((question) => question.score >= resolvedThreshold);
 
     return {
         data,
@@ -273,7 +297,6 @@ const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
 
     const ranked = rankVectorsAgainstQuery(sourceVector.embedding, vectors, {
         k: resolvedK,
-        threshold: resolvedThreshold,
     });
 
     const questions = await Question.findManyByIds(
@@ -284,10 +307,12 @@ const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
         ranked.map((entry) => [entry.questionId, entry.score]),
     );
 
-    const data = questions.map((question) => ({
-        ...question,
-        score: scoreByQuestionId.get(question.id) ?? 0,
-    }));
+    const data = questions
+        .map((question) => ({
+            ...question,
+            score: scoreByQuestionId.get(question.id) ?? 0,
+        }))
+        .filter((question) => question.score >= resolvedThreshold);
 
     return {
         data,

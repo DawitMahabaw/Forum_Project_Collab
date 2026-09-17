@@ -1,4 +1,4 @@
-import { LogOut, Search, Sparkles } from "lucide-react";
+import { LogOut, Search, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -41,6 +41,7 @@ const Navbar = () => {
     "Read the thread, review related topics, and reply if you can help.",
   ];
   const canUseAiSearch = query.trim().length >= 3;
+  const hasQuery = query.length > 0;
 
   // Fetch fast keyword suggestions while the user types. The
   // debounce prevents a network request for every key press and
@@ -95,6 +96,12 @@ const Navbar = () => {
     navigateToSearch("keyword");
   };
 
+  const clearSearch = () => {
+    setQuery("");
+    setSuggestions([]);
+    setIsSearching(false);
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/auth", { replace: true });
@@ -107,7 +114,7 @@ const Navbar = () => {
         <p>{description}</p>
       </div>
       <form
-        className={`${styles.searchForm} ${canUseAiSearch ? styles.searchFormReady : ""}`}
+        className={`${styles.searchForm} ${canUseAiSearch ? styles.searchFormReady : ""} ${hasQuery ? styles.searchFormWithQuery : ""}`}
         onSubmit={handleSubmit}
       >
         <Search aria-hidden="true" className={styles.searchIcon} size={18} />
@@ -118,6 +125,16 @@ const Navbar = () => {
           placeholder="Search questions by keyword..."
           value={query}
         />
+        {hasQuery && (
+          <button
+            aria-label="Clear search"
+            className={styles.clearSearchButton}
+            onClick={clearSearch}
+            type="button"
+          >
+            <X aria-hidden="true" size={16} />
+          </button>
+        )}
         {canUseAiSearch && (
           <button
             className={styles.aiSearchButton}

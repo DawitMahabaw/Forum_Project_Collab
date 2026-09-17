@@ -1,4 +1,9 @@
-import { FileText, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
+import {
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+} from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -35,6 +40,11 @@ const Sidebar = () => {
     return `${first}${last}`.toUpperCase() || "U";
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/auth", { replace: true });
+  };
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.header}>
@@ -43,11 +53,15 @@ const Sidebar = () => {
           className={styles.brand}
           onClick={() => navigate("/dashboard")}
         >
-          <MessageSquare size={20} />
-          <span>Evangadi Forum</span>
-        </button>
+          <span className={styles.brandMark} aria-hidden="true">
+            <MessageSquare size={17} strokeWidth={2.5} />
+          </span>
 
-        <p className={styles.tagline}>Learn together. Ask with context.</p>
+          <span className={styles.brandCopy}>
+            <strong>Evangadi Forum</strong>
+            <small>Learn together. Ask with context.</small>
+          </span>
+        </button>
       </div>
 
       <nav className={styles.navigation} aria-label="Main navigation">
@@ -93,10 +107,10 @@ const Sidebar = () => {
           <button
             type="button"
             className={styles.logout}
-            onClick={logout}
-            aria-label="Log out"
+            onClick={handleLogout}
           >
-            <LogOut size={16} />
+            <LogOut size={14} />
+            Logout
           </button>
         </div>
       </div>
