@@ -27,7 +27,7 @@ const QuestionCard = ({ question }) => {
       <div className={styles.content}>
         <h3 className={styles.title}>{question.title}</h3>
 
-        <p className={styles.excerpt}>{question.description}</p>
+        <p className={styles.excerpt}>{question.content}</p>
 
         <div className={styles.meta}>
           <span>

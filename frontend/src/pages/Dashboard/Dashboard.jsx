@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import QuestionCard from "../../components/QuestionCard/QuestionCard.jsx";
 import {
   getQuestion,
-  searchQuestions,
+  searchQuestions, listQuestions,
 } from "../../services/questionService.js";
 
 import styles from "./Dashboard.module.css";
@@ -36,7 +36,7 @@ const Dashboard = () => {
         // Otherwise, load the normal question feed.
         const data = searchTerm
           ? await searchQuestions(searchTerm)
-          : await getQuestion();
+          : await listQuestions();
 
         // Support both:
         // [question1, question2]
