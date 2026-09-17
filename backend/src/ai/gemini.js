@@ -1,8 +1,114 @@
+import env from "../config/env.js";
+const GEMINI_BASE_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models";
+const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
+
+const REQUEST_TIMEOUT_MS = 30_000;
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL;
 
+const GENERATION_ATTEMPTS_PER_MODEL = 3;
+
+// Wait without blocking Node's event loop between transient retry attempts.
+const wait = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+// Do not log an API key, but do provide enough context to debug a failure.
+const summarizeFailure = ({ model, operation, status, body, error }) => {
+  const detail = error?.message || body || "No provider response body.";
+  console.error(
+    `Gemini ${operation} failed for ${model}${status ? ` (HTTP ${status})` : ""}:`,
+    detail.slice(0, 500),
+  );
+};
+
+// Require a key before attempting a remote request.
+const assertApiKeyConfigured = () => {
+  if (!env.geminiApiKey) {
+    const error = new Error("GEMINI_API_KEY is not configured on the server.");
+    error.statusCode = 500;
+    throw error;
+  }
+};
+
+
+
+
+// Execute one Gemini REST operation with timeout-aware retries.
+const requestGemini = async ({
+  model,
+  operation,
+  endpoint,
+  payload,
+  attempts,
+}) => {
+  assertApiKeyConfigured();
+
+  const url = `${GEMINI_BASE_URL}/${model}:${endpoint}?key=${env.geminiApiKey}`;
+  let lastFailure = null;
+  // If all attempts fail, this variable will contain information
+  // about the final failure.
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      const body = await response.text();
+
+      if (response.ok) {
+        return { ok: true, body };
+      }
+
+      lastFailure = { status: response.status, body };
+      // Invalid credentials/request shapes cannot be fixed by retrying.
+      if (!RETRYABLE_STATUS_CODES.has(response.status)) {
+        break;
+      }
+      if (attempt < attempts - 1) {
+        await wait(retryDelay(attempt, response));
+      }
+    } catch (error) {
+      lastFailure = { error };
+      if (attempt < attempts - 1) {
+        await wait(retryDelay(attempt));
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  summarizeFailure({ model, operation, ...lastFailure });
+  return { ok: false, ...lastFailure };
+};
+// Parse only valid JSON responses from Gemini.
+const parseJson = (body, model, operation) => {
+  try {
+    return JSON.parse(body);
+  } catch {
+    console.error(`Gemini ${operation} returned invalid JSON for ${model}.`);
+    return null;
+  }
+};
+
+
+
+
+
+
 export async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
-  if (!GEMINI_API_KEY || !GEMINI_MODEL || GEMINI_MODEL.includes("your_actual")) {
+  if (
+    !GEMINI_API_KEY ||
+    !GEMINI_MODEL ||
+    GEMINI_MODEL.includes("your_actual")
+  ) {
     const error = new Error("Gemini API key or model is not configured.");
     error.statusCode = 502;
     return { success: false, error, embedding: null };
