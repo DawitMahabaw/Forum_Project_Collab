@@ -280,10 +280,77 @@ const QuestionDetail = () => {
     } finally {
       setIsCheckingFit(false);
     }
-
   };
 
+  // Create a new answer while retaining the existing discussion on screen.
+  const handleSubmitAnswer = async (event) => {
+    event.preventDefault();
 
+    if (answerText.trim().length < 20) {
+      setAnswerError("An answer must contain at least 20 characters.");
+      return;
+    }
+
+    setAnswerError("");
+    setIsSubmitting(true);
+
+    try {
+      const newAnswer = await createAnswer({
+        questionId: question.id,
+        content: answerText.trim(),
+      });
+      setAnswers((current) => [...current, newAnswer]);
+      setAnswerText("");
+      setFit(null);
+      setToast("Your answer has been posted.");
+    } catch (requestError) {
+      setAnswerError(
+        requestError.response?.data?.message ||
+        "Could not post your answer. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Open an inline question editor in place of the rendered question body.
+  const startQuestionEdit = () => {
+    setQuestionDraft({ title: question.title, content: question.content });
+    setError("");
+  };
+
+  // Save the inline question editor and return to the rendered Markdown view.
+  const saveQuestionEdit = async () => {
+    if (
+      questionDraft.title.trim().length < 5 ||
+      questionDraft.content.trim().length < 10
+    ) {
+      setError(
+        "The title needs 5 characters and the details need 10 characters.",
+      );
+      return;
+    }
+
+    setIsSaving(true);
+    setError("");
+
+    try {
+      const updated = await updateQuestion(questionHash, {
+        title: questionDraft.title.trim(),
+        content: questionDraft.content.trim(),
+      });
+      setQuestion((current) => ({ ...current, ...updated }));
+      setQuestionDraft(null);
+      setToast("Your question has been updated.");
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+        "Could not update the question.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   {
     fit && (
