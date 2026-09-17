@@ -1,5 +1,28 @@
 import { apiClient } from "./api.js";
 
+// ============================================================
+// CREATE QUESTION
+// ============================================================
+
+const createQuestion = async ({ title, content }) => {
+  const response = await api.post("/questions", { title, content });
+
+  return response.data.data;
+};
+
+// ============================================================
+// UPDATE QUESTION
+// ============================================================
+
+const updateQuestion = async (questionHash, { title, content }) => {
+  const response = await api.put(`/questions/${questionHash}`, {
+    title,
+    content,
+  });
+
+  return response.data.data;
+};
+
 // Get the normal question feed.
 export const getQuestions = async (params = {}) => {
   const response = await apiClient.get("/api/questions", {
@@ -27,12 +50,6 @@ export const getQuestionById = async (questionId) => {
   return response.data;
 };
 
-// Create a new question.
-export const createQuestion = async (questionData) => {
-  const response = await apiClient.post("/api/questions", questionData);
-
-  return response.data;
-};
 // ============================================================
 // AI ANSWER FIT
 // ============================================================
