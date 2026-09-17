@@ -94,7 +94,7 @@ const parseJson = (body, model, operation) => {
   }
 };
 
-export async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
+async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
   if (
     !GEMINI_API_KEY ||
     !GEMINI_MODEL ||
