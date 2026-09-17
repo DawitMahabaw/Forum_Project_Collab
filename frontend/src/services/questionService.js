@@ -23,6 +23,14 @@ const updateQuestion = async (questionHash, { title, content }) => {
   return response.data.data;
 };
 
+// ============================================================
+// DELETE QUESTION
+// ============================================================
+
+const deleteQuestion = async (questionHash) => {
+  await api.delete(`/questions/${questionHash}`);
+};
+
 // Get the normal question feed.
 export const getQuestions = async (params = {}) => {
   const response = await apiClient.get("/api/questions", {
