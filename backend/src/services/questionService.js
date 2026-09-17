@@ -332,6 +332,50 @@ const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
     };
 };
 
+// ============================================================
+// AI DRAFT COACH (T-17)
+// ============================================================
+
+const draftCoach = async ({ title, body }) => {
+    // ------------------------------------------------------------
+    // We build one clear prompt that:
+    //
+    // 1. Explains the AI's role.
+    // 2. Gives it the draft title/body.
+    // 3. Describes EXACTLY what JSON shape to return.
+    //
+    // Being explicit about the JSON shape is what lets us safely
+    // read response.tips as an array on the other end.
+    // ------------------------------------------------------------
+
+    const prompt = `
+You are a writing coach for a technical Q&A forum, similar to Stack Overflow.
+
+A user is DRAFTING a question (not yet posted). Give short, practical
+feedback that helps other developers understand and answer it.
+
+Draft title: ${title || "(empty)"}
+Draft body: ${body || "(empty)"}
+
+Respond with ONLY valid JSON in this exact shape:
+{
+  "tips": ["short tip 1", "short tip 2", "short tip 3"],
+  "overallQuality": "needs_work" | "good" | "excellent"
+}
+
+Rules:
+- Give at most 4 tips.
+- Each tip must be one short sentence.
+- Focus on missing context, vague wording, or missing error details/code.
+- If the draft is already clear and detailed, say so honestly instead of
+  inventing problems.
+`;
+
+    const result = await generateJson(prompt);
+
+    return result;
+};
+
 export {
     getQuestionsService,
     getSingleQuestionService,
