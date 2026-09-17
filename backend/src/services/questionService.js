@@ -260,6 +260,78 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
     };
 };
 
+// ============================================================
+// FIND SIMILAR QUESTIONS
+// ============================================================
+
+const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
+    const resolvedK = k || env.semanticSearch.defaultK;
+    const resolvedThreshold =
+        threshold === undefined || threshold === null
+            ? env.semanticSearch.recommendThreshold
+            : threshold;
+
+    const sourceQuestion = await Question.findByHash(questionHash);
+
+    if (!sourceQuestion) {
+        const error = new Error("Question not found.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const sourceVector = await QuestionVector.findByQuestionId(sourceQuestion.id);
+
+    if (!sourceVector || sourceVector.status !== "ready") {
+        // The source question has no usable embedding (embedding
+        // failed when it was created). There is nothing to compare
+        // against, so we return an empty result instead of an error -
+        // the page should simply show "no similar questions found".
+        return {
+            data: [],
+            meta: {
+                total: 0,
+                k: resolvedK,
+                threshold: resolvedThreshold,
+                query: null,
+                questionHash,
+            },
+        };
+    }
+
+    const vectors = await QuestionVector.findAllReady({
+        excludeQuestionId: sourceQuestion.id,
+    });
+
+    const ranked = rankVectorsAgainstQuery(sourceVector.embedding, vectors, {
+        k: resolvedK,
+        threshold: resolvedThreshold,
+    });
+
+    const questions = await Question.findManyByIds(
+        ranked.map((entry) => entry.questionId),
+    );
+
+    const scoreByQuestionId = new Map(
+        ranked.map((entry) => [entry.questionId, entry.score]),
+    );
+
+    const data = questions.map((question) => ({
+        ...question,
+        score: scoreByQuestionId.get(question.id) ?? 0,
+    }));
+
+    return {
+        data,
+        meta: {
+            total: data.length,
+            k: resolvedK,
+            threshold: resolvedThreshold,
+            query: null,
+            questionHash,
+        },
+    };
+};
+
 export {
     getQuestionsService,
     getSingleQuestionService,
