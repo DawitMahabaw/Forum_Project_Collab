@@ -337,17 +337,6 @@ const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
 // ============================================================
 
 const draftCoach = async ({ title, body }) => {
-    // ------------------------------------------------------------
-    // We build one clear prompt that:
-    //
-    // 1. Explains the AI's role.
-    // 2. Gives it the draft title/body.
-    // 3. Describes EXACTLY what JSON shape to return.
-    //
-    // Being explicit about the JSON shape is what lets us safely
-    // read response.tips as an array on the other end.
-    // ------------------------------------------------------------
-
     const prompt = `
 You are a writing coach for a technical Q&A forum, similar to Stack Overflow.
 
@@ -359,8 +348,8 @@ Draft body: ${body || "(empty)"}
 
 Respond with ONLY valid JSON in this exact shape:
 {
-  "tips": ["short tip 1", "short tip 2", "short tip 3"],
-  "overallQuality": "needs_work" | "good" | "excellent"
+    "tips": ["short tip 1", "short tip 2", "short tip 3"],
+    "overallQuality": "needs_work" | "good" | "excellent"
 }
 
 Rules:
@@ -368,7 +357,44 @@ Rules:
 - Each tip must be one short sentence.
 - Focus on missing context, vague wording, or missing error details/code.
 - If the draft is already clear and detailed, say so honestly instead of
-  inventing problems.
+inventing problems.
+`;
+
+    const result = await generateJson(prompt);
+
+    return result;
+};
+
+const evaluateAnswerFit = async ({ questionHash, answerBody }) => {
+    const question = await Question.findByHash(questionHash);
+
+    if (!question) {
+        const error = new Error("Question not found.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const prompt = `
+You are helping evaluate whether a DRAFT answer actually addresses a
+question on a technical Q&A forum, before the user posts it.
+
+Question title: ${question.title}
+Question body: ${question.content}
+
+Draft answer: ${answerBody}
+
+Respond with ONLY valid JSON in this exact shape:
+{
+  "fitScore": 0-100,
+  "verdict": "off_topic" | "partial" | "strong",
+  "feedback": "one short sentence explaining the score"
+}
+
+Rules:
+- fitScore reflects how directly the draft answer addresses what was
+  actually asked, not how well-written it is in general.
+- Be honest — a vague or generic answer should score low even if it is
+  well-written.
 `;
 
     const result = await generateJson(prompt);
