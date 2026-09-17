@@ -61,6 +61,23 @@ export async function initializeDatabase() {
       COLLATE=utf8mb4_unicode_ci
     `);
 
+    // Create the question_vectors table if it does not already exist
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS question_vectors (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        question_id BIGINT UNSIGNED NOT NULL UNIQUE,
+        embedding JSON NULL,
+        status ENUM('ready', 'failed') NOT NULL DEFAULT 'failed',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_question_vectors_question FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE,
+        INDEX idx_question_vectors_status (status)
+      ) 
+      ENGINE = InnoDB DEFAULT 
+      CHARSET = utf8mb4 
+      COLLATE = utf8mb4_unicode_ci
+    `);
+
     // Create the answers table if it does not already exist
     await connection.query(`
       CREATE TABLE IF NOT EXISTS answers (
@@ -84,7 +101,7 @@ export async function initializeDatabase() {
       COLLATE=utf8mb4_unicode_ci
     `);
 
-    console.log("Questions and answers tables initialized successfully.");
+    console.log("Questions, question_vectors and answers tables initialized successfully.");
   } finally {
     await connection.end();
   }
