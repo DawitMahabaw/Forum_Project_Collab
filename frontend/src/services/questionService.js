@@ -1,4 +1,4 @@
-import { apiClient } from "./api.js";
+import api from "./api.js";
 
 // ============================================================
 // CREATE QUESTION

@@ -56,7 +56,7 @@ const PostQuestion = () => {
 
       setError(
         error.response?.data?.message ||
-          "Unable to create question. Please try again.",
+        "Unable to create question. Please try again.",
       );
     } finally {
       setLoading(false);

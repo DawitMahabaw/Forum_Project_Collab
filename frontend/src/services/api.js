@@ -18,7 +18,7 @@ const api = axios.create({
 /**
  * Request interceptor to attach the JWT token to headers.
  */
-apiClient.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
     const token = getToken();
     if (token) {
@@ -34,7 +34,7 @@ apiClient.interceptors.request.use(
 /**
  * Response interceptor to handle global 401 unauthorized errors.
  */
-apiClient.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
