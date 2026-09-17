@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import QuestionCard from "../../components/QuestionCard/QuestionCard.jsx";
 import {
-  getQuestions,
+  getQuestion,
   searchQuestions,
 } from "../../services/questionService.js";
 
@@ -36,7 +36,7 @@ const Dashboard = () => {
         // Otherwise, load the normal question feed.
         const data = searchTerm
           ? await searchQuestions(searchTerm)
-          : await getQuestions();
+          : await getQuestion();
 
         // Support both:
         // [question1, question2]
