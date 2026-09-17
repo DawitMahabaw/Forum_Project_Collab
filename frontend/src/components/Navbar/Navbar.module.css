@@ -1,107 +1,195 @@
 .navbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.25fr) auto;
+  grid-template-columns: minmax(250px, 1fr) minmax(300px, 1.25fr) auto;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
   position: sticky;
   top: 0;
   z-index: 20;
   min-height: 68px;
-  padding: 12px 28px;
-  background: #ffffff;
+  padding: 12px 32px;
+  background: #fff;
   border-bottom: 1px solid #e2e8f0;
 }
-
 .titleBlock h1 {
   margin: 0;
-  color: #0f172a;
   font-size: 18px;
   font-weight: 700;
 }
-
-.titleBlock p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size: 12px;
-}
-
-.search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 38px;
-  padding: 0 14px;
-  border: 1px solid #dbe3ee;
-  border-radius: 12px;
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.search input {
-  width: 100%;
+.homeTitleText {
   border: 0;
-  outline: 0;
   background: transparent;
   color: #0f172a;
-  font-size: 14px;
+  font: inherit;
+  font-weight: 700;
 }
 
-.search input::placeholder {
+.homeTitleText:hover {
+  color: #f97316;
+}
+.titleBlock p {
+  color: #475569;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchForm {
+  position: relative;
+  width: 100%;
+}
+.searchFormReady .searchInput {
+  border: 2px solid #f97316;
+  box-shadow: none;
+  padding-right: 150px;
+}
+.searchIcon {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #334155;
+  pointer-events: none;
+}
+.searchInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 14px 0 40px;
+  border: 1px solid #dbe3ee;
+  border-radius: 14px;
+  color: #0f172a;
+  background: #f1f5f9;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.searchInput::placeholder {
   color: #94a3b8;
 }
-
+.aiSearchButton {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 13px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: #f97316;
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 2;
+}
+.aiSearchButton:hover {
+  background: #ea580c;
+}
+.suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 30;
+  overflow: hidden;
+  width: 100%;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+.suggestions p {
+  padding: 11px 14px;
+  color: #64748b;
+  font-size: 13px;
+}
+.suggestions button {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid #edf2f7;
+  text-align: left;
+  color: #0f172a;
+  background: #fff;
+}
+.suggestions button:last-child {
+  border-bottom: 0;
+}
+.suggestions button:hover {
+  background: #fff7ed;
+}
+.suggestions b {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.suggestions small {
+  color: #64748b;
+  font-size: 11px;
+}
 .userSection {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-left: 16px;
+  padding-left: 15px;
   border-left: 1px solid #e2e8f0;
 }
-
 .userName {
   color: #0f172a;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
-
+.avatar {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  color: #0f172a;
+  background: #8ae1ee;
+  font-size: 12px;
+  font-weight: 700;
+}
 .logoutButton {
   display: grid;
-  place-items: center;
-  padding: 5px;
+  padding: 4px;
   border: 0;
+  color: #334155;
   background: transparent;
-  color: #475569;
-  cursor: pointer;
 }
-
 .logoutButton:hover {
   color: #f97316;
 }
-
-@media (max-width: 900px) {
+@media (max-width: 1050px) {
   .navbar {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr minmax(280px, 1fr) auto;
     gap: 16px;
     padding: 12px 20px;
   }
-
-  .search {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  .titleBlock p {
+    display: none;
   }
-
   .userName {
     display: none;
   }
 }
-
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    grid-template-columns: 1fr auto;
     padding: 10px 16px;
   }
-
-  .titleBlock p {
-    display: none;
+  .searchForm {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .userSection {
+    padding-left: 8px;
   }
 }

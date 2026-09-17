@@ -1,10 +1,3 @@
-// ============================================================
-// QUESTION DETAIL PAGE
-// ============================================================
-//
-// Displays one discussion, related questions, answers, and
-// professional inline editing for posts owned by the current user.
-
 import {
   ArrowLeft,
   Bold,
@@ -23,7 +16,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import MarkdownContent from "../../components/MarkdownContent/MarkdownContent.jsx";
+// import MarkdownContent from "../../components/MarkdownContent/MarkdownContent.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
   createAnswer,
@@ -288,7 +281,7 @@ const QuestionDetail = () => {
     } catch (requestError) {
       setAnswerError(
         requestError.response?.data?.message ||
-          "Could not check answer fit right now.",
+        "Could not check answer fit right now.",
       );
     } finally {
       setIsCheckingFit(false);
@@ -319,7 +312,7 @@ const QuestionDetail = () => {
     } catch (requestError) {
       setAnswerError(
         requestError.response?.data?.message ||
-          "Could not post your answer. Please try again.",
+        "Could not post your answer. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -358,7 +351,7 @@ const QuestionDetail = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not update the question.",
+        "Could not update the question.",
       );
     } finally {
       setIsSaving(false);
