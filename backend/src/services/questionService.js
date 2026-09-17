@@ -152,7 +152,7 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
 };
 
 export {
-    getQuestionsService,
-    getSingleQuestionService,
-    searchQuestionsSemanticService,
+  getQuestionsService,
+  getSingleQuestionService,
+  searchQuestionsSemanticService,
 };
