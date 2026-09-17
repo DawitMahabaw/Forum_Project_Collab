@@ -13,3 +13,10 @@ export const splitText = (text, chunkSize = 1000) => {};
 // Text Chunking Module for RAG Pipeline
 
 export const splitText = (text, chunkSize = 1000, chunkOverlap = 120) => {};
+// Text Chunking Module for RAG Pipeline
+
+export const splitText = (text, chunkSize = 1000, chunkOverlap = 120) => {
+  if (typeof text !== "string") {
+    return [];
+  }
+};
