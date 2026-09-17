@@ -1,8 +1,56 @@
 import Question from "../models/Question.js";
 import QuestionVector from "../models/QuestionVector.js";
+import Answer from "../models/Answer.js";
+
+import { generateHash } from "../utils/hash.js";
 import { embedContent } from "../ai/gemini.js";
+import { cosineSimilarity } from "../ai/vectorMath.js";
+import { generateJson } from "../ai/generateText.js";
 
 import env from "../config/env.js";
+
+const buildEmbeddingText = ({ title, content }) =>
+    `Question title: ${title}\n\nQuestion details: ${content}`.slice(0, 12000);
+
+// ============================================================
+// CREATE QUESTION & AUTO-EMBED
+// ============================================================
+const createQuestionWithVectorService = async ({ userId, title, content }) => {
+
+    let questionHash = generateHash();
+    let existing = await Question.findByHash(questionHash);
+
+    while (existing) {
+        questionHash = generateHash();
+        existing = await Question.findByHash(questionHash);
+    }
+
+    const created = await Question.create({
+        questionHash,
+        userId,
+        title,
+        content,
+    });
+
+    const { success, embedding } = await embedContent(
+        buildEmbeddingText({ title, content }),
+        "RETRIEVAL_DOCUMENT",
+    );
+
+    await QuestionVector.upsert({
+        questionId: created.id,
+        embedding: success ? embedding : null,
+        status: success ? "ready" : "failed",
+    });
+
+    return {
+        id: created.id,
+        questionHash: created.questionHash,
+        title: created.title,
+        content: created.content,
+        userId: created.userId,
+    };
+};
 
 // ============================================================
 // GET QUESTIONS SERVICE (T-10)
@@ -30,28 +78,28 @@ const getQuestionsService = async ({ search, onlyMine, userId }) => {
 // SINGLE QUESTION DETAILS SERVICE 
 // ============================================================
 const getSingleQuestionService = async (questionHash) => {
-  // Retrieve the requested question by public hash
-  const question = await Question.findByHash(questionHash);
+    // Retrieve the requested question by public hash
+    const question = await Question.findByHash(questionHash);
 
-  //Handle question-not-found cases safely
-  if (!question) {
-    const error = new Error("Question not found.");
-    error.statusCode = 404;
-    throw error;
-  }
+    //Handle question-not-found cases safely
+    if (!question) {
+        const error = new Error("Question not found.");
+        error.statusCode = 404;
+        throw error;
+    }
 
-  // Retrieve related answers using the internal question ID
-  const answers = await Answer.findManyByQuestionId(question.id);
+    // Retrieve related answers using the internal question ID
+    const answers = await Answer.findManyByQuestionId(question.id);
 
-  // TASK REQUIREMENT: Return question and discussion information
-  return {
-    question,
-    answers,
-    answersMeta: {
-      limit: 100,
-      total: answers.length,
-    },
-  };
+    // TASK REQUIREMENT: Return question and discussion information
+    return {
+        question,
+        answers,
+        answersMeta: {
+            limit: 100,
+            total: answers.length,
+        },
+    };
 };
 
 
@@ -152,7 +200,7 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
 };
 
 export {
-  getQuestionsService,
-  getSingleQuestionService,
-  searchQuestionsSemanticService,
+    getQuestionsService,
+    getSingleQuestionService,
+    searchQuestionsSemanticService,
 };
