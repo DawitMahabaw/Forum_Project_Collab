@@ -11,3 +11,25 @@
 .state p { margin: 6px 0 18px; }
 .error { padding: 14px 16px; border: 1px solid #fecaca; border-radius: 10px; color: #b91c1c; background: #fef2f2; }
 @media (max-width: 640px) { .hero { padding: 24px; flex-direction: column; } }
+
+:global(html[data-theme="dark"]) .hero,
+:global(html[data-theme="dark"]) .list,
+:global(html[data-theme="dark"]) .state {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+:global(html[data-theme="dark"]) .hero p,
+:global(html[data-theme="dark"]) .state {
+  color: var(--text-secondary);
+}
+
+:global(html[data-theme="dark"]) .state h3 {
+  color: var(--text-primary);
+}
+
+:global(html[data-theme="dark"]) .error {
+  border-color: #7f1d1d;
+  color: #fecaca;
+  background: #450a0a;
+}
