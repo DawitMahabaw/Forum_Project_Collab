@@ -1,8 +1,9 @@
-import { LogOut, Search, Sparkles, X } from "lucide-react";
+import { LogOut, Moon, Search, Sparkles, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
 import { listQuestions } from "../../services/questionService.js";
 import styles from "./Navbar.module.css";
 
@@ -33,6 +34,7 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -164,6 +166,20 @@ const Navbar = () => {
           </div>
         )}
       </form>
+      <button
+        aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        aria-pressed={theme === "dark"}
+        className={styles.themeToggle}
+        onClick={toggleTheme}
+        title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        type="button"
+      >
+        {theme === "dark" ? (
+          <Sun aria-hidden="true" size={18} />
+        ) : (
+          <Moon aria-hidden="true" size={18} />
+        )}
+      </button>
       <div className={styles.userSection}>
         <span className={styles.userName}>
           {user?.firstName} {user?.lastName}
