@@ -6,10 +6,13 @@ const listDocuments = async () =>
 const uploadPdf = async (file) => {
   const formData = new FormData();
 
+  // The field name must match uploadPdf.single("file") on the backend.
+  formData.append("file", file);
 
+ 
   });
 
   return response.data.data;
-};
+};;
 
 export { listDocuments, uploadPdf };
