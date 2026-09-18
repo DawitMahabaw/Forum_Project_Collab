@@ -2,6 +2,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const numberFromEnv = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 const env = {
   port: process.env.PORT || 4000,
 
@@ -14,11 +19,23 @@ const env = {
   },
   jwtSecret: process.env.JWT_SECRET,
 
+  geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
+  geminiModel: process.env.GEMINI_MODEL?.trim(),
+  geminiEmbeddingModel: process.env.GEMINI_EMBEDDING_MODEL?.trim(),
+  geminiFallbackModel: process.env.GEMINI_FALLBACK_MODEL?.trim(),
+
   semanticSearch: {
-    defaultK: Number(process.env.SEMANTIC_SEARCH_DEFAULT_K) || 10,
-    recommendThreshold:
-      Number(process.env.SEMANTIC_SEARCH_RECOMMEND_THRESHOLD) || 0.5,
-    maxK: Number(process.env.SEMANTIC_SEARCH_MAX_K) || 20,
+    defaultK: numberFromEnv(process.env.SEMANTIC_SEARCH_DEFAULT_K, 10),
+    recommendThreshold: numberFromEnv(
+      process.env.SEMANTIC_SEARCH_RECOMMEND_THRESHOLD ??
+        process.env.RECOMMEND_THRESHOLD,
+      0.5,
+    ),
+    maxK: numberFromEnv(process.env.SEMANTIC_SEARCH_MAX_K, 20),
+    backfillLimit: numberFromEnv(
+      process.env.SEMANTIC_SEARCH_BACKFILL_LIMIT,
+      10,
+    ),
   },
 };
 
