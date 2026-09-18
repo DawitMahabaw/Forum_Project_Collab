@@ -1,8 +1,12 @@
 import {
   getQuestionsService,
   searchQuestionsSemanticService,
-  getSingleQuestionService
+  getSingleQuestionService,
+  getSimilarQuestionsService,
+  updateQuestionService,
+  deleteQuestionService,
 } from "../services/questionService.js";
+import { isQuestionHash } from "../utils/questionHash.js";
 import env from "../config/env.js";
 
 import { 
@@ -86,7 +90,7 @@ const getSingleQuestion = async (req, res, next) => {
     const { questionHash } = req.params;
 
     //  Handle invalid identifiers
-    if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+    if (!isQuestionHash(questionHash)) {
       return res.status(400).json({
         success: false,
         message: "Invalid question identifier.",
@@ -106,6 +110,80 @@ const getSingleQuestion = async (req, res, next) => {
     });
   } catch (error) {
     // Handle database errors
+    next(error);
+  }
+};
+
+const validateQuestionInput = ({ title, content }) => {
+  if (typeof title !== "string" || title.trim().length < 5) {
+    return "Question title must contain at least 5 characters.";
+  }
+
+  if (title.trim().length > 255) {
+    return "Question title cannot exceed 255 characters.";
+  }
+
+  if (typeof content !== "string" || content.trim().length < 10) {
+    return "Question description must contain at least 10 characters.";
+  }
+
+  return null;
+};
+
+const updateQuestion = async (req, res, next) => {
+  try {
+    const { questionHash } = req.params;
+
+    if (!isQuestionHash(questionHash)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid question identifier.",
+      });
+    }
+
+    const validationError = validateQuestionInput(req.body);
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
+    }
+
+    const question = await updateQuestionService({
+      questionHash,
+      userId: req.user.userId,
+      title: req.body.title.trim(),
+      content: req.body.content.trim(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Question updated successfully.",
+      data: question,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteQuestion = async (req, res, next) => {
+  try {
+    const { questionHash } = req.params;
+
+    if (!isQuestionHash(questionHash)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid question identifier.",
+      });
+    }
+
+    await deleteQuestionService({
+      questionHash,
+      userId: req.user.userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Question deleted successfully.",
+    });
+  } catch (error) {
     next(error);
   }
 };
@@ -180,7 +258,7 @@ const assessAnswerAgainstQuestion = async (req, res, next) => {
     const { answerText } = req.body;
 
     // Validate the question identifier.
-    if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+    if (!isQuestionHash(questionHash)) {
       return res.status(400).json({
         success: false,
         message: "Invalid question identifier.",
@@ -223,7 +301,7 @@ const getSimilarQuestions = async (req, res, next) => {
     const { questionHash } = req.params;
 
     // Validate the question hash before continuing.
-    if (!QUESTION_HASH_PATTERN.test(questionHash)) {
+    if (!isQuestionHash(questionHash)) {
       return res.status(400).json({
         success: false,
         message: "Invalid question identifier.",
@@ -288,6 +366,7 @@ const generateQuestionDraftCoach = async (req, res, next) => {
 
     // Make sure title is actually a string.
     const normalizedTitle = typeof title === "string" ? title.trim() : "";
+    const normalizedContent = typeof content === "string" ? content.trim() : "";
 
     // Draft coaching is allowed even when the user has only
     // partially written the question.
@@ -327,6 +406,10 @@ const generateQuestionDraftCoach = async (req, res, next) => {
 export {
   getQuestions,
   getSingleQuestion,
-  searchQuestionsSemantic,generateQuestionDraftCoach,
+  getSimilarQuestions,
+  updateQuestion,
+  deleteQuestion,
+  searchQuestionsSemantic,
+  generateQuestionDraftCoach,
   assessAnswerAgainstQuestion,
 };
