@@ -214,7 +214,7 @@
   font-weight: var(--font-bold);
   line-height: 1.15;
   letter-spacing: -0.03em;
-  color: #000000;
+  color: var(--text-primary);
 }
 
 .titleAccent {
@@ -571,7 +571,7 @@
   margin: 0;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: #000000;
+  color: var(--text-primary);
 }
 
 .footerMeta {
