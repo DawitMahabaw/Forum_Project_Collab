@@ -125,6 +125,10 @@
   overflow: hidden;
 }
 
+.feed > :last-child {
+  border-bottom: 0;
+}
+
 .feedHeader {
   display: flex;
   align-items: center;
