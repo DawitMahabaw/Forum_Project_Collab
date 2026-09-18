@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS questions (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    question_hash CHAR(16) NOT NULL UNIQUE,
+    question_hash VARCHAR(64) NOT NULL UNIQUE,
     user_id BIGINT UNSIGNED NOT NULL,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
