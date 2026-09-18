@@ -22,7 +22,7 @@ const errorHandler = (error, req, res, next) => {
     message = "Request body is too large.";
   }
 
-  if (statusCode >= 500) {
+  if (statusCode >= 500 && !error.expose) {
     message = "Internal server error.";
   }
 
