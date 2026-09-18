@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken } from "../utils/auth.js";
+import { getToken, removeToken } from "../utils/auth.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
@@ -37,8 +37,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("evangadi_auth_token");
+    // A rejected sign-in is expected to stay on the auth screen so the page
+    // can show the API's friendly credential message. Other 401 responses
+    // mean an existing session is no longer usable.
+    const isLoginRequest = String(error.config?.url || "").includes(
+      "/auth/login",
+    );
+
+    if (error.response?.status === 401 && !isLoginRequest) {
+      removeToken();
 
       if (window.location.pathname !== "/auth") {
         window.location.assign("/auth");
