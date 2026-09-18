@@ -436,7 +436,7 @@ const QuestionDetail = () => {
     return <div className={styles.state}>Loading this discussion...</div>;
   }
 
-  if (error || !question) {
+  if (!question) {
     return (
       <div className={styles.error} role="alert">
         {error || "Question not found."}
@@ -448,6 +448,11 @@ const QuestionDetail = () => {
 
   return (
     <section className={styles.page}>
+      {error && !questionDraft && (
+        <div className={styles.error} role="alert">
+          {error}
+        </div>
+      )}
       {toast && (
         <div className={styles.toast} role="status">
           <CheckCircle2 size={17} />
@@ -497,12 +502,13 @@ const QuestionDetail = () => {
                 <input
                   className={styles.questionTitleInput}
                   id="question-edit-title"
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setQuestionDraft((current) => ({
                       ...current,
                       title: event.target.value,
-                    }))
-                  }
+                    }));
+                    setError("");
+                  }}
                   value={questionDraft.title}
                 />
                 <label
@@ -515,9 +521,10 @@ const QuestionDetail = () => {
                   ariaLabel="Question details"
                   inputRef={questionEditTextareaRef}
                   minLength={10}
-                  onChange={(content) =>
-                    setQuestionDraft((current) => ({ ...current, content }))
-                  }
+                  onChange={(content) => {
+                    setQuestionDraft((current) => ({ ...current, content }));
+                    setError("");
+                  }}
                   placeholder="Include all of the context that someone needs to answer your question."
                   value={questionDraft.content}
                 />
@@ -537,6 +544,11 @@ const QuestionDetail = () => {
                     {isSaving ? "Saving..." : "Save changes"}
                   </button>
                 </div>
+                {error && (
+                  <div className={styles.inlineError} role="alert">
+                    {error}
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -610,7 +622,10 @@ const QuestionDetail = () => {
                       ariaLabel="Answer"
                       inputRef={answerEditTextareaRef}
                       minLength={20}
-                      onChange={setAnswerDraft}
+                      onChange={(value) => {
+                        setAnswerDraft(value);
+                        setAnswerError("");
+                      }}
                       placeholder="Share what you know, including useful steps or examples."
                       value={answerDraft}
                     />
@@ -620,6 +635,7 @@ const QuestionDetail = () => {
                         onClick={() => {
                           setEditingAnswerId(null);
                           setAnswerDraft("");
+                          setAnswerError("");
                         }}
                         type="button"
                       >
@@ -633,6 +649,11 @@ const QuestionDetail = () => {
                         {isSaving ? "Saving..." : "Save changes"}
                       </button>
                     </div>
+                    {answerError && (
+                      <div className={styles.inlineError} role="alert">
+                        {answerError}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <MarkdownContent content={answer.content} />
@@ -673,6 +694,7 @@ const QuestionDetail = () => {
                 onChange={(value) => {
                   setAnswerText(value);
                   setFit(null);
+                  setAnswerError("");
                 }}
                 placeholder="Share what you know, include steps or examples, and keep the answer focused on this question."
                 value={answerText}
@@ -696,7 +718,7 @@ const QuestionDetail = () => {
                   <p>{fit.note}</p>
                 </div>
               )}
-              {answerError && (
+              {answerError && !editingAnswerId && (
                 <div className={styles.error} role="alert">
                   {answerError}
                 </div>
