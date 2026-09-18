@@ -29,7 +29,7 @@ const env = {
     recommendThreshold: numberFromEnv(
       process.env.SEMANTIC_SEARCH_RECOMMEND_THRESHOLD ??
         process.env.RECOMMEND_THRESHOLD,
-      0.5,
+      0.6,
     ),
     maxK: numberFromEnv(process.env.SEMANTIC_SEARCH_MAX_K, 20),
     backfillLimit: numberFromEnv(
