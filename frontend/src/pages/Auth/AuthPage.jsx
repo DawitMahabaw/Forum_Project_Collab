@@ -102,13 +102,15 @@ const AuthPage = () => {
 
     // ==========================================================
     // PASSWORD VALIDATION
-    // ==========================================================
 
     if (!formData.password) {
       setError("Password is required.");
       return;
     }
-    
+
+    // Only registration checks the minimum password length.
+    // Login should allow any supplied password to reach the
+    // backend, where it will be compared against the stored hash.
     if (isRegistering && formData.password.length < 8) {
       setError("Password must contain at least 8 characters.");
       return;
@@ -159,7 +161,7 @@ const AuthPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };;
+  };;;
 
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);
