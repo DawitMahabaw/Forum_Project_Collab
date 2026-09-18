@@ -11,6 +11,33 @@ import env from "../config/env.js";
 const buildEmbeddingText = ({ title, content }) =>
     `Question title: ${title}\n\nQuestion details: ${content}`.slice(0, 12000);
 
+// Vector similarity alone can overvalue generic technical phrasing such as
+// "How do I...". For recommendations, retain a shared, specific title term
+// unless the semantic match is exceptionally strong.
+const RELATED_TOPIC_STOP_WORDS = new Set([
+    "about", "after", "also", "and", "are", "can", "code", "does", "for",
+    "from", "have", "help", "how", "into", "issue", "its", "need", "not",
+    "problem", "question", "that", "the", "their", "this", "use", "using",
+    "what", "when", "where", "which", "with", "would", "you", "your",
+]);
+
+const getTopicTerms = (title = "") =>
+    new Set(
+        title
+            .toLowerCase()
+            .match(/[a-z0-9]+/g)
+            ?.filter(
+                (term) => term.length >= 3 && !RELATED_TOPIC_STOP_WORDS.has(term),
+            ) || [],
+    );
+
+const hasSharedTopicTerm = (sourceQuestion, candidateQuestion) => {
+    const sourceTerms = getTopicTerms(sourceQuestion.title);
+    const candidateTerms = getTopicTerms(candidateQuestion.title);
+
+    return [...sourceTerms].some((term) => candidateTerms.has(term));
+};
+
 // ============================================================
 // CREATE QUESTION & AUTO-EMBED
 // ============================================================
@@ -259,10 +286,13 @@ const searchQuestionsSemanticService = async ({ query, k, threshold }) => {
 
 const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
     const resolvedK = k || env.semanticSearch.defaultK;
-    const resolvedThreshold =
-        threshold === undefined || threshold === null
-            ? env.semanticSearch.recommendThreshold
-            : threshold;
+    // A caller may request a stricter cutoff, but not a weaker one for the
+    // related-questions sidebar.
+    const resolvedThreshold = Math.max(
+        env.semanticSearch.relatedQuestionThreshold,
+        threshold ?? 0,
+    );
+    const exceptionallyStrongScore = Math.min(resolvedThreshold + 0.12, 0.9);
 
     const sourceQuestion = await Question.findByHash(questionHash);
 
@@ -296,7 +326,9 @@ const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
     });
 
     const ranked = rankVectorsAgainstQuery(sourceVector.embedding, vectors, {
-        k: resolvedK,
+        // Rank the complete local vector set before applying the precision
+        // filter, so a valid related question is not hidden by generic ones.
+        k: vectors.length,
     });
 
     const questions = await Question.findManyByIds(
@@ -312,7 +344,13 @@ const getSimilarQuestionsService = async ({ questionHash, k, threshold }) => {
             ...question,
             score: scoreByQuestionId.get(question.id) ?? 0,
         }))
-        .filter((question) => question.score >= resolvedThreshold);
+        .filter(
+            (question) =>
+                question.score >= resolvedThreshold &&
+                (hasSharedTopicTerm(sourceQuestion, question) ||
+                    question.score >= exceptionallyStrongScore),
+        )
+        .slice(0, resolvedK);
 
     return {
         data,
