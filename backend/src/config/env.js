@@ -31,6 +31,11 @@ const env = {
         process.env.RECOMMEND_THRESHOLD,
       0.6,
     ),
+    // Recommendations need a stricter threshold than an intentional search.
+    relatedQuestionThreshold: numberFromEnv(
+      process.env.RELATED_QUESTION_THRESHOLD,
+      0.72,
+    ),
     maxK: numberFromEnv(process.env.SEMANTIC_SEARCH_MAX_K, 20),
     backfillLimit: numberFromEnv(
       process.env.SEMANTIC_SEARCH_BACKFILL_LIMIT,
