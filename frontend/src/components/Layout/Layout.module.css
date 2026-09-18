@@ -17,6 +17,8 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
+  /* Preserve separation above the pinned footer on both short and long pages. */
+  gap: 40px;
   padding: 19px 25px 0;
 }
 
