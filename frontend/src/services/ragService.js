@@ -1,5 +1,20 @@
+
 // RAG SEARCH AND AI API SERVICE
 import api from "./api.js";
+// Retrieve documents belonging to the authenticated user.
+const listDocuments = async () =>
+  (await api.get("/rag/documents")).data.data || [];
+
+// Upload a PDF using multipart FormData.
+const uploadPdf = async (file) => {
+  const formData = new FormData();
+
+  // The field name must match uploadPdf.single("file") on the backend.
+  formData.append("file", file);
+  const response = await api.post("/rag/documents", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
 
 
 // SEMANTIC SEARCH
@@ -20,4 +35,4 @@ const askDocument = async (documentId, query) => {
   return response.data.data;
 };
 
-export { askDocument, searchDocument };
+export { askDocument, searchDocument,listDocuments, uploadPdf };
