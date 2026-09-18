@@ -154,9 +154,8 @@ const AuthPage = () => {
       navigate(destination, { replace: true });
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to connect to the server. Please try again.",
+        requestError.response?.data?.message ||
+          "Unable to sign in right now. Please try again.",
       );
     } finally {
       setIsLoading(false);
