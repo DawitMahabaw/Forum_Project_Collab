@@ -61,6 +61,26 @@ export async function initializeDatabase() {
       COLLATE=utf8mb4_unicode_ci
     `);
 
+    // The first schema used CHAR(16), but current public question IDs are
+    // 64-character hashes. Expanding the column preserves every existing ID
+    // and allows new posts to be created without truncation.
+    const [questionHashColumn] = await connection.query(`
+      SELECT CHARACTER_MAXIMUM_LENGTH AS max_length
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'questions'
+        AND COLUMN_NAME = 'question_hash'
+      LIMIT 1
+    `);
+
+    if (Number(questionHashColumn[0]?.max_length) < 64) {
+      await connection.query(`
+        ALTER TABLE questions
+        MODIFY question_hash VARCHAR(64) NOT NULL
+      `);
+      console.log("Expanded questions.question_hash to VARCHAR(64).");
+    }
+
     // Create the question_vectors table if it does not already exist
     await connection.query(`
       CREATE TABLE IF NOT EXISTS question_vectors (
