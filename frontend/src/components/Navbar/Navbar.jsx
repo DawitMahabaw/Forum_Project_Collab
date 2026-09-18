@@ -1,108 +1,98 @@
 import { LogOut, Search, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
-import { searchQuestions } from "../../services/questionService.js";
+import { listQuestions } from "../../services/questionService.js";
 import styles from "./Navbar.module.css";
 
-const getQuestionList = (response) => {
-  if (Array.isArray(response)) return response;
-
-  return response?.questions || response?.data || [];
+const pageCopy = {
+  "/dashboard": [
+    "Home",
+    "Browse the feed, search by keyword, or run AI similarity search.",
+  ],
+  "/my-questions": [
+    "Your topics",
+    "Questions you have posted. Open any thread to read replies or edit context.",
+  ],
+  "/questions/ask": [
+    "Ask a question",
+    "A clear title and reproducible steps get faster, more accurate answers.",
+  ],
+  "/rag-documents": [
+    "Knowledge base",
+    "Private PDF library: reader, semantic search, and AI answers with citations per document.",
+  ],
 };
 
-const getQuestionId = (question) =>
-  question.questionHash ||
-  question.question_hash ||
-  question.questionId ||
-  question.question_id ||
-  question.id;
-
-const getReplyCount = (question) =>
-  question.answerCount ?? question.answer_count ?? question.replies ?? 0;
+const getInitials = (user) =>
+  `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase() ||
+  "U";
 
 const Navbar = () => {
+  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { user, logout } = useAuth();
-  const searchTerm = searchParams.get("search") || "";
+  const { logout, user } = useAuth();
+  const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [heading, description] = pageCopy[pathname] || [
+    "Discussion",
+    "Read the thread, review related topics, and reply if you can help.",
+  ];
+  const canUseAiSearch = query.trim().length >= 3;
 
+  // Fetch fast keyword suggestions while the user types. The
+  // debounce prevents a network request for every key press and
+  // the `active` guard prevents an older response replacing a
+  // newer query's result list.
   useEffect(() => {
-    const query = searchTerm.trim();
+    const searchTerm = query.trim();
 
-    if (query.length < 3) {
+    if (!searchTerm) {
+      setSuggestions([]);
+      setIsSearching(false);
       return undefined;
     }
 
-    let isCurrent = true;
-    const searchTimer = window.setTimeout(async () => {
-      try {
-        setIsSearching(true);
-        const response = await searchQuestions(query);
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      setIsSearching(true);
 
-        if (isCurrent) setSuggestions(getQuestionList(response).slice(0, 5));
+      try {
+        const data = await listQuestions({ search: searchTerm });
+        if (active) setSuggestions(data.questions.slice(0, 5));
       } catch {
-        // The dashboard owns the visible error state. A failed suggestion
-        // request should not block someone from continuing to search.
-        if (isCurrent) setSuggestions([]);
+        // A suggestion failure must never prevent normal search
+        // submission, so the full dashboard remains the fallback.
+        if (active) setSuggestions([]);
       } finally {
-        if (isCurrent) setIsSearching(false);
+        if (active) setIsSearching(false);
       }
     }, 250);
 
     return () => {
-      isCurrent = false;
-      window.clearTimeout(searchTimer);
+      active = false;
+      window.clearTimeout(timer);
     };
-  }, [searchTerm]);
+  }, [query]);
 
-  const updateSearchParam = (value, aiSearch = false) => {
-    const nextParams = new URLSearchParams(searchParams);
-    const query = value.trim();
-
-    if (query) {
-      nextParams.set("search", value);
-    } else {
-      nextParams.delete("search");
-    }
-
-    if (aiSearch && query.length >= 3) {
-      nextParams.set("mode", "ai");
-    } else {
-      nextParams.delete("mode");
-    }
-
-    setSearchParams(nextParams);
+  const navigateToSearch = (mode) => {
+    const text = query.trim();
+    if (!text) return;
+    setSuggestions([]);
+    navigate(`/dashboard?keyword=${encodeURIComponent(text)}&mode=${mode}`);
   };
 
-  const handleSearch = (event) => {
-    const value = event.target.value;
-
-    if (value.trim().length < 3) {
-      setSuggestions([]);
-      setIsSearching(false);
-    } else {
-      setSuggestions([]);
-      setIsSearching(true);
-    }
-
-    updateSearchParam(value);
+  const openSuggestion = (questionHash) => {
+    setQuery("");
+    setSuggestions([]);
+    navigate(`/questions/${questionHash}`);
   };
 
-  const handleAiSearch = () => {
-    updateSearchParam(searchTerm, true);
-    setIsSearchFocused(false);
-  };
-
-  const handleSuggestionSelect = (question) => {
-    const questionId = getQuestionId(question);
-
-    if (questionId) navigate(`/questions/${questionId}`);
-    setIsSearchFocused(false);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    navigateToSearch("keyword");
   };
 
   const handleLogout = () => {
@@ -110,96 +100,65 @@ const Navbar = () => {
     navigate("/auth", { replace: true });
   };
 
-  const getInitials = () => {
-    const first = user?.firstName?.[0] || "";
-    const last = user?.lastName?.[0] || "";
-
-    return `${first}${last}`.toUpperCase() || "U";
-  };
-
-  const showAiSearch = searchTerm.trim().length >= 3;
-  const showSuggestions = isSearchFocused && showAiSearch;
-
   return (
     <header className={styles.navbar}>
       <div className={styles.titleBlock}>
-        <h1>Home</h1>
-        <p>Browse the feed, search by keyword, or run AI similarity search.</p>
+        <h1 className={styles.homeTitleText}>{heading}</h1>
+        <p>{description}</p>
       </div>
-
-      <div className={styles.searchArea}>
-        <div
-          className={`${styles.search} ${
-            showAiSearch ? styles.searchWithAi : ""
-          }`}
-        >
-          <Search size={10} strokeWidth={2} aria-hidden="true" />
-
-          <input
-            type="search"
-            value={searchTerm}
-            placeholder="Search questions by keyword..."
-            aria-label="Search questions by keyword"
-            onChange={handleSearch}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => window.setTimeout(() => setIsSearchFocused(false), 150)}
-          />
-
-          {showAiSearch && (
-            <button
-              type="button"
-              className={styles.aiSearchButton}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={handleAiSearch}
-            >
-              <Sparkles size={16} aria-hidden="true" />
-              AI Search
-            </button>
-          )}
-        </div>
-
-        {showSuggestions && (
+      <form
+        className={`${styles.searchForm} ${canUseAiSearch ? styles.searchFormReady : ""}`}
+        onSubmit={handleSubmit}
+      >
+        <Search aria-hidden="true" className={styles.searchIcon} size={18} />
+        <input
+          aria-label="Search questions"
+          className={styles.searchInput}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search questions by keyword..."
+          value={query}
+        />
+        {canUseAiSearch && (
+          <button
+            className={styles.aiSearchButton}
+            onClick={() => navigateToSearch("semantic")}
+            type="button"
+          >
+            <Sparkles aria-hidden="true" size={15} />
+            AI Search
+          </button>
+        )}
+        {(isSearching || suggestions.length > 0) && (
           <div className={styles.suggestions} role="listbox">
-            {isSearching && (
-              <p className={styles.suggestionState}>Searching questions...</p>
-            )}
-
-            {!isSearching && suggestions.length === 0 && (
-              <p className={styles.suggestionState}>No matching questions.</p>
-            )}
-
+            {isSearching && <p>Searching discussions…</p>}
             {!isSearching &&
               suggestions.map((question) => (
                 <button
-                  key={getQuestionId(question)}
+                  key={question.questionHash}
+                  onClick={() => openSuggestion(question.questionHash)}
                   type="button"
-                  className={styles.suggestion}
-                  role="option"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => handleSuggestionSelect(question)}
                 >
-                  <strong>{question.title}</strong>
-                  <span>{getReplyCount(question)} replies</span>
+                  <b>{question.title}</b>
+                  <small>
+                    {question.answerCount || 0} {question.answerCount === 1 ? "reply" : "replies"}
+                  </small>
                 </button>
               ))}
           </div>
         )}
-      </div>
-
+      </form>
       <div className={styles.userSection}>
         <span className={styles.userName}>
           {user?.firstName} {user?.lastName}
         </span>
-
-        <div className={styles.avatar}>{getInitials()}</div>
-
+        <span className={styles.avatar}>{getInitials(user)}</span>
         <button
-          type="button"
+          aria-label="Log out"
           className={styles.logoutButton}
           onClick={handleLogout}
-          aria-label="Log out"
+          type="button"
         >
-          <LogOut size={18} />
+          <LogOut aria-hidden="true" size={20} />
         </button>
       </div>
     </header>

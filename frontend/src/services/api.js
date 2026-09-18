@@ -1,11 +1,15 @@
 import axios from "axios";
+import { getToken } from "../utils/auth.js";
 
-/**
- * Configured axios instance for API communication.
- */
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:4000",
-  timeout: 10000,
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
+// ============================================================
+// CREATE AXIOS CLIENT
+// ============================================================
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -14,9 +18,9 @@ const apiClient = axios.create({
 /**
  * Request interceptor to attach the JWT token to headers.
  */
-apiClient.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,26 +34,19 @@ apiClient.interceptors.request.use(
 /**
  * Response interceptor to handle global 401 unauthorized errors.
  */
-apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+api.interceptors.response.use(
+  (response) => response,
   (error) => {
-    // Skip global 401 redirect for auth endpoints so components can handle login/register errors
-    const isAuthEndpoint =
-      error.config?.url?.includes("/api/auth/login") ||
-      error.config?.url?.includes("/api/auth/register");
+    if (error.response?.status === 401) {
+      localStorage.removeItem("evangadi_auth_token");
 
-    if (error.response?.status === 401 && !isAuthEndpoint) {
-      // Clear authentication data
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-
-      // Redirect to login page
-      window.location.href = "/auth";
+      if (window.location.pathname !== "/auth") {
+        window.location.assign("/auth");
+      }
     }
+
     return Promise.reject(error);
   },
 );
 
-export { apiClient };
+export default api;
