@@ -200,3 +200,38 @@
     height: 17px;
   }
 }
+
+:global(html[data-theme="dark"]) .card {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+:global(html[data-theme="dark"]) .card:hover,
+:global(html[data-theme="dark"]) .feedRow:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-highlight);
+}
+
+:global(html[data-theme="dark"]) .feedRow {
+  border-bottom-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .title {
+  color: var(--text-primary);
+}
+
+:global(html[data-theme="dark"]) .excerpt,
+:global(html[data-theme="dark"]) .meta,
+:global(html[data-theme="dark"]) .replies,
+:global(html[data-theme="dark"]) .openIcon {
+  color: var(--text-tertiary);
+}
+
+:global(html[data-theme="dark"]) .avatar {
+  color: #fed7aa;
+  background: #5b2c0a;
+}
+
+:global(html[data-theme="dark"]) .yours {
+  background: var(--surface-highlight);
+}
