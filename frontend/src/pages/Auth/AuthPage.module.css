@@ -397,3 +397,15 @@
   color: var(--primary-container);
   text-decoration: underline;
 }
+
+:global(html[data-theme="dark"]) .success {
+  border-color: #166534;
+  color: #bbf7d0;
+  background: #052e16;
+}
+
+:global(html[data-theme="dark"]) .error {
+  border-color: #7f1d1d;
+  color: #fecaca;
+  background: #450a0a;
+}

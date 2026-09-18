@@ -234,3 +234,45 @@
     min-width: auto;
   }
 }
+
+:global(html[data-theme="dark"]) .header p,
+:global(html[data-theme="dark"]) .guidance > p,
+:global(html[data-theme="dark"]) .guidance li,
+:global(html[data-theme="dark"]) .field small,
+:global(html[data-theme="dark"]) .editorToolbar,
+:global(html[data-theme="dark"]) .coachRow p,
+:global(html[data-theme="dark"]) .cancel {
+  color: var(--text-secondary);
+}
+
+:global(html[data-theme="dark"]) .guidance,
+:global(html[data-theme="dark"]) .editorToolbar,
+:global(html[data-theme="dark"]) .coachButton {
+  border-color: var(--border);
+  background: var(--surface-container-low);
+}
+
+:global(html[data-theme="dark"]) .formCard,
+:global(html[data-theme="dark"]) .field input,
+:global(html[data-theme="dark"]) .editor textarea {
+  border-color: var(--border);
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+:global(html[data-theme="dark"]) .editor,
+:global(html[data-theme="dark"]) .actions {
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .coachPanel {
+  border-color: #9a3412;
+  color: #fed7aa;
+  background: var(--surface-highlight);
+}
+
+:global(html[data-theme="dark"]) .error {
+  border-color: #7f1d1d;
+  color: #fecaca;
+  background: #450a0a;
+}

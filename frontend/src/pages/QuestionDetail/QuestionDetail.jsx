@@ -172,6 +172,7 @@ const QuestionDetail = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [error, setError] = useState("");
+  const [questionEditError, setQuestionEditError] = useState("");
   const [answerError, setAnswerError] = useState("");
   const [toast, setToast] = useState("");
   const answerTextareaRef = useRef(null);
@@ -327,7 +328,7 @@ const QuestionDetail = () => {
   // Open an inline question editor in place of the rendered question body.
   const startQuestionEdit = () => {
     setQuestionDraft({ title: question.title, content: question.content });
-    setError("");
+    setQuestionEditError("");
   };
 
   // Save the inline question editor and return to the rendered Markdown view.
@@ -336,14 +337,14 @@ const QuestionDetail = () => {
       questionDraft.title.trim().length < 5 ||
       questionDraft.content.trim().length < 10
     ) {
-      setError(
+      setQuestionEditError(
         "The title needs 5 characters and the details need 10 characters.",
       );
       return;
     }
 
     setIsSaving(true);
-    setError("");
+    setQuestionEditError("");
 
     try {
       const updated = await updateQuestion(questionHash, {
@@ -354,7 +355,7 @@ const QuestionDetail = () => {
       setQuestionDraft(null);
       setToast("Your question has been updated.");
     } catch (requestError) {
-      setError(
+      setQuestionEditError(
         requestError.response?.data?.message ||
         "Could not update the question.",
       );
@@ -507,7 +508,7 @@ const QuestionDetail = () => {
                       ...current,
                       title: event.target.value,
                     }));
-                    setError("");
+                    setQuestionEditError("");
                   }}
                   value={questionDraft.title}
                 />
@@ -523,7 +524,7 @@ const QuestionDetail = () => {
                   minLength={10}
                   onChange={(content) => {
                     setQuestionDraft((current) => ({ ...current, content }));
-                    setError("");
+                    setQuestionEditError("");
                   }}
                   placeholder="Include all of the context that someone needs to answer your question."
                   value={questionDraft.content}
@@ -531,7 +532,10 @@ const QuestionDetail = () => {
                 <div className={styles.editActions}>
                   <button
                     disabled={isSaving}
-                    onClick={() => setQuestionDraft(null)}
+                    onClick={() => {
+                      setQuestionDraft(null);
+                      setQuestionEditError("");
+                    }}
                     type="button"
                   >
                     Cancel
@@ -544,9 +548,9 @@ const QuestionDetail = () => {
                     {isSaving ? "Saving..." : "Save changes"}
                   </button>
                 </div>
-                {error && (
+                {questionEditError && (
                   <div className={styles.inlineError} role="alert">
-                    {error}
+                    {questionEditError}
                   </div>
                 )}
               </>

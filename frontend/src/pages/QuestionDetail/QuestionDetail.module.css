@@ -564,3 +564,88 @@
     font-size: 10px;
   }
 }
+
+:global(html[data-theme="dark"]) .back,
+:global(html[data-theme="dark"]) .author small,
+:global(html[data-theme="dark"]) .questionBody,
+:global(html[data-theme="dark"]) .answerCard > div:not(.editor),
+:global(html[data-theme="dark"]) .ownerActions button,
+:global(html[data-theme="dark"]) .editActions button,
+:global(html[data-theme="dark"]) .questionCard footer span,
+:global(html[data-theme="dark"]) .shareButton,
+:global(html[data-theme="dark"]) .emptyAnswers,
+:global(html[data-theme="dark"]) .ownNotice,
+:global(html[data-theme="dark"]) .editorToolbar,
+:global(html[data-theme="dark"]) .answerTools small,
+:global(html[data-theme="dark"]) .related > p,
+:global(html[data-theme="dark"]) .related a small,
+:global(html[data-theme="dark"]) .state,
+:global(html[data-theme="dark"]) .modal p {
+  color: var(--text-secondary);
+}
+
+:global(html[data-theme="dark"]) .questionCard,
+:global(html[data-theme="dark"]) .answerCard,
+:global(html[data-theme="dark"]) .answerForm,
+:global(html[data-theme="dark"]) .questionTitleInput,
+:global(html[data-theme="dark"]) .editor textarea,
+:global(html[data-theme="dark"]) .related a,
+:global(html[data-theme="dark"]) .state,
+:global(html[data-theme="dark"]) .modal {
+  border-color: var(--border);
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+:global(html[data-theme="dark"]) .questionCard footer,
+:global(html[data-theme="dark"]) .editor,
+:global(html[data-theme="dark"]) .editorToolbar,
+:global(html[data-theme="dark"]) .modal button {
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .avatar {
+  color: #e0f2fe;
+  background: #164e63;
+}
+
+:global(html[data-theme="dark"]) .answerAvatar {
+  color: #ccfbf1;
+  background: #115e59;
+}
+
+:global(html[data-theme="dark"]) .ownerActions button,
+:global(html[data-theme="dark"]) .editActions button,
+:global(html[data-theme="dark"]) .questionCard footer span,
+:global(html[data-theme="dark"]) .shareButton,
+:global(html[data-theme="dark"]) .emptyAnswers,
+:global(html[data-theme="dark"]) .ownNotice,
+:global(html[data-theme="dark"]) .editorToolbar,
+:global(html[data-theme="dark"]) .modal button {
+  background: var(--surface-container-low);
+}
+
+:global(html[data-theme="dark"]) .answerTools button {
+  border-color: #9a3412;
+  color: #fed7aa;
+  background: var(--surface-highlight);
+}
+
+:global(html[data-theme="dark"]) .related a:hover,
+:global(html[data-theme="dark"]) .ownerActions button:hover,
+:global(html[data-theme="dark"]) .shareButton:hover {
+  background: var(--surface-highlight);
+}
+
+:global(html[data-theme="dark"]) .error,
+:global(html[data-theme="dark"]) .inlineError {
+  border-color: #7f1d1d;
+  color: #fecaca;
+  background: #450a0a;
+}
+
+:global(html[data-theme="dark"]) .toast {
+  border-color: #166534;
+  color: #bbf7d0;
+  background: #052e16;
+}

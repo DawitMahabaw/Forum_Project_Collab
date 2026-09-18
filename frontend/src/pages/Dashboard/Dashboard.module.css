@@ -125,6 +125,10 @@
   overflow: hidden;
 }
 
+.feed > :last-child {
+  border-bottom: 0;
+}
+
 .feedHeader {
   display: flex;
   align-items: center;
@@ -202,4 +206,45 @@
   .feedHeader {
     padding: 20px;
   }
+}
+
+:global(html[data-theme="dark"]) .welcomeCard,
+:global(html[data-theme="dark"]) .feed,
+:global(html[data-theme="dark"]) .empty {
+  border-color: var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+:global(html[data-theme="dark"]) .welcomeCard > p,
+:global(html[data-theme="dark"]) .quickLinks small,
+:global(html[data-theme="dark"]) .metricsIntro,
+:global(html[data-theme="dark"]) .metrics small,
+:global(html[data-theme="dark"]) .feedHeader p,
+:global(html[data-theme="dark"]) .loading,
+:global(html[data-theme="dark"]) .empty {
+  color: var(--text-secondary);
+}
+
+:global(html[data-theme="dark"]) .quickLinks button,
+:global(html[data-theme="dark"]) .metrics div,
+:global(html[data-theme="dark"]) .feedHeader,
+:global(html[data-theme="dark"]) .quickLinks span {
+  border-color: var(--border);
+  background: var(--surface-container-low);
+}
+
+:global(html[data-theme="dark"]) .quickLinks b {
+  color: var(--text-primary);
+}
+
+:global(html[data-theme="dark"]) .metricsIntro,
+:global(html[data-theme="dark"]) .feed > :last-child {
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .error {
+  border-color: #7f1d1d;
+  color: #fecaca;
+  background: #450a0a;
 }
