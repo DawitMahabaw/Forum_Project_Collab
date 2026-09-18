@@ -1,6 +1,6 @@
 .navbar {
   display: grid;
-  grid-template-columns: minmax(250px, 1fr) minmax(300px, 1.25fr) auto;
+  grid-template-columns: minmax(250px, 1fr) minmax(300px, 1.25fr) auto auto;
   align-items: center;
   gap: 28px;
   position: sticky;
@@ -175,6 +175,30 @@
   padding-left: 15px;
   border-left: 1px solid #e2e8f0;
 }
+.themeToggle {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #dbe3ee;
+  border-radius: 50%;
+  color: #475569;
+  background: #f1f5f9;
+  cursor: pointer;
+  transition: background-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.themeToggle:hover {
+  color: #ea580c;
+  background: #fff7ed;
+  transform: translateY(-1px);
+}
+
+.themeToggle:focus-visible {
+  outline: 3px solid #fed7aa;
+  outline-offset: 2px;
+}
 .userName {
   color: #0f172a;
   font-size: 14px;
@@ -204,7 +228,7 @@
 }
 @media (max-width: 1050px) {
   .navbar {
-    grid-template-columns: 1fr minmax(280px, 1fr) auto;
+    grid-template-columns: 1fr minmax(240px, 1fr) auto auto;
     gap: 16px;
     padding: 12px 20px;
   }
@@ -220,7 +244,7 @@
     position: sticky;
     top: 0;
     z-index: 5;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     padding: 10px 16px;
   }
   .searchForm {
@@ -230,4 +254,57 @@
   .userSection {
     padding-left: 8px;
   }
+}
+
+:global(html[data-theme="dark"]) .navbar {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .homeTitleText,
+:global(html[data-theme="dark"]) .userName,
+:global(html[data-theme="dark"]) .suggestions button {
+  color: var(--text-primary);
+}
+
+:global(html[data-theme="dark"]) .titleBlock p,
+:global(html[data-theme="dark"]) .searchIcon,
+:global(html[data-theme="dark"]) .clearSearchButton,
+:global(html[data-theme="dark"]) .suggestions p,
+:global(html[data-theme="dark"]) .suggestions small,
+:global(html[data-theme="dark"]) .logoutButton {
+  color: var(--text-secondary);
+}
+
+:global(html[data-theme="dark"]) .searchInput,
+:global(html[data-theme="dark"]) .themeToggle {
+  border-color: var(--border);
+  color: var(--text-secondary);
+  background: var(--surface-container-low);
+}
+
+:global(html[data-theme="dark"]) .clearSearchButton:hover,
+:global(html[data-theme="dark"]) .clearSearchButton:focus-visible {
+  color: var(--text-primary);
+  background: var(--border);
+}
+
+:global(html[data-theme="dark"]) .suggestions,
+:global(html[data-theme="dark"]) .suggestions button {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+:global(html[data-theme="dark"]) .suggestions button:hover,
+:global(html[data-theme="dark"]) .themeToggle:hover {
+  background: var(--surface-highlight);
+}
+
+:global(html[data-theme="dark"]) .userSection {
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .avatar {
+  color: #e0f2fe;
+  background: #164e63;
 }
