@@ -16,7 +16,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-// import MarkdownContent from "../../components/MarkdownContent/MarkdownContent.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
   createAnswer,
@@ -44,6 +43,12 @@ const formatDate = (value) =>
     day: "numeric",
     year: "numeric",
   });
+
+// Keep user-authored details safe to render even when no Markdown renderer is
+// installed. The styling preserves line breaks and long code/error messages.
+const MarkdownContent = ({ className = "", content }) => (
+  <div className={className}>{typeof content === "string" ? content : ""}</div>
+);
 
 // Reuse the same four Markdown actions for new posts and inline edits.
 const formattingActions = [
