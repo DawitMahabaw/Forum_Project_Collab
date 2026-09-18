@@ -1,6 +1,6 @@
+
 // RAG SEARCH AND AI API SERVICE
 import api from "./api.js";
-
 // Retrieve documents belonging to the authenticated user.
 const listDocuments = async () =>
   (await api.get("/rag/documents")).data.data || [];
@@ -14,12 +14,11 @@ const uploadPdf = async (file) => {
 
   const response = await api.post("/rag/documents", formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+      "Content-Type": "multipart/form-data",},
+    });
+    return response.data.data;
+    };
 
-  return response.data.data;
-};
 
 // SEMANTIC SEARCH
 const searchDocument = async (documentId, query) => {
@@ -39,4 +38,4 @@ const askDocument = async (documentId, query) => {
   return response.data.data;
 };
 
-export { askDocument, searchDocument, listDocuments, uploadPdf };
+export { askDocument, searchDocument,listDocuments, uploadPdf };
