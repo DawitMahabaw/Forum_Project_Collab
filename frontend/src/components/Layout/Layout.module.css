@@ -79,3 +79,11 @@
     padding: 24px 16px;
   }
 }
+
+:global(html[data-theme="dark"]) .shell {
+  background: var(--background);
+}
+
+:global(html[data-theme="dark"]) .page > footer {
+  background: var(--surface);
+}
