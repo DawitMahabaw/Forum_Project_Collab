@@ -66,3 +66,17 @@
     grid-column: auto;
   }
 }
+
+:global(html[data-theme="dark"]) .footer {
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .brand strong {
+  color: var(--text-primary);
+}
+
+:global(html[data-theme="dark"]) .brand p,
+:global(html[data-theme="dark"]) .copyright,
+:global(html[data-theme="dark"]) .links a {
+  color: var(--text-tertiary);
+}
