@@ -1,5 +1,22 @@
 import pool from "../config/db.js";
 
+const parseEmbedding = (embedding) => {
+    if (Array.isArray(embedding)) {
+        return embedding;
+    }
+
+    if (typeof embedding !== "string") {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(embedding);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch {
+        return null;
+    }
+};
+
 const QuestionVector = {
     // ---------------------------------------------------------
     // FIND QUESTIONS THAT NEED AN EMBEDDING
@@ -47,17 +64,51 @@ const QuestionVector = {
             params,
         );
 
-        return rows.map((row) => ({
-            questionId: row.question_id,
-            embedding:
-                typeof row.embedding === "string"
-                    ? JSON.parse(row.embedding)
-                    : row.embedding,
-        }));
+        return rows
+            .map((row) => ({
+                questionId: Number(row.question_id),
+                embedding: parseEmbedding(row.embedding),
+            }))
+            .filter((row) => row.embedding?.length);
     },
 
-    async findAllReady() {
-        return [];
+    async findByQuestionId(questionId) {
+        const [rows] = await pool.execute(
+            `
+            SELECT question_id, embedding, status
+            FROM question_vectors
+            WHERE question_id = ?
+            LIMIT 1
+            `,
+            [questionId],
+        );
+
+        if (!rows[0]) {
+            return null;
+        }
+
+        return {
+            questionId: Number(rows[0].question_id),
+            embedding: parseEmbedding(rows[0].embedding),
+            status: rows[0].status,
+        };
+    },
+
+    async upsert({ questionId, embedding, status }) {
+        const serializedEmbedding = Array.isArray(embedding)
+            ? JSON.stringify(embedding)
+            : null;
+
+        await pool.execute(
+            `
+            INSERT INTO question_vectors (question_id, embedding, status)
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              embedding = VALUES(embedding),
+              status = VALUES(status)
+            `,
+            [questionId, serializedEmbedding, status],
+        );
     },
 };
 
