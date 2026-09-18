@@ -420,6 +420,17 @@
   text-align: left;
 }
 
+.inlineError {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #b91c1c;
+  background: #fef2f2;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .toast {
   position: fixed;
   z-index: 50;
