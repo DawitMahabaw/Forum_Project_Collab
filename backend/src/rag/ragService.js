@@ -95,7 +95,9 @@ if (!embeddingResult.success) {
 // eslint-disable-next-line no-await-in-loop
       const chunkId = await Document.addChunk(documentId, index, chunks[index]);
 
-
+// eslint-disable-next-line no-await-in-loop
+      await Document.addChunkVector(chunkId, embeddingResult.embedding);
+    }
 
 
 export { searchDocument };
