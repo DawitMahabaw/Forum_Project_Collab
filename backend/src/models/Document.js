@@ -22,8 +22,6 @@ const mapDocument = (row, { includeStoragePath = false } = {}) => ({
   // Add the storage path only if it is explicitly requested by the service
   ...(includeStoragePath ? { storagePath: row.storage_path } : {}),
 });
-
-
 const Document = {
  async create({ userId, title, mimeType, storagePath, byteSize }) {
     const [result] = await pool.execute(
@@ -32,7 +30,6 @@ const Document = {
        VALUES (?, ?, ?, ?, ?)`,
       [userId, title, mimeType, storagePath, byteSize],
     );
-
     return result.insertId;
   },
   // Database lookup to find a specific document while checking user ownership
