@@ -61,9 +61,24 @@ const Document = {
       embedding: parseEmbedding(row.embedding),
     }));
   },
+
+  // DELETE OWNED DOCUMENT
+  // Therefore deleting the document can also delete its related
+  // records automatically.
+  async deleteById(documentId, userId) {
+
+
+
+
+
+
+
+
+
 };
 
-// DELETE OWNED DOCUMENT
+
+
 
 
 
