@@ -15,5 +15,12 @@ if (!text || typeof text !== "string") {
   try {
     const result = await embedContent(text, taskType);
     return result;
+    } catch (error) {
+    return {
+      success: false,
+      error: error.message || "Failed to generate embedding vector.",
+    };
+  }
+};
 export { embedContent };
 export const createEmbedding = embedContent;
