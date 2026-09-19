@@ -88,6 +88,14 @@ for (let index = 0; index < chunks.length; index += 1) {
         chunks[index],
         "RETRIEVAL_DOCUMENT",
       );
+if (!embeddingResult.success) {
+        throw new Error("Could not generate document embeddings.");
+      }
 
+
+
+
+
+      
 export { searchDocument };
 
