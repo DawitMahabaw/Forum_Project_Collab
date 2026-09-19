@@ -3,13 +3,8 @@ import fs from "node:fs";
 
 
 import Document from "../models/Document.js";
-import {
-  createDocument,
-  deleteDocument,
-  queryDocument,
-  searchDocument,
-} from "../rag/ragService.js";
-
+import { deleteDocument } from "../services/documentService.js";
+import { searchDocument } from "../rag/ragService.js";
 
 // Accept document ID
 const getDocumentId = (rawDocumentId) => {
@@ -79,5 +74,26 @@ const search = async (req, res, next) => {
     return next(error);
   }
 };
-  
+
+  // delete document 
+
+const remove = async (req, res, next) => {
+
+  //  Find the document and verify ownership.
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+
+    // Delegate deletion to the RAG service
+    // The service can handle the complete deletion process,
+    // such as removing:
+    // document database information: chunks, embeddings, physical PDF file
+
+    await deleteDocument(document, req.user.userId);
+
+
+
 export { search };
