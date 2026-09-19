@@ -4,6 +4,8 @@ import { cosineSimilarity } from "../ai/vectorMath.js";
 import Document from "../models/Document.js";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { PDFParse } from "pdf-parse";
+import { splitText } from "./chunking.js";
 
 const rankDocumentChunks = async (document, query, requestedK) => {
   // Step 1: Ensure the document processing is completely finished before allowing a search
