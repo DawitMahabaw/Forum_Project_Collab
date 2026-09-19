@@ -9,6 +9,54 @@
   background: #fff;
 }
 
+.library {
+  min-width: 0;
+  padding: 18px 22px;
+  border-right: 1px solid #e5e7eb;
+  background: #fcfcfd;
+}
+
+.uploadBox {
+  padding: 14px;
+  border: 1px solid #eceff3;
+  border-radius: 4px;
+  background: #fff;
+}
+.uploadBox > p,
+.uploadBox > small {
+  display: block;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.uploadBox input {
+  display: none;
+}
+
+.uploadActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.fileButton,
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  color: #344054;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .toolSection {
   max-width: 900px;
   padding: 24px;
