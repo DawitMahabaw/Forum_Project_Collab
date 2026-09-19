@@ -51,6 +51,18 @@ const RagDocuments = ({ selectedDocument = null }) => {
     }
   }, []);
 
+  // Poll only while the currently selected upload is processing.
+  useEffect(() => {
+    if (activeDocument?.status !== "processing") return undefined;
+
+    const timer = window.setInterval(
+      () => loadDocuments({ quiet: true }),
+      2500,
+    );
+
+    return () => window.clearInterval(timer);
+  }, [activeDocument?.status, loadDocuments]);
+
   // Upload the selected PDF and immediately focus it in the right workspace.
   const handleUpload = async () => {
     if (!file) return;
@@ -382,6 +394,6 @@ const RagDocuments = ({ selectedDocument = null }) => {
       </div>
     </section>
   );
-};;;;;;
+};;;;;;;
 
 export default RagDocuments;
