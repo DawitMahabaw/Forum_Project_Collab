@@ -16,6 +16,10 @@ const RagDocuments = ({ selectedDocument = null }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
 
+  // Load the private library and select the newest document on first visit.
+  const loadDocuments = useCallback(async ({ quiet = false } = {}) => {
+    
+  }, []);
   // ============================================================
   // SELECTED DOCUMENT
   // ============================================================
@@ -316,6 +320,6 @@ const RagDocuments = ({ selectedDocument = null }) => {
       </div>
     </section>
   );
-};
+};;
 
 export default RagDocuments;
