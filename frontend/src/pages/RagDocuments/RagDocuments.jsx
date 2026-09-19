@@ -21,6 +21,13 @@ const RagDocuments = ({ selectedDocument = null }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
 
+  // Resolves the currently selected document.
+  const activeDocument = useMemo(
+    () =>
+      documents.find((document) => document.documentId === activeId) || null,
+    [activeId, documents],
+  );
+
   // Load the private library and select the newest document on first visit.
   const loadDocuments = useCallback(async ({ quiet = false } = {}) => {
     if (!quiet) setIsLoading(true);
@@ -375,6 +382,6 @@ const RagDocuments = ({ selectedDocument = null }) => {
       </div>
     </section>
   );
-};;;;;
+};;;;;;
 
 export default RagDocuments;
