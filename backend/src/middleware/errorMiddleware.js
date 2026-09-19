@@ -21,11 +21,10 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 413;
     message = "Request body is too large.";
   }
-  if (error.code === "LIMIT_FILE_SIZE") {
+if (error.code === "LIMIT_FILE_SIZE") {
     statusCode = 413;
     message = "PDF file is too large.";
   }
-
   if (statusCode >= 500 && !error.expose) {
     message = "Internal server error.";
   }

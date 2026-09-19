@@ -5,7 +5,6 @@ import { uploadPdf } from "../middleware/uploadMiddleware.js";
 
 // Initialize the Express router instance
 const router = express.Router();
-
 // Enforce global authentication across all routes declared in this file
 router.use(authenticate);
 

@@ -69,6 +69,79 @@ const Document = {
       embedding: parseEmbedding(row.embedding),
     }));
   },
-};
 
+// ==========================================
+  // TASK T-22: 
+  // ==========================================
+/**
+   * Create a new document record in the database
+   */
+  
+  async create({ userId, title, mimeType, storagePath, byteSize }) {
+    const [result] = await pool.execute(
+      `INSERT INTO documents (user_id, title, mime_type, storage_path, byte_size)
+       VALUES (?, ?, ?, ?, ?)`,
+      [userId, title, mimeType, storagePath, byteSize]
+    );
+    return result.insertId;
+  },
+
+  /**
+   * List all documents belonging to a specific user
+   */
+  async listForUser(userId) {
+    const [rows] = await pool.execute(
+      `SELECT document_id, title, mime_type, byte_size, status, error_message,
+              created_at, updated_at
+       FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
+      [userId]
+    );
+    return rows.map((row) => mapDocument(row));
+  },
+
+  /**
+   * Update document processing status and optional error message
+   */
+  async updateStatus(documentId, status, errorMessage = null) {
+    await pool.execute(
+      `UPDATE documents SET status = ?, error_message = ? WHERE document_id = ?`,
+      [status, errorMessage, documentId]
+    );
+  },
+
+  /**
+   * Insert extracted text chunk for a document
+   */
+  async addChunk(documentId, chunkIndex, content) {
+    const [result] = await pool.execute(
+      `INSERT INTO document_chunks (document_id, chunk_index, content)
+       VALUES (?, ?, ?)`,
+      [documentId, chunkIndex, content]
+    );
+    return result.insertId;
+  },
+
+  /**
+   * Save vector embedding for a specific chunk
+   */
+  async addChunkVector(chunkId, embedding) {
+    await pool.execute(
+      `INSERT INTO document_chunk_vectors (chunk_id, embedding, status)
+       VALUES (?, ?, 'ready')`,
+      [chunkId, JSON.stringify(embedding)]
+    );
+  },
+
+  /**
+   * Delete document by ID ensuring user ownership
+   */
+  async deleteById(documentId, userId) {
+    const [result] = await pool.execute(
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
+      [documentId, userId]
+    );
+    return result.affectedRows > 0;
+  },
+
+};
 export default Document;

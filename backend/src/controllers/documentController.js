@@ -42,6 +42,7 @@ const requireQuery = (rawQuery) => {
     throw error;
   }
   return rawQuery.trim();
+}
 };
 
 // Create semantic search endpoint
