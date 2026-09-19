@@ -50,5 +50,6 @@ const deleted = await Document.deleteById(document.documentId, userId);
     // force: true means fs.rm() won't throw an error merely
     // because the file is already missing.
   }
-  
+    return deleted;
+};
 
