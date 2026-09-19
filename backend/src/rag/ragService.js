@@ -63,5 +63,10 @@ const searchDocument = async (document, query, requestedK) => {
   };
 };
 
+// --- TASK T-22 ADDITIONS: PDF Extraction & Processing ---
+
+
+
+
 export { searchDocument };
 
