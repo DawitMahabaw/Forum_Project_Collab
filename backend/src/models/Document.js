@@ -75,6 +75,9 @@ const Document = {
  [documentId, userId],
     );
 
+    // affectedRows tells us whether a database row was deleted.
+    
+
 
 
 
