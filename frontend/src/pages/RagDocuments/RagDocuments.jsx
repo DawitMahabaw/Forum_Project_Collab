@@ -65,6 +65,11 @@ const RagDocuments = ({ selectedDocument = null }) => {
       setIsUploading(false);
     }
   };
+
+  // Load the library when the page opens.
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
   // ============================================================
   // SELECTED DOCUMENT
   // ============================================================
@@ -365,6 +370,6 @@ const RagDocuments = ({ selectedDocument = null }) => {
       </div>
     </section>
   );
-};;;
+};;;;
 
 export default RagDocuments;
