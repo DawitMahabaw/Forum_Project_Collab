@@ -20,4 +20,7 @@ router.use(authenticate);
 // Declare the clean GET path mapped directly to your search controller
 router.get("/:documentId/search", search);
 
+// Authentication is already handled by router.use(authenticate).
+router.delete("/:documentId", remove);
+
 export default router;
