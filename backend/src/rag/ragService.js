@@ -82,7 +82,12 @@ const processDocument = async (documentId, filePath) => {
     if (!chunks.length) {
       throw new Error("The PDF does not contain readable text.");
     }
-
+for (let index = 0; index < chunks.length; index += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const embeddingResult = await ai.embedContent(
+        chunks[index],
+        "RETRIEVAL_DOCUMENT",
+      );
 
 export { searchDocument };
 
