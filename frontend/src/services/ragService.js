@@ -11,10 +11,13 @@ const uploadPdf = async (file) => {
 
   // The field name must match uploadPdf.single("file") on the backend.
   formData.append("file", file);
+
   const response = await api.post("/rag/documents", formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
-    },
+      "Content-Type": "multipart/form-data",},
+    });
+    return response.data.data;
+    };
 
 
 // SEMANTIC SEARCH
