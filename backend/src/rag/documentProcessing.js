@@ -50,3 +50,19 @@ const processDocument = async (documentId, filePath) => {
     return false;
   }
 };
+
+const createDocument = async ({ userId, file }) => {
+  const documentId = await Document.create({
+    userId,
+    title: file.originalname,
+    mimeType: file.mimetype,
+    storagePath: path.resolve(file.path),
+    byteSize: file.size,
+  });
+
+  void processDocument(documentId, path.resolve(file.path));
+
+  return Document.findByIdForUser(documentId, userId);
+};
+
+export { createDocument, extractText, processDocument };
