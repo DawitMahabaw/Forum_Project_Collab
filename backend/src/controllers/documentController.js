@@ -42,3 +42,31 @@ const requireQuery = (rawQuery) => {
   }
   return rawQuery.trim();
 }
+
+
+// Create semantic search endpoint
+const search = async (req, res, next) => {
+  try {
+    // 1. Accept document ID & Verify document ownership
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+    // 2. Accept search query and delegate down to your lower service layers
+    const data = await searchDocument(
+      document,
+      requireQuery(req.query.query),
+      req.query.k,
+    );
+    // 3. Return chunk text and relevance information
+    return res.status(200).json({
+      success: true,
+      message: "Ranked chunk excerpts.",
+      data, // Contains chunk texts and their calculated metrics
+    });
+  } catch (error) {
+    // 4. Handle embedding errors & Handle database errors
+    return next(error);
+  }
+};
+  
