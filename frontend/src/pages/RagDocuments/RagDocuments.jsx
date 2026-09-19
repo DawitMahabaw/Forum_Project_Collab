@@ -6,6 +6,16 @@ import styles from "./RagDocuments.module.css";
 // Document selection is owned by the sidebar/page integration. This component
 // only consumes the selected document when running its two RAG tools.
 const RagDocuments = ({ selectedDocument = null }) => {
+  // A ref lets the visible "Choose file" button open the hidden native input.
+  const fileInput = useRef(null);
+  const [documents, setDocuments] = useState([]);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [file, setFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState("");
+
   // ============================================================
   // SELECTED DOCUMENT
   // ============================================================
@@ -40,8 +50,7 @@ const RagDocuments = ({ selectedDocument = null }) => {
     searchOutcome.query === searchQuery.trim();
   const searchResults = isCurrentSearchOutcome ? searchOutcome.results : [];
   const searchError = isCurrentSearchOutcome ? searchOutcome.error : "";
-  const hasSearched =
-    isCurrentSearchOutcome && searchOutcome.hasSearched;
+  const hasSearched = isCurrentSearchOutcome && searchOutcome.hasSearched;
   const answer =
     askOutcome.documentId === selectedDocumentId ? askOutcome.answer : null;
   const askError =
@@ -73,10 +82,7 @@ const RagDocuments = ({ selectedDocument = null }) => {
     });
 
     try {
-      const data = await searchDocument(
-        documentId,
-        query,
-      );
+      const data = await searchDocument(documentId, query);
 
       setSearchOutcome({
         documentId,
@@ -123,10 +129,7 @@ const RagDocuments = ({ selectedDocument = null }) => {
     setAskOutcome({ answer: null, documentId, error: "" });
 
     try {
-      const data = await askDocument(
-        documentId,
-        askQuery.trim(),
-      );
+      const data = await askDocument(documentId, askQuery.trim());
 
       setAskOutcome({ answer: data || {}, documentId, error: "" });
     } catch (error) {
@@ -166,7 +169,8 @@ const RagDocuments = ({ selectedDocument = null }) => {
         ) : (
           <>
             <p className={styles.selectedDocument}>
-              Searching: <strong>{selectedDocument.title || "Selected PDF"}</strong>
+              Searching:{" "}
+              <strong>{selectedDocument.title || "Selected PDF"}</strong>
             </p>
 
             <form onSubmit={handleSemanticSearch}>
@@ -246,7 +250,8 @@ const RagDocuments = ({ selectedDocument = null }) => {
         ) : (
           <>
             <p className={styles.selectedDocument}>
-              Asking about: <strong>{selectedDocument.title || "Selected PDF"}</strong>
+              Asking about:{" "}
+              <strong>{selectedDocument.title || "Selected PDF"}</strong>
             </p>
 
             <form onSubmit={handleAsk}>
