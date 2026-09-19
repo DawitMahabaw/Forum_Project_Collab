@@ -137,8 +137,26 @@ try {
     return { supported: false, answer: "" };
   }
 };
+const queryDocument = async (document, query) => {
+  const results = await rankDocumentChunks(document, query);
+
+  const evidence = results.filter(
+    (result) => result.score >= env.rag.evidenceThreshold,
+  );
+
+  if (!evidence.length) {
+    return {
+      answer: noEvidenceAnswer(query),
+      citations: [],
+      chunksUsed: [],
+      isGrounded: false,
+    };
+  }
 
 
 
+
+
+  
 export { searchDocument };
 
