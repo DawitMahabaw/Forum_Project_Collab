@@ -98,6 +98,20 @@ if (!embeddingResult.success) {
 // eslint-disable-next-line no-await-in-loop
       await Document.addChunkVector(chunkId, embeddingResult.embedding);
     }
+await Document.updateStatus(documentId, "ready");
+  } catch (error) {
+    await Document.updateStatus(
+      documentId,
+      "failed",
+      error.message || "Document processing failed.",
+    );
+  }
+};
+
+
+
+
+
 
 
 export { searchDocument };
