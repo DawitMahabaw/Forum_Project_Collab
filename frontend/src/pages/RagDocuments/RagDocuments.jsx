@@ -1,6 +1,11 @@
-import { Search, Sparkles } from "lucide-react";
-import { useState } from "react";
-import { askDocument, searchDocument } from "../../services/ragService.js";
+import { Search, Sparkles, FileText, LoaderCircle, Upload } from "lucide-react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import {
+  listDocuments,
+  uploadPdf,
+  askDocument,
+  searchDocument,
+} from "../../services/ragService.js";
 import styles from "./RagDocuments.module.css";
 
 // Document selection is owned by the sidebar/page integration. This component
