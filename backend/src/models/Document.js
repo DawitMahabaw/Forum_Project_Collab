@@ -127,7 +127,7 @@ return result.insertId;
     );
 return result.affectedRows > 0;
   },
-
+// Refactor JSDoc documentation formatting for create method
 
 
 export default Document;
