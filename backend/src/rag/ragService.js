@@ -152,11 +152,26 @@ const queryDocument = async (document, query) => {
       isGrounded: false,
     };
   }
+const context = evidence
+    .map((result, index) => `[${index + 1}] ${result.excerpt}`)
+    .join("\n\n");
+
+  const prompt = `You answer questions about one uploaded PDF. Use ONLY the excerpts below. Never add information from memory or general knowledge.
+
+Return ONLY valid JSON with this exact shape:
+{"supported": true, "answer": "a concise answer supported by the excerpts"}
+
+Set "supported" to false when the excerpts do not directly answer the question. In that case set "answer" exactly to: "${noEvidenceAnswer(query)}"
+
+Question:
+${query}
+
+Retrieved PDF excerpts:
+${context}`;
 
 
 
 
 
-  
 export { searchDocument };
 
