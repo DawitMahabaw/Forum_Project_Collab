@@ -1,3 +1,110 @@
 .page {
   min-width: 0;
 }
+
+.toolSection {
+  max-width: 900px;
+  padding: 24px;
+}
+
+.toolSection h2 {
+  margin: 0;
+  color: #1d2939;
+  font-size: 18px;
+}
+
+.toolSection > p {
+  margin-top: 6px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.toolSection form {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.toolSection label {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.toolSection input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+.toolSection button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: fit-content;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 5px;
+  color: #fff;
+  background: #e87933;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toolSection button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.emptyState {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px dashed #d0d5dd;
+  color: #667085;
+  background: #fcfcfd;
+  font-size: 13px;
+  text-align: center;
+}
+
+.searchResults {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.searchResults article {
+  padding: 12px;
+  border: 1px solid #eaecf0;
+  border-radius: 5px;
+  background: #f9fafb;
+}
+
+.searchResults b {
+  color: #475467;
+  font-size: 11px;
+}
+
+.searchResults p {
+  margin-top: 6px;
+  color: #475467;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.error {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid #fecdca;
+  border-radius: 5px;
+  color: #b42318;
+  background: #fef3f2;
+  font-size: 12px;
+}
