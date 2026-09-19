@@ -28,7 +28,7 @@ const processDocument = async (documentId, filePath) => {
     for (let index = 0; index < chunks.length; index += 1) {
       const embeddingResult = await embedContent(
         chunks[index],
-        "RETRIEVAL_DOCUMENT",
+        "RETRIEVAL_DOCUMENT"
       );
 
       if (!embeddingResult.success) {
@@ -45,7 +45,7 @@ const processDocument = async (documentId, filePath) => {
     await Document.updateStatus(
       documentId,
       "failed",
-      error.message || "Document processing failed.",
+      error.message || "Document processing failed."
     );
     return false;
   }
