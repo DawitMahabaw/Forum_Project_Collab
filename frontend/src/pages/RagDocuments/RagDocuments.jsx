@@ -63,10 +63,10 @@ const RagDocuments = ({ selectedDocument = null }) => {
     return () => window.clearInterval(timer);
   }, [activeDocument?.status, loadDocuments]);
 
-    const handleSelect = (documentId) => {
-      setActiveId(documentId);
-      setError("");
-    };
+  const handleSelect = (documentId) => {
+    setActiveId(documentId);
+    setError("");
+  };
 
   // Upload the selected PDF and immediately focus it in the right workspace.
   const handleUpload = async () => {
@@ -236,16 +236,20 @@ const RagDocuments = ({ selectedDocument = null }) => {
         </div>
       )}
 
-        <div className={styles.workspace}>
+      <div className={styles.workspace}>
         <aside className={styles.library} aria-label="Private PDF library">
           <div className={styles.uploadBox}>
-            <p>Accepted format: PDF. Maximum file size is enforced by the server.</p>
+            <p>
+              Accepted format: PDF. Maximum file size is enforced by the server.
+            </p>
+
             <input
               accept="application/pdf"
               onChange={(event) => setFile(event.target.files?.[0] || null)}
               ref={fileInput}
               type="file"
             />
+
             <div className={styles.uploadActions}>
               <button
                 className={styles.fileButton}
@@ -255,13 +259,18 @@ const RagDocuments = ({ selectedDocument = null }) => {
                 <FileText size={16} />
                 Choose file
               </button>
+
               <button
                 className={styles.uploadButton}
                 disabled={!file || isUploading}
                 onClick={handleUpload}
                 type="button"
               >
-                {isUploading ? <LoaderCircle className={styles.spin} size={16} /> : <Upload size={16} />}
+                {isUploading ? (
+                  <LoaderCircle className={styles.spin} size={16} />
+                ) : (
+                  <Upload size={16} />
+                )}
                 {isUploading ? "Uploading..." : "Upload"}
               </button>
             </div>
@@ -271,14 +280,17 @@ const RagDocuments = ({ selectedDocument = null }) => {
           {isLoading && <p className={styles.muted}>Loading your library...</p>}
           {!isLoading && !documents.length && (
             <p className={styles.muted}>
-              Upload a PDF to make it available for private search and AI answers.
+              Upload a PDF to make it available for private search and AI
+              answers.
             </p>
           )}
 
           <div className={styles.documentList}>
             {documents.map((document) => (
               <button
-                aria-current={activeId === document.documentId ? "true" : undefined}
+                aria-current={
+                  activeId === document.documentId ? "true" : undefined
+                }
                 className={`${styles.documentItem} ${
                   activeId === document.documentId ? styles.documentActive : ""
                 }`}
@@ -300,23 +312,29 @@ const RagDocuments = ({ selectedDocument = null }) => {
             ))}
           </div>
         </aside>
-  <section className={styles.reader}>
-          {!activeDocument && !isLoading && (
-            <div className={styles.emptyReader}>
-              Choose an uploaded PDF to open it here. Semantic search and Ask with AI will use only the selected document.
-            </div>
-          )}
+
         <section className={styles.reader}>
           {!activeDocument && !isLoading && (
             <div className={styles.emptyReader}>
-              Choose an uploaded PDF to open it here. Semantic search and Ask with AI will use only the selected document.
+              Choose an uploaded PDF to open it here. Semantic search and Ask
+              with AI will use only the selected document.
             </div>
           )}
-        {activeDocument?.status === "failed" && (
+          {activeDocument?.status === "processing" && (
+            <div className={styles.pending}>
+              <LoaderCircle className={styles.spin} size={21} />
+              Processing this PDF.
+            </div>
+          )}
+          {activeDocument?.status === "failed" && (
             <div className={styles.failed}>
-              {activeDocument.errorMessage || "This PDF could not be read."} Upload a text-based PDF and try again.
+              {activeDocument.errorMessage || "This PDF could not be read."}{" "}
+              Upload a text-based PDF and try again.
             </div>
           )}
+          ;
+        </section>
+      </div>
 
       <div className={styles.toolSection}>
         <h2>
@@ -483,6 +501,6 @@ const RagDocuments = ({ selectedDocument = null }) => {
       </div>
     </section>
   );
-};;;;;;;
+};
 
 export default RagDocuments;
