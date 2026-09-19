@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import Document from "../models/Document.js";
 import { searchDocument } from "../rag/ragService.js";
 
@@ -41,8 +42,7 @@ const requireQuery = (rawQuery) => {
     throw error;
   }
   return rawQuery.trim();
-}
-
+};
 
 // Create semantic search endpoint
 const search = async (req, res, next) => {
@@ -69,5 +69,5 @@ const search = async (req, res, next) => {
     return next(error);
   }
 };
-  
+
 export { search };
