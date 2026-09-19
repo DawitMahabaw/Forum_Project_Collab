@@ -59,3 +59,4 @@ const error = new Error("Document could not be deleted.");
     return deleted;
 };
 
+export {  deleteDocument };
