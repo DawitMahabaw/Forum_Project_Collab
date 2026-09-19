@@ -70,3 +70,4 @@ const search = async (req, res, next) => {
   }
 };
   
+export { search };
