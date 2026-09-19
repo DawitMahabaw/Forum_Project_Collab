@@ -69,7 +69,9 @@ const Document = {
 
 // Execute the DELETE query.
     const [result] = await pool.execute(
-
+// Delete only the document matching BOTH:
+    // document ID AND owner ID
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
 
 
 
