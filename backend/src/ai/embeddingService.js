@@ -6,6 +6,11 @@ import { embedContent } from "./gemini.js";
  * @returns {Promise<{ success: boolean, embedding?: number[], error?: string }>}
  */
 const createEmbedding = async (text, taskType = "RETRIEVAL_DOCUMENT") => {
-
+if (!text || typeof text !== "string") {
+    return {
+      success: false,
+      error: "Invalid input: Text content must be a non-empty string.",
+    };
+  }
 export { embedContent };
 export const createEmbedding = embedContent;
