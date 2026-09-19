@@ -24,6 +24,17 @@
   line-height: 1.5;
 }
 
+.selectedDocument {
+  margin-top: 16px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.selectedDocument strong {
+  color: #344054;
+}
+
 .toolSection form {
   display: grid;
   gap: 8px;
@@ -142,6 +153,13 @@
   font-size: 13px;
   line-height: 1.65;
   white-space: pre-wrap;
+}
+
+.answer .noContext {
+  margin: 0 0 12px;
+  color: #b54708;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .answer h3 {

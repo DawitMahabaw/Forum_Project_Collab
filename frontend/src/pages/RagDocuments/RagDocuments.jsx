@@ -3,32 +3,49 @@ import { useState } from "react";
 import { askDocument, searchDocument } from "../../services/ragService.js";
 import styles from "./RagDocuments.module.css";
 
-const RagDocuments = () => {
+// Document selection is owned by the sidebar/page integration. This component
+// only consumes the selected document when running its two RAG tools.
+const RagDocuments = ({ selectedDocument = null }) => {
   // ============================================================
   // SELECTED DOCUMENT
   // ============================================================
 
-  // This will eventually be provided by the document sidebar
-  // built by Zelalem.
-  const [selectedDocument, setSelectedDocument] = useState(null);
-
-  // ============================================================
   // SEMANTIC SEARCH STATE
   // ============================================================
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchOutcome, setSearchOutcome] = useState({
+    documentId: null,
+    error: "",
+    hasSearched: false,
+    query: "",
+    results: [],
+  });
   const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState("");
 
   // ============================================================
   // ASK AI STATE
   // ============================================================
 
   const [askQuery, setAskQuery] = useState("");
-  const [answer, setAnswer] = useState(null);
+  const [askOutcome, setAskOutcome] = useState({
+    answer: null,
+    documentId: null,
+    error: "",
+  });
   const [isAsking, setIsAsking] = useState(false);
-  const [askError, setAskError] = useState("");
+  const selectedDocumentId = selectedDocument?.documentId;
+  const isCurrentSearchOutcome =
+    searchOutcome.documentId === selectedDocumentId &&
+    searchOutcome.query === searchQuery.trim();
+  const searchResults = isCurrentSearchOutcome ? searchOutcome.results : [];
+  const searchError = isCurrentSearchOutcome ? searchOutcome.error : "";
+  const hasSearched =
+    isCurrentSearchOutcome && searchOutcome.hasSearched;
+  const answer =
+    askOutcome.documentId === selectedDocumentId ? askOutcome.answer : null;
+  const askError =
+    askOutcome.documentId === selectedDocumentId ? askOutcome.error : "";
 
   // ============================================================
   // SEMANTIC SEARCH
@@ -43,25 +60,48 @@ const RagDocuments = () => {
       return;
     }
 
+    const documentId = selectedDocument.documentId;
+    const query = searchQuery.trim();
+
     setIsSearching(true);
-    setSearchError("");
-    setSearchResults([]);
+    setSearchOutcome({
+      documentId,
+      error: "",
+      hasSearched: false,
+      query,
+      results: [],
+    });
 
     try {
       const data = await searchDocument(
-        selectedDocument.documentId,
-        searchQuery.trim(),
+        documentId,
+        query,
       );
 
-      setSearchResults(data.results || []);
+      setSearchOutcome({
+        documentId,
+        error: "",
+        hasSearched: true,
+        query,
+        results: Array.isArray(data?.results) ? data.results : [],
+      });
     } catch (error) {
-      setSearchError(
-        error.response?.data?.message ||
+      setSearchOutcome({
+        documentId,
+        error:
+          error.response?.data?.message ||
           "Could not search this document right now.",
-      );
+        hasSearched: true,
+        query,
+        results: [],
+      });
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleSearchQueryChange = (event) => {
+    setSearchQuery(event.target.value);
   };
 
   // ============================================================
@@ -77,22 +117,26 @@ const RagDocuments = () => {
       return;
     }
 
+    const documentId = selectedDocument.documentId;
+
     setIsAsking(true);
-    setAskError("");
-    setAnswer(null);
+    setAskOutcome({ answer: null, documentId, error: "" });
 
     try {
       const data = await askDocument(
-        selectedDocument.documentId,
+        documentId,
         askQuery.trim(),
       );
 
-      setAnswer(data);
+      setAskOutcome({ answer: data || {}, documentId, error: "" });
     } catch (error) {
-      setAskError(
-        error.response?.data?.message ||
+      setAskOutcome({
+        answer: null,
+        documentId,
+        error:
+          error.response?.data?.message ||
           "Could not answer from this document right now.",
-      );
+      });
     } finally {
       setIsAsking(false);
     }
@@ -121,6 +165,10 @@ const RagDocuments = () => {
           </div>
         ) : (
           <>
+            <p className={styles.selectedDocument}>
+              Searching: <strong>{selectedDocument.title || "Selected PDF"}</strong>
+            </p>
+
             <form onSubmit={handleSemanticSearch}>
               <label htmlFor="semantic-search">Search this document</label>
 
@@ -128,7 +176,7 @@ const RagDocuments = () => {
                 id="semantic-search"
                 type="text"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={handleSearchQueryChange}
                 placeholder="Search by meaning..."
               />
 
@@ -149,7 +197,7 @@ const RagDocuments = () => {
             )}
 
             {!isSearching &&
-              searchQuery.trim() &&
+              hasSearched &&
               searchResults.length === 0 &&
               !searchError && (
                 <div className={styles.emptyState}>
@@ -197,6 +245,10 @@ const RagDocuments = () => {
           </div>
         ) : (
           <>
+            <p className={styles.selectedDocument}>
+              Asking about: <strong>{selectedDocument.title || "Selected PDF"}</strong>
+            </p>
+
             <form onSubmit={handleAsk}>
               <label htmlFor="ask-document">Ask a question</label>
 
@@ -222,6 +274,12 @@ const RagDocuments = () => {
 
             {answer && (
               <div className={styles.answer} aria-live="polite">
+                {answer.isGrounded === false && (
+                  <p className={styles.noContext}>
+                    No supporting passages were found for this question.
+                  </p>
+                )}
+
                 {answer.answer ? (
                   <p>{answer.answer}</p>
                 ) : (
