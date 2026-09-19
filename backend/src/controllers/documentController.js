@@ -94,6 +94,13 @@ const remove = async (req, res, next) => {
 
     await deleteDocument(document, req.user.userId);
 
-
+     return res.status(200).json({
+      success: true,
+      message: "Document deleted successfully.",
+      data: { documentId: document.documentId },
+    });
+ } catch (error) {
+    return next(error);
+  }
 
 export { search };
