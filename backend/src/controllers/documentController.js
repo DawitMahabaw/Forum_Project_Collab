@@ -33,3 +33,12 @@ const findOwnedDocument = async (rawDocumentId, userId, options = {}) => {
   return document;
 };
 
+//  Accept search query
+const requireQuery = (rawQuery) => {
+  if (typeof rawQuery !== "string" || !rawQuery.trim()) {
+    const error = new Error("Please enter a question or search query.");
+    error.statusCode = 400;
+    throw error;
+  }
+  return rawQuery.trim();
+}
