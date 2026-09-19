@@ -117,7 +117,14 @@ return result.insertId;
       [chunkId, JSON.stringify(embedding)]
     );
   },
-
+/**
+   * Delete document by ID ensuring user ownership
+   */
+  async deleteById(documentId, userId) {
+    const [result] = await pool.execute(
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
+      [documentId, userId]
+    );
 
 
 
