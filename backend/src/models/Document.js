@@ -23,7 +23,6 @@ const mapDocument = (row, { includeStoragePath = false } = {}) => ({
   ...(includeStoragePath ? { storagePath: row.storage_path } : {}),
 });
 
-
 const Document = {
   // Database lookup to find a specific document while checking user ownership
   async findByIdForUser(documentId, userId, options = {}) {
@@ -37,7 +36,7 @@ const Document = {
 
     // Step 2: If a matching document row is found, format it; otherwise return null
     // return rows ? mapDocument(rows, options) : null;
-     return rows[0] ? mapDocument(rows[0], options) : null;
+    return rows[0] ? mapDocument(rows[0], options) : null;
   },
 
   // Database lookup to retrieve all prepared text chunks and vector embeddings
@@ -66,27 +65,17 @@ const Document = {
   // Therefore deleting the document can also delete its related
   // records automatically.
   async deleteById(documentId, userId) {
-
-// Execute the DELETE query.
+    // Execute the DELETE query.
     const [result] = await pool.execute(
-// Delete only the document matching BOTH:
-    // document ID AND owner ID
+      // Delete only the document matching BOTH:
+      // document ID AND owner ID
       `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
- [documentId, userId],
+      [documentId, userId],
     );
 
     // affectedRows tells us whether a database row was deleted.
-    
-
-
-
-
-
+    return result.affectedRows > 0;
+  },
 };
-
-
-
-
-
 
 export default Document;
