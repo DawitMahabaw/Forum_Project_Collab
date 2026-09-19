@@ -181,7 +181,7 @@ const Dashboard = () => {
             <QuestionCard
               key={question.questionHash}
               question={question}
-              score={question.score}
+              variant="feed"
             />
           ))}
         </section>

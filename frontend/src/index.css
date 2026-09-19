@@ -3,9 +3,10 @@
      COLOR TOKENS — Light indigo/violet theme
      ============================================================ */
 
-  --background: #f6f7fb;
+  --background: #f7f9fc;
   --surface: #ffffff;
-  --surface-container-low: #eef0f6;
+  --surface-container-low: #f1f5f9;
+  --surface-highlight: #fff7ed;
 
   --primary: #ea580c;
   --primary-hover: #c2410c;
@@ -15,14 +16,14 @@
 
   --tertiary: #7c2d12;
 
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
   --text-inverse: #ffffff;
   --text-placeholder: #9ca3af;
 
-  --border: #e5e7eb;
-  --border-hover: #d1d5db;
+  --border: #dbe3ee;
+  --border-hover: #cbd5e1;
 
   /* ============================================================
      ELEVATION
@@ -83,6 +84,28 @@
   --app-prose-max: 65ch;
 }
 
+:root[data-theme="dark"] {
+  --background: #0f172a;
+  --surface: #111827;
+  --surface-container-low: #1e293b;
+  --surface-highlight: #3b2819;
+
+  --primary-light: #4a2810;
+  --primary-container: #9a3412;
+  --tertiary: #fed7aa;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-placeholder: #94a3b8;
+  --text-inverse: #ffffff;
+
+  --border: #334155;
+  --border-hover: #475569;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-md: 0 12px 28px rgb(0 0 0 / 32%);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -100,4 +123,5 @@ body {
     sans-serif;
   background-color: var(--background);
   color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }

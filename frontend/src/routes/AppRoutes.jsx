@@ -9,6 +9,7 @@ import Dashboard from "../pages/Dashboard/Dashboard.jsx";
 import LandingPage from "../pages/Landing/LandingPage.jsx";
 import QuestionDetail from "../pages/QuestionDetail/QuestionDetail.jsx";
 import MyQuestions from "../pages/MyQuestions/MyQuestions.jsx";
+import RagDocuments from "../pages/RagDocuments/RagDocuments.jsx";
 
 const AppRoutes = () => {
   return (
@@ -28,6 +29,7 @@ const AppRoutes = () => {
               element={<QuestionDetail />}
             />
             <Route path="/my-questions" element={<MyQuestions />} />
+            <Route path="/rag-documents" element={<RagDocuments />} />
           </Route>
         </Route>
 

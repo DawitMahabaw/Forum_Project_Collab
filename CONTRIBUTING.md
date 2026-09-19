@@ -1,351 +1,424 @@
 # Contributing to AI-Powered Evangadi Forum
 
-Thank you for contributing to the **AI-Powered Evangadi Forum** project.
+Thank you for contributing to the AI-Powered Evangadi Forum.
 
-This project is developed in milestones so that each stage builds on the previous one.
+This guide defines the main development, security, Git, testing, and collaboration standards for the project.
 
-```text
-Milestone 1
-Authentication & Application Foundation
-        ↓
-Milestone 2
-Questions, Answers & AI Assistance
-        ↓
-Milestone 3
-RAG Knowledge Base
-```
+For complete setup and application documentation, see the [README](README.md).
 
 ---
 
-## Development Milestones
+## Project Scope
 
-### Milestone 1 — Authentication & Application Foundation
+The project contains three major areas:
 
-**Status: Completed**
+```text
+AI-POWERED EVANGADI FORUM
+        |
+        +-- Authentication
+        |     +-- Registration
+        |     +-- Login
+        |     +-- JWT
+        |     +-- Protected Routes
+        |
+        +-- Forum
+        |     +-- Questions
+        |     +-- Answers
+        |     +-- Search
+        |     +-- Semantic Search
+        |     +-- AI Assistance
+        |
+        +-- Knowledge Base / RAG
+              +-- PDF Upload
+              +-- Text Extraction
+              +-- Chunking
+              +-- Embeddings
+              +-- Retrieval
+              +-- Grounded AI Answers
+              +-- Document Management
+```
 
-Milestone 1 established:
-
-* User registration and login
-* Password hashing with bcrypt
-* JWT authentication
-* Protected routes
-* AuthContext
-* Axios API configuration
-* Backend MVC architecture
-* MySQL user database
-* Public landing page
-
-Milestone 1 provides the authentication foundation required by the rest of the application.
+Contributions should preserve the existing architecture and behavior of these areas.
 
 ---
 
-### Milestone 2 — Questions, Answers & AI Assistance
+## Architecture
 
-**Status: In Progress**
-
-Milestone 2 builds the main forum functionality on top of Milestone 1 authentication.
-
-Contributors work on:
-
-* Creating questions
-* Retrieving questions
-* Searching questions
-* Question details
-* Posting answers
-* User's own questions
-* Similar questions
-* Question embeddings
-* Semantic search
-* AI Draft Coach
-* AI Answer Fit
-
-The main relationship is:
+### Frontend
 
 ```text
-Authenticated User
-       ↓
-Questions & Answers
-       ↓
-Embeddings
-       ↓
-Semantic Search
-       ↓
-AI Assistance
+frontend/src/
+├── components/    Reusable UI
+├── context/       Shared state
+├── pages/         Route-level screens
+├── routes/        Frontend routes
+├── services/      API communication
+└── utils/         Client helpers
 ```
 
-Milestone 2 continues using the same layered backend architecture:
+Use the existing `services/api.js` for API communication instead of creating Axios requests directly inside components.
+
+Use CSS Modules for component and page-specific styling.
+
+Handle important UI states:
+
+```text
+Loading → Success
+        → Empty
+        → Error
+```
+
+### Backend
+
+```text
+backend/src/
+├── ai/            Gemini, embeddings, vector utilities
+├── config/        Database and environment configuration
+├── controllers/   HTTP request handling
+├── middleware/    Auth, uploads, errors
+├── models/        Database access
+├── routes/        API routes
+├── services/      Business logic
+└── utils/         Shared utilities
+```
+
+The normal backend flow is:
 
 ```text
 Route
   ↓
-Controller
-  ↓
-Service
-  ↓
-Model / AI Service
-  ↓
-MySQL / AI Provider
-```
-
----
-
-### Milestone 3 — RAG Knowledge Base
-
-**Status: Planned**
-
-Milestone 3 will introduce document-based knowledge retrieval using RAG.
-
-Planned areas include:
-
-* PDF uploads
-* Document processing
-* Text chunking
-* Embeddings
-* Semantic document search
-* Grounded AI answers
-* Document management
-
----
-
-# Project Structure
-
-The project is divided into separate frontend and backend applications.
-
-```text
-EvangadiForum/
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   └── utils/
-│   └── db/
-│
-├── frontend/
-│   └── src/
-│       ├── components/
-│       ├── context/
-│       ├── pages/
-│       ├── routes/
-│       ├── services/
-│       └── utils/
-│
-└── README.md
-```
-
-Keep related functionality in the appropriate folder and avoid placing business logic directly inside routes or React components.
-
----
-
-# Backend Guidelines
-
-Follow the layered architecture:
-
-```text
-Route
+Middleware
   ↓
 Controller
   ↓
 Service
   ↓
-Model
+Model / AI / RAG
   ↓
-Database
+Database / External Service
 ```
 
-AI-related operations should remain separated from normal database logic.
-
-For example:
-
-```text
-Question Service
-      ↓
-AI / Embedding Service
-      ↓
-AI Provider
-```
-
-Controllers should remain focused on handling HTTP requests and responses.
-
-Services should contain application and business logic.
-
-Models should handle database operations.
+Keep responsibilities separated. Avoid putting large amounts of business logic inside routes or controllers.
 
 ---
 
-# Frontend Guidelines
+## Authentication and Authorization
 
-Keep frontend responsibilities separated:
+Authentication answers:
+
+> Who is the user?
+
+Authorization answers:
+
+> Is this user allowed to perform this action?
+
+Protected operations must verify authorization on the server.
+
+Do not trust client-provided ownership values such as:
 
 ```text
-Page / Component
-       ↓
-Frontend Service
-       ↓
-api.js
-       ↓
-Axios
-       ↓
-Backend API
+userId
+authorId
+ownerId
 ```
 
-Use reusable components instead of duplicating the same UI across multiple pages.
-
-Use CSS Modules for component/page-specific styling.
-
-Keep authentication state inside `AuthContext` rather than duplicating authentication logic throughout components.
+Use the authenticated server-side user and verify ownership against the database.
 
 ---
 
-# Authentication
+## Database
 
-Protected functionality must use the authentication system established in Milestone 1.
+Database structure is maintained in:
 
 ```text
-Login
-  ↓
-JWT
-  ↓
-Axios
-  ↓
-Authentication Middleware
-  ↓
-Protected API
+backend/db/schema.sql
 ```
 
-Do not bypass authentication when implementing protected question, answer, or AI functionality.
+When changing the database:
+
+* preserve relationships and foreign keys;
+* consider indexes;
+* consider deletion behavior;
+* update affected models and services;
+* test existing functionality.
+
+Always use parameterized SQL.
+
+Never build SQL by directly concatenating user input.
 
 ---
 
-# Git Guidelines
+## AI and Semantic Search
 
-Make **small, focused commits**.
-
-Each commit should represent one meaningful change.
-
-Good examples:
+AI functionality is primarily organized under:
 
 ```text
-Add question model
-Add question creation endpoint
-Add question service
-Add semantic search service
-Add answer creation endpoint
-Add Draft Coach integration
-Update dashboard question list
+backend/src/ai/
 ```
 
-Avoid vague commit messages such as:
+The semantic-search flow is:
 
 ```text
-update stuff
-changes
-fix things
-work
-```
-
-Do not use `feat:` or other conventional prefixes in commit messages.
-
-Keep each commit easy to understand and review.
-
----
-
-# Pull Requests
-
-Before opening a pull request:
-
-* Test the affected functionality.
-* Make sure the application still runs.
-* Check for console/server errors.
-* Review your changed files.
-* Keep the PR focused on the assigned task.
-* Do not commit `.env` files or secrets.
-* Do not commit `node_modules`.
-
-When possible, explain:
-
-```text
-What changed
-Why it changed
-How it was tested
-```
-
----
-
-# Working on Milestone 2
-
-When implementing a Milestone 2 task, follow the complete flow:
-
-```text
-User Action
-    ↓
-React Page / Component
-    ↓
-Frontend Service
-    ↓
-Axios + JWT
-    ↓
-Express Route
-    ↓
-Controller
-    ↓
-Service
-    ↓
-Model / AI Service
-    ↓
-MySQL / AI Provider
-    ↓
-Response
-    ↓
-React UI
-```
-
-For semantic search:
-
-```text
-Search Query
-    ↓
+Text
+ ↓
 Embedding
-    ↓
+ ↓
 Vector
-    ↓
+ ↓
 Similarity Calculation
-    ↓
-Rank Results
-    ↓
-Similar Questions
+ ↓
+Ranked Results
 ```
 
-For AI assistance:
+When changing embeddings, vector formats, similarity calculations, or preprocessing, consider existing stored vectors.
 
-```text
-User Content
-    ↓
-Backend
-    ↓
-AI Service
-    ↓
-AI Provider
-    ↓
-Feedback / Evaluation
-    ↓
-Frontend
-```
+Changing the embedding model or dimensions may require regenerating existing vectors.
+
+AI-generated content should be treated as assistance, not automatically trusted as fact.
 
 ---
 
-# General Contribution Principles
+## RAG / Knowledge Base
 
-Keep the project:
+The RAG pipeline is:
 
-* **Modular** — each file should have a clear responsibility.
-* **Readable** — prefer simple and understandable code.
-* **Secure** — protect authentication and sensitive information.
-* **Consistent** — follow the existing project structure and naming conventions.
-* **Testable** — verify changes before committing.
-* **Collaborative** — avoid unnecessary changes to other contributors' work.
+```text
+PDF
+ ↓
+Text Extraction
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+Vector Storage
+ ↓
+User Query
+ ↓
+Semantic Retrieval
+ ↓
+Relevant Chunks
+ ↓
+AI Context
+ ↓
+Grounded Answer
+```
 
-> **Build small, understand the flow, commit clearly, and keep the architecture clean.**
+Changes to one stage can affect the complete pipeline.
+
+Document uploads must consider:
+
+* authentication;
+* authorization;
+* file validation;
+* file size;
+* safe filenames;
+* processing failures;
+* cleanup.
+
+When deleting a document, remove its associated derived data when applicable:
+
+```text
+Document
+ ├── Stored File
+ ├── Database Record
+ ├── Chunks
+ └── Embeddings
+```
+
+Test the complete RAG flow after significant changes.
+
+---
+
+## Security
+
+Never commit:
+
+```text
+.env
+API keys
+JWT secrets
+Passwords
+Database credentials
+Private documents
+Production data
+```
+
+Use `.env.example` for required environment variables.
+
+Never place server secrets in frontend variables such as:
+
+```text
+VITE_*
+```
+
+Validate uploaded files and never expose internal server errors, SQL statements, filesystem paths, or secrets to clients.
+
+---
+
+## Testing and Quality
+
+Before opening a pull request, run the relevant checks.
+
+Frontend:
+
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+Backend:
+
+```bash
+cd backend
+node index.js
+```
+
+Manually test affected functionality, especially:
+
+* authentication;
+* protected routes;
+* questions and answers;
+* semantic search;
+* Draft Coach;
+* Answer Fit;
+* document upload;
+* RAG search;
+* RAG AI queries;
+* PDF preview;
+* document deletion;
+* error and loading states.
+
+There is currently no automated backend test runner, so targeted manual testing is important.
+
+---
+
+## Git and Commits
+
+Keep commits small and focused.
+
+Use clear, descriptive commit messages.
+
+Good:
+
+```text
+Add question ownership validation
+Implement semantic document retrieval
+Add PDF upload validation
+Handle unavailable embedding service
+Improve question search empty state
+```
+
+Avoid:
+
+```text
+updates
+changes
+work
+done
+final
+```
+
+Do not combine unrelated changes into one commit.
+
+Always review:
+
+```bash
+git status
+git diff
+```
+
+before committing.
+
+---
+
+## Pull Requests
+
+A pull request should briefly explain:
+
+```text
+Summary
+- What changed
+- Why it changed
+
+Validation
+- Commands run
+- Manual testing performed
+
+Important Changes
+- API
+- Database
+- Authentication
+- AI
+- RAG
+- Environment
+```
+
+Include screenshots for meaningful UI changes when useful.
+
+Clearly mention breaking or contract changes.
+
+---
+
+## Documentation
+
+Update the README when changes affect:
+
+* setup;
+* environment variables;
+* APIs;
+* architecture;
+* user-visible features;
+* AI behavior;
+* RAG behavior;
+* database requirements.
+
+Documentation should always describe the **current working application**, not planned features.
+
+---
+
+## Code Style
+
+Use the existing project conventions.
+
+```text
+React Components → PascalCase
+Functions/Variables → camelCase
+```
+
+Use descriptive filenames:
+
+```text
+QuestionCard.jsx
+questionService.js
+authMiddleware.js
+ragService.js
+```
+
+Comments should explain **why** something is done, especially around security, AI, vectors, RAG, and unusual implementation decisions.
+
+---
+
+## Final Review Checklist
+
+Before submitting a contribution:
+
+```text
+[ ] Architecture is respected
+[ ] Authentication and authorization are correct
+[ ] Database changes are intentional
+[ ] AI/RAG behavior is tested when applicable
+[ ] Loading and error states are handled
+[ ] No secrets or private data are committed
+[ ] No unrelated files are included
+[ ] Lint passes
+[ ] Build passes
+[ ] Manual testing is complete
+[ ] Documentation is updated when necessary
+[ ] Commit messages are clear
+```
+
+The goal is simple:
+
+> **Make the project better without making it harder to understand, maintain, secure, or extend.**

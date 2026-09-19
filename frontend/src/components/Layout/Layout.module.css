@@ -17,6 +17,8 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
+  /* Preserve separation above the pinned footer on both short and long pages. */
+  gap: 40px;
   padding: 19px 25px 0;
 }
 
@@ -76,4 +78,12 @@
     margin-left: -16px;
     padding: 24px 16px;
   }
+}
+
+:global(html[data-theme="dark"]) .shell {
+  background: var(--background);
+}
+
+:global(html[data-theme="dark"]) .page > footer {
+  background: var(--surface);
 }

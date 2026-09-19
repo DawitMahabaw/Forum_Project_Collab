@@ -83,6 +83,7 @@
 
 .link {
   display: flex;
+  position: relative;
   align-items: center;
   gap: 12px;
   min-height: 36px;
@@ -92,6 +93,9 @@
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
+  transition:
+    background 0.16s ease,
+    color 0.16s ease;
 }
 
 .link svg {
@@ -104,8 +108,29 @@
 }
 
 .active {
-  background: transparent;
-  color: #2d3c53;
+  color: #172033;
+  background: #f1f5f9;
+  font-weight: 700;
+}
+
+.active::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: #ff6b0b;
+  content: "";
+}
+
+.active svg {
+  color: #ff6b0b;
+}
+
+.link:focus-visible {
+  outline: 2px solid #fdba74;
+  outline-offset: 2px;
 }
 
 .footer {
@@ -237,4 +262,40 @@
   .link {
     padding: 6px 8px;
   }
+}
+
+:global(html[data-theme="dark"]) .sidebar,
+:global(html[data-theme="dark"]) .brand {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .header,
+:global(html[data-theme="dark"]) .user {
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .brand,
+:global(html[data-theme="dark"]) .brandCopy strong,
+:global(html[data-theme="dark"]) .link.active,
+:global(html[data-theme="dark"]) .link:hover,
+:global(html[data-theme="dark"]) .userInfo span {
+  color: var(--text-primary);
+}
+
+:global(html[data-theme="dark"]) .brandCopy small,
+:global(html[data-theme="dark"]) .label,
+:global(html[data-theme="dark"]) .link,
+:global(html[data-theme="dark"]) .userInfo small {
+  color: var(--text-tertiary);
+}
+
+:global(html[data-theme="dark"]) .link:hover,
+:global(html[data-theme="dark"]) .active {
+  background: var(--surface-container-low);
+}
+
+:global(html[data-theme="dark"]) .avatar {
+  color: #e0f2fe;
+  background: #164e63;
 }
