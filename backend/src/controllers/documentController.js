@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import Document from "../models/Document.js";
 import { searchDocument } from "../rag/ragService.js";
 
@@ -41,8 +42,7 @@ const requireQuery = (rawQuery) => {
     throw error;
   }
   return rawQuery.trim();
-}
-
+};
 
 // Create semantic search endpoint
 const search = async (req, res, next) => {
@@ -69,5 +69,40 @@ const search = async (req, res, next) => {
     return next(error);
   }
 };
-  
-export { search };
+const uploadDocument = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      const error = new Error("A PDF file is required.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const documentId = await Document.create({
+      userId: req.user.userId,
+      title: req.file.originalname,
+      mimeType: req.file.mimetype,
+      storagePath: req.file.path,
+      byteSize: req.file.size,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Document uploaded successfully.",
+      data: {
+        documentId: Number(documentId),
+        title: req.file.originalname,
+        mimeType: req.file.mimetype,
+        byteSize: req.file.size,
+        status: "processing",
+      },
+    });
+  } catch (error) {
+    if (req.file?.path) {
+      await fs.rm(req.file.path, { force: true }).catch(() => {});
+    }
+
+    return next(error);
+  }
+};
+
+export { search, uploadDocument };
