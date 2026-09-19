@@ -236,6 +236,40 @@ const RagDocuments = ({ selectedDocument = null }) => {
         </div>
       )}
 
+        <div className={styles.workspace}>
+        <aside className={styles.library} aria-label="Private PDF library">
+          <div className={styles.uploadBox}>
+            <p>Accepted format: PDF. Maximum file size is enforced by the server.</p>
+            <input
+              accept="application/pdf"
+              onChange={(event) => setFile(event.target.files?.[0] || null)}
+              ref={fileInput}
+              type="file"
+            />
+            <div className={styles.uploadActions}>
+              <button
+                className={styles.fileButton}
+                onClick={() => fileInput.current?.click()}
+                type="button"
+              >
+                <FileText size={16} />
+                Choose file
+              </button>
+              <button
+                className={styles.uploadButton}
+                disabled={!file || isUploading}
+                onClick={handleUpload}
+                type="button"
+              >
+                {isUploading ? <LoaderCircle className={styles.spin} size={16} /> : <Upload size={16} />}
+                {isUploading ? "Uploading..." : "Upload"}
+              </button>
+            </div>
+            <small>{file?.name || "No file selected"}</small>
+          </div>
+
+          
+
       <div className={styles.toolSection}>
         <h2>
           <Search size={18} />
