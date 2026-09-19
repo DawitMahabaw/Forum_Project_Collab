@@ -73,5 +73,6 @@ const Document = {
        VALUES (?, ?, ?, ?, ?)`,
       [userId, title, mimeType, storagePath, byteSize]
     );
-
+return result.insertId;
+  },
 export default Document;
