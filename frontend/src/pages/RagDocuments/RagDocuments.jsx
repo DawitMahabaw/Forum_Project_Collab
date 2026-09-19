@@ -300,7 +300,12 @@ const RagDocuments = ({ selectedDocument = null }) => {
             ))}
           </div>
         </aside>
-
+  <section className={styles.reader}>
+          {!activeDocument && !isLoading && (
+            <div className={styles.emptyReader}>
+              Choose an uploaded PDF to open it here. Semantic search and Ask with AI will use only the selected document.
+            </div>
+          )}
 
 
       <div className={styles.toolSection}>
