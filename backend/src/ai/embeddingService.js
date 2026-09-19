@@ -12,5 +12,7 @@ if (!text || typeof text !== "string") {
       error: "Invalid input: Text content must be a non-empty string.",
     };
   }
+  try {
+    
 export { embedContent };
 export const createEmbedding = embedContent;
