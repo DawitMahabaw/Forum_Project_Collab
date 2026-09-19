@@ -92,10 +92,11 @@ if (!embeddingResult.success) {
         throw new Error("Could not generate document embeddings.");
       }
 
+// eslint-disable-next-line no-await-in-loop
+      const chunkId = await Document.addChunk(documentId, index, chunks[index]);
 
 
 
 
-      
 export { searchDocument };
 
