@@ -1,6 +1,15 @@
+<<<<<<< HEAD
+import fs from "node:fs";
+=======
 import fs from "node:fs/promises";
+>>>>>>> 4ab7118809e34039e5ae16ab62d4e713d9b0fd2d
 import Document from "../models/Document.js";
-import { searchDocument } from "../rag/ragService.js";
+import {
+  createDocument,
+  deleteDocument,
+  queryDocument,
+  searchDocument,
+} from "../rag/ragService.js";
 
 // Accept document ID
 const getDocumentId = (rawDocumentId) => {
@@ -44,6 +53,29 @@ const requireQuery = (rawQuery) => {
   return rawQuery.trim();
 }
 };
+<<<<<<< HEAD
+
+// Controller for retrieving information about one document.
+const getDocument = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Document fetched successfully.",
+      data: document,
+    });
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+=======
+>>>>>>> 4ab7118809e34039e5ae16ab62d4e713d9b0fd2d
 
 // Create semantic search endpoint
 const search = async (req, res, next) => {
@@ -70,6 +102,10 @@ const search = async (req, res, next) => {
     return next(error);
   }
 };
+<<<<<<< HEAD
+
+export { getDocument, search };
+=======
 const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -107,3 +143,4 @@ const uploadDocument = async (req, res, next) => {
 };
 
 export { search, uploadDocument };
+>>>>>>> 4ab7118809e34039e5ae16ab62d4e713d9b0fd2d

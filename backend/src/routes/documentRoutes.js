@@ -1,6 +1,11 @@
 import express from "express";
 import authenticate from "../middleware/authMiddleware.js";
-import { search, uploadDocument } from "../controllers/documentController.js";
+import {
+  search,
+  uploadDocument,
+  getDocument,
+  streamDocument,
+} from "../controllers/documentController.js";
 import { uploadPdf } from "../middleware/uploadMiddleware.js";
 
 // Initialize the Express router instance
