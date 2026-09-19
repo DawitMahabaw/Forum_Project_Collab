@@ -30,11 +30,15 @@ const document = await Document.findByIdForUser(
   // The document does not exist for this user
   // This also prevents one user from accessing another user's
    // document by changing the document ID.
-   
+
    if (!document) {
    const error = new Error("Document not found.");
      error.statusCode = 404;
      throw error;
    }
-
-
+const deleted = await Document.deleteById(document.documentId, userId);
+  // Ask the model to delete the database record.
+  //
+  // IMPORTANT:The model checks BOTH:documentId AND userId
+  // so one user cannot delete another user's document.
+  
