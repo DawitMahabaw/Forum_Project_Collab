@@ -1,6 +1,4 @@
-
 import fs from "node:fs";
-
 
 import Document from "../models/Document.js";
 import { deleteDocument } from "../services/documentService.js";
@@ -46,8 +44,7 @@ const requireQuery = (rawQuery) => {
     throw error;
   }
   return rawQuery.trim();
-}
-
+};
 
 // Create semantic search endpoint
 const search = async (req, res, next) => {
@@ -75,10 +72,9 @@ const search = async (req, res, next) => {
   }
 };
 
-  // delete document 
+// delete document
 
 const remove = async (req, res, next) => {
-
   //  Find the document and verify ownership.
   try {
     const document = await findOwnedDocument(
@@ -94,13 +90,13 @@ const remove = async (req, res, next) => {
 
     await deleteDocument(document, req.user.userId);
 
-     return res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Document deleted successfully.",
       data: { documentId: document.documentId },
     });
- } catch (error) {
+  } catch (error) {
     return next(error);
   }
-
-export { search };
+};
+export { remove, search };
