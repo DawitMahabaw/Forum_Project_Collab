@@ -75,6 +75,11 @@ const extractText = async (filePath) => {
   }
 };
 
+const processDocument = async (documentId, filePath) => {
+  try {
+    const rawText = await extractText(filePath);
+    const chunks = splitText(rawText);
+    
 
 
 export { searchDocument };
