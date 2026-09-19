@@ -42,6 +42,7 @@ const deleted = await Document.deleteById(document.documentId, userId);
   // IMPORTANT:The model checks BOTH:documentId AND userId
   // so one user cannot delete another user's document.
 
+
   if (deleted) {
     // Only remove the physical PDF if the database deletion succeeded.
 
@@ -49,7 +50,12 @@ const deleted = await Document.deleteById(document.documentId, userId);
     // Delete the actual PDF file from the server's filesystem.
     // force: true means fs.rm() won't throw an error merely
     // because the file is already missing.
-  }
+  } else {
+const error = new Error("Document could not be deleted.");
+   error.statusCode = 500;
+     throw error;
+ }
+  
     return deleted;
 };
 
