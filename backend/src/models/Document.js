@@ -36,7 +36,8 @@ const Document = {
     );
 
     // Step 2: If a matching document row is found, format it; otherwise return null
-    return rows ? mapDocument(rows, options) : null;
+    // return rows ? mapDocument(rows, options) : null;
+     return rows[0] ? mapDocument(rows[0], options) : null;
   },
 
   // Database lookup to retrieve all prepared text chunks and vector embeddings
@@ -61,5 +62,8 @@ const Document = {
     }));
   },
 };
+
+
+
 
 export default Document;
