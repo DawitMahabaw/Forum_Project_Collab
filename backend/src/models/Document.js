@@ -72,7 +72,8 @@ const Document = {
 // Delete only the document matching BOTH:
     // document ID AND owner ID
       `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
-
+ [documentId, userId],
+    );
 
 
 
