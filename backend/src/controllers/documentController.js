@@ -1,10 +1,11 @@
 import fs from "node:fs";
 import Document from "../models/Document.js";
-import { 
+import {
   createDocument,
   deleteDocument,
   queryDocument,
-  searchDocument } from "../rag/ragService.js";
+  searchDocument,
+} from "../rag/ragService.js";
 
 // Accept document ID
 const getDocumentId = (rawDocumentId) => {
@@ -50,19 +51,23 @@ const requireQuery = (rawQuery) => {
 
 // Controller for retrieving information about one document.
 const getDocument = async (req, res, next) => {
-  try{
+  try {
     const document = await findOwnedDocument(
       req.params.documentId,
       req.user.userId,
     );
 
-  return res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Document fetched successfully.",
       data: document,
     });
+  } catch (error) {
+    return next(error);
+  }
 
-}
+  // Pass errors to the centralized error handler.
+};
 
 // Create semantic search endpoint
 const search = async (req, res, next) => {
@@ -90,4 +95,4 @@ const search = async (req, res, next) => {
   }
 };
 
-export { search };
+export { getDocument, search };
