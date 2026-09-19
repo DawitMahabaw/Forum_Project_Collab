@@ -115,7 +115,10 @@ const createDocument = async ({ userId, file }) => {
     storagePath: path.resolve(file.path),
     byteSize: file.size,
   });
+void processDocument(documentId, path.resolve(file.path));
 
+  return Document.findByIdForUser(documentId, userId);
+};
 
 
 
