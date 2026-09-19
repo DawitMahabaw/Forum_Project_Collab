@@ -67,15 +67,17 @@ const Document = {
 /**
    * Create a new document record in the database
    */
+  
   async create({ userId, title, mimeType, storagePath, byteSize }) {
     const [result] = await pool.execute(
       `INSERT INTO documents (user_id, title, mime_type, storage_path, byte_size)
        VALUES (?, ?, ?, ?, ?)`,
       [userId, title, mimeType, storagePath, byteSize]
     );
-return result.insertId;
+    return result.insertId;
   },
-/**
+
+  /**
    * List all documents belonging to a specific user
    */
   async listForUser(userId) {
@@ -85,9 +87,10 @@ return result.insertId;
        FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
       [userId]
     );
-return rows.map((row) => mapDocument(row));
+    return rows.map((row) => mapDocument(row));
   },
-/**
+
+  /**
    * Update document processing status and optional error message
    */
   async updateStatus(documentId, status, errorMessage = null) {
@@ -96,7 +99,8 @@ return rows.map((row) => mapDocument(row));
       [status, errorMessage, documentId]
     );
   },
-/**
+
+  /**
    * Insert extracted text chunk for a document
    */
   async addChunk(documentId, chunkIndex, content) {
@@ -105,9 +109,10 @@ return rows.map((row) => mapDocument(row));
        VALUES (?, ?, ?)`,
       [documentId, chunkIndex, content]
     );
-return result.insertId;
+    return result.insertId;
   },
-/**
+
+  /**
    * Save vector embedding for a specific chunk
    */
   async addChunkVector(chunkId, embedding) {
@@ -117,7 +122,8 @@ return result.insertId;
       [chunkId, JSON.stringify(embedding)]
     );
   },
-/**
+
+  /**
    * Delete document by ID ensuring user ownership
    */
   async deleteById(documentId, userId) {
@@ -125,15 +131,8 @@ return result.insertId;
       `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
       [documentId, userId]
     );
-return result.affectedRows > 0;
+    return result.affectedRows > 0;
   },
-// Refactor JSDoc documentation formatting for create method
-// Refactor JSDoc documentation formatting for listForUser method
-// Refactor JSDoc documentation formatting for updateStatus method
-// Refactor JSDoc documentation formatting for addChunkVector method
-// Refactor JSDoc documentation formatting for deleteById method
-
-
 
 
 export default Document;
