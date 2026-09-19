@@ -79,7 +79,9 @@ const processDocument = async (documentId, filePath) => {
   try {
     const rawText = await extractText(filePath);
     const chunks = splitText(rawText);
-    
+    if (!chunks.length) {
+      throw new Error("The PDF does not contain readable text.");
+    }
 
 
 export { searchDocument };
