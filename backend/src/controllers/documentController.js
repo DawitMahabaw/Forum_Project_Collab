@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import fs from "node:fs";
+=======
+import fs from "node:fs/promises";
+>>>>>>> 4ab7118809e34039e5ae16ab62d4e713d9b0fd2d
 import Document from "../models/Document.js";
 import {
   createDocument,
@@ -48,6 +52,7 @@ const requireQuery = (rawQuery) => {
   }
   return rawQuery.trim();
 };
+<<<<<<< HEAD
 
 // Controller for retrieving information about one document.
 const getDocument = async (req, res, next) => {
@@ -68,6 +73,8 @@ const getDocument = async (req, res, next) => {
 
   // Pass errors to the centralized error handler.
 };
+=======
+>>>>>>> 4ab7118809e34039e5ae16ab62d4e713d9b0fd2d
 
 // Create semantic search endpoint
 const search = async (req, res, next) => {
@@ -94,5 +101,45 @@ const search = async (req, res, next) => {
     return next(error);
   }
 };
+<<<<<<< HEAD
 
 export { getDocument, search };
+=======
+const uploadDocument = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      const error = new Error("A PDF file is required.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const documentId = await Document.create({
+      userId: req.user.userId,
+      title: req.file.originalname,
+      mimeType: req.file.mimetype,
+      storagePath: req.file.path,
+      byteSize: req.file.size,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Document uploaded successfully.",
+      data: {
+        documentId: Number(documentId),
+        title: req.file.originalname,
+        mimeType: req.file.mimetype,
+        byteSize: req.file.size,
+        status: "processing",
+      },
+    });
+  } catch (error) {
+    if (req.file?.path) {
+      await fs.rm(req.file.path, { force: true }).catch(() => {});
+    }
+
+    return next(error);
+  }
+};
+
+export { search, uploadDocument };
+>>>>>>> 4ab7118809e34039e5ae16ab62d4e713d9b0fd2d

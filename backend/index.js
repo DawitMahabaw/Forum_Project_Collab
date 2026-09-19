@@ -10,6 +10,7 @@ import cors from "cors";
 // Import our centralized environment configuration.
 import createQuestionRoutes from "./src/routes/createQuestionRoutes.js";
 import answerRoutes from "./src/routes/answerRoutes.js";
+import documentRoutes from "./src/routes/documentRoutes.js";
 import env from "./src/config/env.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
@@ -31,10 +32,10 @@ app.get("/", (req, res) => {
 
 app.use("/api/questions", questionRoutes);
 
-
 app.use("/api/auth", authRoutes);
 app.use("/api/questions", createQuestionRoutes);
 app.use("/api/answers", answerRoutes);
+app.use("/api/rag/documents", documentRoutes);
 app.use(notFound);
 app.use(errorHandler);
 const testDatabaseConnection = async () => {
