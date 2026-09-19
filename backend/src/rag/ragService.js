@@ -179,7 +179,30 @@ try {
         isGrounded: false,
       };
     }
-
+return {
+      answer: generated.answer,
+      citations: evidence.map((result, index) => ({
+        ref: index + 1,
+        chunkIndex: result.chunkIndex,
+        excerpt: result.excerpt,
+      })),
+      chunksUsed: evidence.map((result) => result.chunkId),
+      isGrounded: true,
+    };
+  } catch (error) {
+    return {
+      answer:
+        "Relevant passages were found, but the answer generator is temporarily busy. Please review the cited passages below.",
+      citations: evidence.map((result, index) => ({
+        ref: index + 1,
+        chunkIndex: result.chunkIndex,
+        excerpt: result.excerpt,
+      })),
+      chunksUsed: evidence.map((result) => result.chunkId),
+      isGrounded: true,
+    };
+  }
+};
 
 
 
