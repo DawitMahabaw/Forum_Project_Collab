@@ -268,7 +268,40 @@ const RagDocuments = ({ selectedDocument = null }) => {
             <small>{file?.name || "No file selected"}</small>
           </div>
 
-          
+          {isLoading && <p className={styles.muted}>Loading your library...</p>}
+          {!isLoading && !documents.length && (
+            <p className={styles.muted}>
+              Upload a PDF to make it available for private search and AI answers.
+            </p>
+          )}
+
+          <div className={styles.documentList}>
+            {documents.map((document) => (
+              <button
+                aria-current={activeId === document.documentId ? "true" : undefined}
+                className={`${styles.documentItem} ${
+                  activeId === document.documentId ? styles.documentActive : ""
+                }`}
+                key={document.documentId}
+                onClick={() => handleSelect(document.documentId)}
+                type="button"
+              >
+                <FileText size={17} />
+                <span>
+                  <b>{document.title}</b>
+                  <small>
+                    {document.byteSize ? formatBytes(document.byteSize) : "PDF"}
+                  </small>
+                </span>
+                <i className={styles[`status${document.status}`]}>
+                  {document.status}
+                </i>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+
 
       <div className={styles.toolSection}>
         <h2>
