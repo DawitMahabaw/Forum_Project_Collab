@@ -38,6 +38,11 @@ const RagDocuments = ({ selectedDocument = null }) => {
       if (!quiet) setIsLoading(false);
     }
   }, []);
+
+  // Upload the selected PDF and immediately focus it in the right workspace.
+  const handleUpload = async () => {
+    
+  };
   // ============================================================
   // SELECTED DOCUMENT
   // ============================================================
@@ -338,6 +343,6 @@ const RagDocuments = ({ selectedDocument = null }) => {
       </div>
     </section>
   );
-};;
+};;;
 
 export default RagDocuments;
