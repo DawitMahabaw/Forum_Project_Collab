@@ -2,6 +2,8 @@ import env from "../config/env.js";
 import * as ai from "../ai/gemini.js";
 import { cosineSimilarity } from "../ai/vectorMath.js";
 import Document from "../models/Document.js";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 const rankDocumentChunks = async (document, query, requestedK) => {
   // Step 1: Ensure the document processing is completely finished before allowing a search
