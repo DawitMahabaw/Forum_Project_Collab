@@ -65,6 +65,15 @@ const searchDocument = async (document, query, requestedK) => {
 
 // --- TASK T-22 ADDITIONS: PDF Extraction & Processing ---
 
+const extractText = async (filePath) => {
+  const parser = new PDFParse({ data: await fs.readFile(filePath) });
+  try {
+    const result = await parser.getText();
+    return result.text || "";
+  } finally {
+    await parser.destroy();
+  }
+};
 
 
 
