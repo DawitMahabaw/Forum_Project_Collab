@@ -107,7 +107,14 @@ await Document.updateStatus(documentId, "ready");
     );
   }
 };
-
+const createDocument = async ({ userId, file }) => {
+  const documentId = await Document.create({
+    userId,
+    title: file.originalname,
+    mimeType: file.mimetype,
+    storagePath: path.resolve(file.path),
+    byteSize: file.size,
+  });
 
 
 
