@@ -87,12 +87,21 @@ return result.insertId;
     );
 return rows.map((row) => mapDocument(row));
   },
+/**
+   * Update document processing status and optional error message
+   */
+  async updateStatus(documentId, status, errorMessage = null) {
+    await pool.execute(
+      `UPDATE documents SET status = ?, error_message = ? WHERE document_id = ?`,
+      [status, errorMessage, documentId]
+    );
+  },
 
 
 
 
 
-  
+
 
 
 export default Document;
