@@ -119,7 +119,14 @@ void processDocument(documentId, path.resolve(file.path));
 
   return Document.findByIdForUser(documentId, userId);
 };
+const noEvidenceAnswer = (query) =>
+  `The provided documents do not include the information: ${query}`;
 
+const parseGroundedAnswer = (rawText) => {
+  const jsonText = rawText
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
 
 
 
