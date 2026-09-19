@@ -22,4 +22,14 @@ const rankDocumentChunks = async (document, query, requestedK) => {
     error.statusCode = 503;
     throw error;
   }
+
+  // Step 4: Calculate and clamp the maximum number of text chunks (K value) to return
+  const limit = Math.min(
+    Math.max(Number(requestedK) || env.semanticSearch.defaultK, 1),
+    env.semanticSearch.maxK,
+  );
+
+  // Step 5: Retrieve all prepared vectors belonging to this specific document from the database
+  const chunks = await Document.findReadyChunks(document.documentId);
+  
 };
