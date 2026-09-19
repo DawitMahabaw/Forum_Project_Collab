@@ -96,7 +96,15 @@ return rows.map((row) => mapDocument(row));
       [status, errorMessage, documentId]
     );
   },
-
+/**
+   * Insert extracted text chunk for a document
+   */
+  async addChunk(documentId, chunkIndex, content) {
+    const [result] = await pool.execute(
+      `INSERT INTO document_chunks (document_id, chunk_index, content)
+       VALUES (?, ?, ?)`,
+      [documentId, chunkIndex, content]
+    );
 
 
 
