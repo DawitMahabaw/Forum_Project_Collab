@@ -125,7 +125,8 @@ return result.insertId;
       `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
       [documentId, userId]
     );
-
+return result.affectedRows > 0;
+  },
 
 
 
