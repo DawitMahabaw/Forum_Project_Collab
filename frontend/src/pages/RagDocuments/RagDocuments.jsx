@@ -11,14 +11,14 @@ import styles from "./RagDocuments.module.css";
 // Document selection is owned by the sidebar/page integration. This component
 // only consumes the selected document when running its two RAG tools.
 const RagDocuments = ({ selectedDocument = null }) => {
-  // A ref lets the visible "Choose file" button open the hidden native input.
+  // Opens the hidden PDF input from the visible button.
   const fileInput = useRef(null);
+
   const [documents, setDocuments] = useState([]);
-  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [activeId, setActiveId] = useState(null);
   const [file, setFile] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
 
   // Load the private library and select the newest document on first visit.
@@ -375,6 +375,6 @@ const RagDocuments = ({ selectedDocument = null }) => {
       </div>
     </section>
   );
-};;;;
+};;;;;
 
 export default RagDocuments;
