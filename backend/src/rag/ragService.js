@@ -127,7 +127,16 @@ const parseGroundedAnswer = (rawText) => {
     .trim()
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "");
-
+try {
+    const data = JSON.parse(jsonText);
+    return {
+      supported: data?.supported === true,
+      answer: typeof data?.answer === "string" ? data.answer.trim() : "",
+    };
+  } catch {
+    return { supported: false, answer: "" };
+  }
+};
 
 
 
