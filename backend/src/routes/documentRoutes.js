@@ -1,11 +1,6 @@
 import express from "express";
 import authenticate from "../middleware/authMiddleware.js";
-import {
-
-  remove,
-  search,
-  
-} from "../controllers/documentController.js";
+import { remove, search } from "../controllers/documentController.js";
 
 // Initialize the Express router instance
 const router = express.Router();
@@ -13,12 +8,10 @@ const router = express.Router();
 // Enforce global authentication across all routes declared in this file
 router.use(authenticate);
 
-
 // Declare the clean GET path mapped directly to your search controller
 router.get("/:documentId/search", search);
 
 // Authentication is already handled by router.use(authenticate).
 router.delete("/:documentId", remove);
-
 
 export default router;

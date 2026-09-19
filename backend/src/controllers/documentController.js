@@ -1,5 +1,15 @@
+
+import fs from "node:fs";
+
+
 import Document from "../models/Document.js";
-import { searchDocument } from "../rag/ragService.js";
+import {
+  createDocument,
+  deleteDocument,
+  queryDocument,
+  searchDocument,
+} from "../rag/ragService.js";
+
 
 // Accept document ID
 const getDocumentId = (rawDocumentId) => {
