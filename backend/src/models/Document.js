@@ -67,7 +67,8 @@ const Document = {
   // records automatically.
   async deleteById(documentId, userId) {
 
-
+// Execute the DELETE query.
+    const [result] = await pool.execute(
 
 
 
