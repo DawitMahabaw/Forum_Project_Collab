@@ -107,7 +107,16 @@ return rows.map((row) => mapDocument(row));
     );
 return result.insertId;
   },
-
+/**
+   * Save vector embedding for a specific chunk
+   */
+  async addChunkVector(chunkId, embedding) {
+    await pool.execute(
+      `INSERT INTO document_chunk_vectors (chunk_id, embedding, status)
+       VALUES (?, ?, 'ready')`,
+      [chunkId, JSON.stringify(embedding)]
+    );
+  },
 
 
 
