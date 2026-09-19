@@ -47,8 +47,8 @@ const deleted = await Document.deleteById(document.documentId, userId);
 
     await fs.rm(document.storagePath, { force: true });
     // Delete the actual PDF file from the server's filesystem.
-    //
     // force: true means fs.rm() won't throw an error merely
     // because the file is already missing.
   }
+  
 
