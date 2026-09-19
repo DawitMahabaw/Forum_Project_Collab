@@ -62,6 +62,11 @@ const RagDocuments = ({ selectedDocument = null }) => {
 
     return () => window.clearInterval(timer);
   }, [activeDocument?.status, loadDocuments]);
+  
+    const handleSelect = (documentId) => {
+      setActiveId(documentId);
+      setError("");
+    };
 
   // Upload the selected PDF and immediately focus it in the right workspace.
   const handleUpload = async () => {
