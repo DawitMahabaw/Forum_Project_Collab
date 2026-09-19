@@ -203,8 +203,17 @@ return {
     };
   }
 };
+const deleteDocument = async (document, userId) => {
+  const deleted = await Document.deleteById(document.documentId, userId);
 
+  if (deleted) {
+    await fs.rm(document.storagePath, { force: true });
+  }
 
+  return deleted;
+};
 
-export { searchDocument };
+// --- UPDATED EXPORTS ---
+export { createDocument, deleteDocument, queryDocument, searchDocument };
+
 
