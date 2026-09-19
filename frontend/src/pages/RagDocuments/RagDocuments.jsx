@@ -312,7 +312,11 @@ const RagDocuments = ({ selectedDocument = null }) => {
               Choose an uploaded PDF to open it here. Semantic search and Ask with AI will use only the selected document.
             </div>
           )}
-
+        {activeDocument?.status === "failed" && (
+            <div className={styles.failed}>
+              {activeDocument.errorMessage || "This PDF could not be read."} Upload a text-based PDF and try again.
+            </div>
+          )}
 
       <div className={styles.toolSection}>
         <h2>
