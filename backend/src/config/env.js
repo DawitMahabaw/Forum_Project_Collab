@@ -43,6 +43,7 @@ const env = {
     ),
   },
    //upload rag document
+  //upload rag document
   rag: {
     uploadDir: process.env.RAG_UPLOAD_DIR || "uploads/rag-documents",
     maxFileSizeBytes: numberFromEnv(

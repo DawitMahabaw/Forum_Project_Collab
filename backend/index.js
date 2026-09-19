@@ -32,7 +32,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/questions", questionRoutes);
 
-
 app.use("/api/auth", authRoutes);
 app.use("/api/questions", createQuestionRoutes);
 app.use("/api/answers", answerRoutes);

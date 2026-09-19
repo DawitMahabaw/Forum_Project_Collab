@@ -43,6 +43,8 @@ const requireQuery = (rawQuery) => {
   }
   return rawQuery.trim();
 }
+};
+
 // Create semantic search endpoint
 const search = async (req, res, next) => {
   try {
@@ -68,7 +70,7 @@ const search = async (req, res, next) => {
     return next(error);
   }
 };
-  const uploadDocument = async (req, res, next) => {
+const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) {
       const error = new Error("A PDF file is required.");
