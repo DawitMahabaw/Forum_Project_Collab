@@ -13,6 +13,7 @@ if (!text || typeof text !== "string") {
     };
   }
   try {
-    
+    const result = await embedContent(text, taskType);
+    return result;
 export { embedContent };
 export const createEmbedding = embedContent;
