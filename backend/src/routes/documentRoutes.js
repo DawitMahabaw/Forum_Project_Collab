@@ -1,13 +1,10 @@
 import express from "express";
 import authenticate from "../middleware/authMiddleware.js";
 import {
-  ask,
-  getDocument,
-  listDocuments,
+
   remove,
   search,
-  streamDocument,
-  uploadDocument,
+  
 } from "../controllers/documentController.js";
 
 // Initialize the Express router instance
@@ -22,5 +19,6 @@ router.get("/:documentId/search", search);
 
 // Authentication is already handled by router.use(authenticate).
 router.delete("/:documentId", remove);
+
 
 export default router;
