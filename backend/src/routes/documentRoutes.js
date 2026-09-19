@@ -1,6 +1,14 @@
 import express from "express";
 import authenticate from "../middleware/authMiddleware.js";
-import { search } from "../controllers/documentController.js";
+import {
+  ask,
+  getDocument,
+  listDocuments,
+  remove,
+  search,
+  streamDocument,
+  uploadDocument,
+} from "../controllers/documentController.js";
 
 // Initialize the Express router instance
 const router = express.Router();
