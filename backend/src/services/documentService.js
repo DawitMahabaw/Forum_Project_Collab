@@ -19,9 +19,22 @@
  // 4. Database cascade removes related chunks and vectors.
  // 5. Remove the physical PDF from disk.
  // Remove only an owned database record and its paired on-disk PDF.
- 
+
 const deleteDocument = async (document, userId) => {
 
-
+const document = await Document.findByIdForUser(
+    document,
+     userId,
+     { includeStoragePath: true },
+  );
+  // The document does not exist for this user
+  // This also prevents one user from accessing another user's
+   // document by changing the document ID.
+   
+   if (!document) {
+   const error = new Error("Document not found.");
+     error.statusCode = 404;
+     throw error;
+   }
 
 
