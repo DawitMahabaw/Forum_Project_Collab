@@ -31,5 +31,24 @@ const searchDocument = async (document, query, requestedK) => {
 
   // Step 5: Retrieve all prepared vectors belonging to this specific document from the database
   const readyChunks = await Document.findReadyChunks(document.documentId);
-  
-}
+
+    // Step 6: Loop through chunks to calculate similarity scores and rank them by relevance
+  const results = readyChunks
+    .map((chunk) => ({
+      ...chunk,
+      score: cosineSimilarity(queryResult.embedding, chunk.embedding),
+    }))
+    .sort((first, second) => second.score - first.score)
+    .slice(0, limit)
+    .map(({ chunkId, chunkIndex, content, score }) => ({
+      chunkId,
+      chunkIndex,
+      score,
+      excerpt: content,
+    }));
+
+  // Step 7: Return the original plain text search string along with the ranked results array
+  return { query, results };
+};
+
+export { searchDocument };
