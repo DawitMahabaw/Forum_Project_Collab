@@ -105,7 +105,8 @@ return rows.map((row) => mapDocument(row));
        VALUES (?, ?, ?)`,
       [documentId, chunkIndex, content]
     );
-
+return result.insertId;
+  },
 
 
 
