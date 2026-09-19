@@ -61,5 +61,15 @@ const Document = {
     }));
   },
 };
+// ==========================================
+  // TASK T-22: 
+  // ==========================================
+async create({ userId, title, mimeType, storagePath, byteSize }) {
+    const [result] = await pool.execute(
+      `INSERT INTO documents (user_id, title, mime_type, storage_path, byte_size)
+       VALUES (?, ?, ?, ?, ?)`,
+      [userId, title, mimeType, storagePath, byteSize]
+    );
+
 
 export default Document;
