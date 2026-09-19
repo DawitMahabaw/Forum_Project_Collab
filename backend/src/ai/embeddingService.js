@@ -5,8 +5,7 @@ import { embedContent } from "./gemini.js";
  * @param {string} [taskType="RETRIEVAL_DOCUMENT"] - Task intent type.
  * @returns {Promise<{ success: boolean, embedding?: number[], error?: string }>}
  */
-
-
+const createEmbedding = async (text, taskType = "RETRIEVAL_DOCUMENT") => {
 
 export { embedContent };
 export const createEmbedding = embedContent;
