@@ -168,7 +168,17 @@ ${query}
 
 Retrieved PDF excerpts:
 ${context}`;
+try {
+    const generated = parseGroundedAnswer(await ai.generateContent(prompt));
 
+    if (!generated.supported || !generated.answer) {
+      return {
+        answer: noEvidenceAnswer(query),
+        citations: [],
+        chunksUsed: [],
+        isGrounded: false,
+      };
+    }
 
 
 
