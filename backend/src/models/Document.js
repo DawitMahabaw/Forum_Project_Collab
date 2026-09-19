@@ -85,7 +85,14 @@ return result.insertId;
        FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
       [userId]
     );
+return rows.map((row) => mapDocument(row));
+  },
 
+
+
+
+
+  
 
 
 export default Document;
