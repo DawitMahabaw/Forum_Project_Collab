@@ -49,3 +49,15 @@ const rankDocumentChunks = async (document, query, requestedK) => {
       }))
   );
 };
+
+
+// Main orchestration entry point called directly by your document controller
+const searchDocument = async (document, query, requestedK) => {
+  return {
+    query,
+    results: await rankDocumentChunks(document, query, requestedK),
+  };
+};
+
+export { searchDocument };
+
