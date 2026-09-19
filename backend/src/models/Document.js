@@ -75,4 +75,17 @@ const Document = {
     );
 return result.insertId;
   },
+/**
+   * List all documents belonging to a specific user
+   */
+  async listForUser(userId) {
+    const [rows] = await pool.execute(
+      `SELECT document_id, title, mime_type, byte_size, status, error_message,
+              created_at, updated_at
+       FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
+      [userId]
+    );
+
+
+
 export default Document;
