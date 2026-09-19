@@ -60,7 +60,7 @@ const Document = {
       embedding: parseEmbedding(row.embedding),
     }));
   },
-};
+
 // ==========================================
   // TASK T-22: 
   // ==========================================
@@ -134,5 +134,5 @@ const Document = {
     return result.affectedRows > 0;
   },
 
-
+};
 export default Document;
