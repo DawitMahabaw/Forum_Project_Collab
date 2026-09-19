@@ -62,7 +62,7 @@ const RagDocuments = ({ selectedDocument = null }) => {
 
     return () => window.clearInterval(timer);
   }, [activeDocument?.status, loadDocuments]);
-  
+
     const handleSelect = (documentId) => {
       setActiveId(documentId);
       setError("");
@@ -230,9 +230,11 @@ const RagDocuments = ({ selectedDocument = null }) => {
 
   return (
     <section className={styles.page}>
-      {/* ========================================================
-          SEMANTIC SEARCH
-          ======================================================== */}
+      {error && (
+        <div className={styles.error} role="alert">
+          {error}
+        </div>
+      )}
 
       <div className={styles.toolSection}>
         <h2>
