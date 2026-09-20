@@ -24,3 +24,21 @@
   border-radius: 4px;
   background: #fff;
 }
+
+.uploadBox > p,
+.uploadBox > small {
+  display: block;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.uploadBox input {
+  display: none;
+}
+
+.uploadActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 13px;
+}
