@@ -379,6 +379,7 @@ const RagDocuments = () => {
                   Loading PDF preview...
                 </div>
               )}
+
               <section className={styles.toolSection}>
                 <h2>Semantic search</h2>
                 <p>Finds passages by meaning (embeddings), not only exact keywords.</p>
@@ -407,6 +408,7 @@ const RagDocuments = () => {
                   ))}
                 </div>
               </section>
+
               <section className={styles.toolSection}>
                 <h2>Ask with AI</h2>
                 <p>
