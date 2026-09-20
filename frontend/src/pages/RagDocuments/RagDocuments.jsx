@@ -36,6 +36,16 @@ const formatBytes = (bytes) => {
 };
 
 const RagDocuments = () => {
+  // A ref lets the visible "Choose file" button open the hidden native input.
+  const fileInput = useRef(null);
+  const [documents, setDocuments] = useState([]);
+  const [activeId, setActiveId] = useState(null);
+  const [file, setFile] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [askQuery, setAskQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [answer, setAnswer] = useState(null);
+
   return null;
 };
 
