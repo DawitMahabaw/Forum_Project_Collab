@@ -162,6 +162,16 @@ const RagDocuments = () => {
     }
   };
 
+  // Switching documents clears outputs that belong to the previous PDF.
+  const handleSelect = (documentId) => {
+    setActiveId(documentId);
+    setSearchQuery("");
+    setAskQuery("");
+    setResults([]);
+    setAnswer(null);
+    setError("");
+  };
+
   return null;
 };
 
