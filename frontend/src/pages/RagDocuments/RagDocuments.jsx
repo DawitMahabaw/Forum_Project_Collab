@@ -82,6 +82,11 @@ const RagDocuments = () => {
     }
   }, []);
 
+  // Load the library when the page opens.
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
+
   return null;
 };
 
