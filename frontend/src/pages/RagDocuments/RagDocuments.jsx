@@ -457,7 +457,14 @@ const RagDocuments = () => {
             <p id="delete-document-copy">
               “{activeDocument.title}” and its private search index will be permanently removed.
             </p>
-            {/* MODAL_ACTIONS */}
+            <div>
+              <button disabled={workingAction === "delete"} onClick={() => setPendingDelete(false)} type="button">
+                Cancel
+              </button>
+              <button disabled={workingAction === "delete"} onClick={handleDelete} type="button">
+                {workingAction === "delete" ? "Deleting..." : "Delete document"}
+              </button>
+            </div>
           </section>
         </div>
       )}
