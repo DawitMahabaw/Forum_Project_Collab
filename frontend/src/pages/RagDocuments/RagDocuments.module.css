@@ -79,3 +79,9 @@
   margin-top: 12px;
   color: #98a2b3;
 }
+
+.documentList {
+  display: grid;
+  gap: 8px;
+  margin-top: 22px;
+}
