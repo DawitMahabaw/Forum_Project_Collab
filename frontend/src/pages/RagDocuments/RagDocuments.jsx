@@ -367,8 +367,37 @@ const RagDocuments = () => {
                 </button>
               </div>
 
-              {/* READER_PREVIEW */}
-              {/* TOOL_SEARCH */}
+              {previewUrl ? (
+                <iframe
+                  className={styles.preview}
+                  src={previewUrl}
+                  title={`Preview of ${activeDocument.title}`}
+                />
+              ) : (
+                <div className={styles.pending}>
+                  <LoaderCircle className={styles.spin} size={20} />
+                  Loading PDF preview...
+                </div>
+              )}
+              <section className={styles.toolSection}>
+                <h2>Semantic search</h2>
+                <p>Finds passages by meaning (embeddings), not only exact keywords.</p>
+                <form onSubmit={handleSemanticSearch}>
+                  <label htmlFor="semantic-query">Search query</label>
+                  <input
+                    id="semantic-query"
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="How does a function work?"
+                    value={searchQuery}
+                  />
+                  <button disabled={workingAction === "search" || !searchQuery.trim()} type="submit">
+                    {workingAction === "search" ? <LoaderCircle className={styles.spin} size={16} /> : <Search size={16} />}
+                    {workingAction === "search" ? "Searching..." : "Search"}
+                  </button>
+                </form>
+
+                {/* SEARCH_RESULTS */}
+              </section>
               {/* TOOL_ASK */}
             </>
           )}
