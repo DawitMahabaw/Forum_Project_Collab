@@ -246,7 +246,37 @@ const RagDocuments = () => {
     }
   };
 
-  return null;
+  return (
+    <section className={styles.page}>
+      {toast && (
+        <div className={styles.toast} role="status">
+          <CheckCircle2 size={17} />
+          {toast}
+          <button aria-label="Dismiss notification" onClick={() => setToast("")} type="button">
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <div className={styles.error} role="alert">
+          {error}
+        </div>
+      )}
+
+      <div className={styles.workspace}>
+        <aside className={styles.library} aria-label="Private PDF library">
+          {/* LIBRARY_SIDEBAR */}
+        </aside>
+
+        <section className={styles.reader}>
+          {/* READER_CONTENT */}
+        </section>
+      </div>
+
+      {/* DELETE_MODAL */}
+    </section>
+  );
 };
 
 export default RagDocuments;
