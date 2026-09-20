@@ -407,7 +407,27 @@ const RagDocuments = () => {
                   ))}
                 </div>
               </section>
-              {/* TOOL_ASK */}
+              <section className={styles.toolSection}>
+                <h2>Ask with AI</h2>
+                <p>
+                  Answers only use retrieved excerpts from this PDF and include source references when evidence exists.
+                </p>
+                <form onSubmit={handleAsk}>
+                  <label htmlFor="ask-query">Question</label>
+                  <textarea
+                    id="ask-query"
+                    onChange={(event) => setAskQuery(event.target.value)}
+                    placeholder="Ask a clear question about this document"
+                    value={askQuery}
+                  />
+                  <button disabled={workingAction === "ask" || !askQuery.trim()} type="submit">
+                    {workingAction === "ask" ? <LoaderCircle className={styles.spin} size={16} /> : <Sparkles size={16} />}
+                    {workingAction === "ask" ? "Asking..." : "Ask"}
+                  </button>
+                </form>
+
+                {/* ANSWER_OUTPUT */}
+              </section>
             </>
           )}
         </section>
