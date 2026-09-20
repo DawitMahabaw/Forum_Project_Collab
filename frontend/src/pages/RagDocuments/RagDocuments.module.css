@@ -10,3 +10,17 @@
   border: 1px solid #e5e7eb;
   background: #fff;
 }
+
+.library {
+  min-width: 0;
+  padding: 18px 22px;
+  border-right: 1px solid #e5e7eb;
+  background: #fcfcfd;
+}
+
+.uploadBox {
+  padding: 14px;
+  border: 1px solid #eceff3;
+  border-radius: 4px;
+  background: #fff;
+}
