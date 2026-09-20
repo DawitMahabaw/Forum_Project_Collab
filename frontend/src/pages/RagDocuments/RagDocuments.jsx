@@ -59,6 +59,29 @@ const RagDocuments = () => {
     [activeId, documents],
   );
 
+  // Load the private library and select the newest document on first visit.
+  const loadDocuments = useCallback(async ({ quiet = false } = {}) => {
+    if (!quiet) setIsLoading(true);
+
+    try {
+      const nextDocuments = await listDocuments();
+      setDocuments(nextDocuments);
+      setActiveId((currentId) =>
+        nextDocuments.some((document) => document.documentId === currentId)
+          ? currentId
+          : nextDocuments[0]?.documentId || null,
+      );
+      setError("");
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Could not load your document library.",
+      );
+    } finally {
+      if (!quiet) setIsLoading(false);
+    }
+  }, []);
+
   return null;
 };
 
