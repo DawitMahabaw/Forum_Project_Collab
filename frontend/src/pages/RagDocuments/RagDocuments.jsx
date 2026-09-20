@@ -87,6 +87,18 @@ const RagDocuments = () => {
     loadDocuments();
   }, [loadDocuments]);
 
+  // Poll only while the currently selected upload is processing.
+  useEffect(() => {
+    if (activeDocument?.status !== "processing") return undefined;
+
+    const timer = window.setInterval(
+      () => loadDocuments({ quiet: true }),
+      2500,
+    );
+
+    return () => window.clearInterval(timer);
+  }, [activeDocument?.status, loadDocuments]);
+
   return null;
 };
 
