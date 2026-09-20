@@ -127,6 +127,14 @@ const RagDocuments = () => {
     };
   }, [activeDocument]);
 
+  // Toasts announce completed actions without interrupting the page.
+  useEffect(() => {
+    if (!toast) return undefined;
+
+    const timer = window.setTimeout(() => setToast(""), 3800);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
   return null;
 };
 
