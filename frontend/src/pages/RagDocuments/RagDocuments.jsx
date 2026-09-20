@@ -330,7 +330,26 @@ const RagDocuments = () => {
         </aside>
 
         <section className={styles.reader}>
-          {/* READER_CONTENT */}
+          {!activeDocument && !isLoading && (
+            <div className={styles.emptyReader}>
+              Choose an uploaded PDF to open it here. Semantic search and Ask with AI will use only the selected document.
+            </div>
+          )}
+
+          {activeDocument?.status === "processing" && (
+            <div className={styles.pending}>
+              <LoaderCircle className={styles.spin} size={21} />
+              Processing this PDF. The reader will become available automatically.
+            </div>
+          )}
+
+          {activeDocument?.status === "failed" && (
+            <div className={styles.failed}>
+              {activeDocument.errorMessage || "This PDF could not be read."} Upload a text-based PDF and try again.
+            </div>
+          )}
+
+          {/* READER_CONTENT_READY */}
         </section>
       </div>
 
