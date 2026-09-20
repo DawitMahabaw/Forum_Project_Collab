@@ -45,7 +45,8 @@ const Document = {
     );
 
     // Step 2: If a matching document row is found, format it; otherwise return null
-    return rows ? mapDocument(rows, options) : null;
+    // return rows ? mapDocument(rows, options) : null;
+    return rows[0] ? mapDocument(rows[0], options) : null;
   },
 
   // Database lookup to retrieve all prepared text chunks and vector embeddings
@@ -69,6 +70,23 @@ const Document = {
       embedding: parseEmbedding(row.embedding),
     }));
   },
+
+  // DELETE OWNED DOCUMENT
+  // Therefore deleting the document can also delete its related
+  // records automatically.
+  async deleteById(documentId, userId) {
+    // Execute the DELETE query.
+    const [result] = await pool.execute(
+      // Delete only the document matching BOTH:
+      // document ID AND owner ID
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
+      [documentId, userId],
+    );
+
+    // affectedRows tells us whether a database row was deleted.
+    return result.affectedRows > 0;
+  },
+};
 
 // ==========================================
   // TASK T-22: 

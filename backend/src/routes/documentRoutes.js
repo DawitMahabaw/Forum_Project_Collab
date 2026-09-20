@@ -1,6 +1,7 @@
 import express from "express";
 import authenticate from "../middleware/authMiddleware.js";
 import {
+  remove,
   search,
   uploadDocument,
   getDocument,
@@ -17,5 +18,8 @@ router.use(authenticate);
 router.get("/:documentId/search", search);
 // Upload a PDF document for the authenticated user
 router.post("/", uploadPdf.single("file"), uploadDocument);
+
+// Authentication is already handled by router.use(authenticate).
+router.delete("/:documentId", remove);
 
 export default router;
