@@ -28,6 +28,13 @@ import {
 } from "../../services/ragService.js";
 import styles from "./RagDocuments.module.css";
 
+// Keep file-size presentation compact inside a document list item.
+const formatBytes = (bytes) => {
+  if (!Number.isFinite(bytes)) return "";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const RagDocuments = () => {
   return null;
 };
