@@ -99,6 +99,34 @@ const RagDocuments = () => {
     return () => window.clearInterval(timer);
   }, [activeDocument?.status, loadDocuments]);
 
+  // The built-in PDF viewer supplies the reader controls shown in the design.
+  useEffect(() => {
+    let isCurrent = true;
+    let objectUrl = "";
+    setPreviewUrl("");
+
+    if (!activeDocument || activeDocument.status !== "ready") {
+      return undefined;
+    }
+
+    getDocumentFile(activeDocument.documentId)
+      .then((url) => {
+        if (!isCurrent) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+
+        objectUrl = url;
+        setPreviewUrl(url);
+      })
+      .catch(() => setError("Could not load the PDF preview."));
+
+    return () => {
+      isCurrent = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [activeDocument]);
+
   return null;
 };
 
