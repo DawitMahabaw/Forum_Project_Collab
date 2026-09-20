@@ -59,3 +59,23 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+.uploadButton {
+  border-color: #ed8845;
+  color: #fff;
+  background: #e87933;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background: #c95f20;
+}
+
+.uploadButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.uploadBox > small {
+  margin-top: 12px;
+  color: #98a2b3;
+}
