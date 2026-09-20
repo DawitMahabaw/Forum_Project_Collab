@@ -135,6 +135,33 @@ const RagDocuments = () => {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  // Upload the selected PDF and immediately focus it in the right workspace.
+  const handleUpload = async () => {
+    if (!file) return;
+
+    setIsUploading(true);
+    setError("");
+
+    try {
+      const document = await uploadPdf(file);
+      setDocuments((current) => [document, ...current]);
+      setActiveId(document.documentId);
+      setFile(null);
+      setResults([]);
+      setAnswer(null);
+      setSearchQuery("");
+      setAskQuery("");
+      setToast("PDF uploaded. It will be ready after indexing finishes.");
+      if (fileInput.current) fileInput.current.value = "";
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message || "Could not upload this PDF.",
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return null;
 };
 
