@@ -187,3 +187,24 @@
   font-size: 11px;
   line-height: 1.4;
 }
+
+.deleteDocument {
+  display: inline-grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border: 1px solid #fecdca;
+  border-radius: 5px;
+  color: #b42318;
+  background: #fff;
+  cursor: pointer;
+}
+
+.deleteDocument:hover:not(:disabled) {
+  background: #fef3f2;
+}
+
+.deleteDocument:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
