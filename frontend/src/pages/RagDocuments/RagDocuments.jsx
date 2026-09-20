@@ -218,6 +218,34 @@ const RagDocuments = () => {
     }
   };
 
+  // The custom confirmation panel replaces browser confirmation dialogs.
+  const handleDelete = async () => {
+    if (!activeDocument) return;
+
+    setWorkingAction("delete");
+    setError("");
+
+    try {
+      await deleteDocument(activeDocument.documentId);
+      setDocuments((current) =>
+        current.filter(
+          (document) => document.documentId !== activeDocument.documentId,
+        ),
+      );
+      setActiveId(null);
+      setResults([]);
+      setAnswer(null);
+      setPendingDelete(false);
+      setToast("Document deleted from your private library.");
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message || "Could not delete this PDF.",
+      );
+    } finally {
+      setWorkingAction("");
+    }
+  };
+
   return null;
 };
 
