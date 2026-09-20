@@ -426,7 +426,24 @@ const RagDocuments = () => {
                   </button>
                 </form>
 
-                {/* ANSWER_OUTPUT */}
+                {answer && (
+                  <div className={styles.answer} aria-live="polite">
+                    <p>{answer.answer}</p>
+                    {answer.citations?.length > 0 && (
+                      <>
+                        <h3>Source references</h3>
+                        <div className={styles.citations}>
+                          {answer.citations.map((citation) => (
+                            <article key={citation.ref}>
+                              <b>[{citation.ref}] Passage {citation.chunkIndex + 1}</b>
+                              <p>{citation.excerpt}</p>
+                            </article>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </section>
             </>
           )}
