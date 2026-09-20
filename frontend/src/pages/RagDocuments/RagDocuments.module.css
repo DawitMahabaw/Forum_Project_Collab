@@ -218,3 +218,21 @@
   border-radius: 3px;
   background: #f2f4f7;
 }
+
+.toolSection {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #eaecf0;
+}
+
+.toolSection form {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.toolSection label {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
+}
