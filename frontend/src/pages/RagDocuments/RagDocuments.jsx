@@ -53,6 +53,12 @@ const RagDocuments = () => {
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
+  // Resolve the selected document from fresh polling responses.
+  const activeDocument = useMemo(
+    () => documents.find((document) => document.documentId === activeId) || null,
+    [activeId, documents],
+  );
+
   return null;
 };
 
