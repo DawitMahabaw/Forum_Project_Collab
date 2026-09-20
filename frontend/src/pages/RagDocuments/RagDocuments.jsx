@@ -45,6 +45,13 @@ const RagDocuments = () => {
   const [askQuery, setAskQuery] = useState("");
   const [results, setResults] = useState([]);
   const [answer, setAnswer] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [workingAction, setWorkingAction] = useState("");
+  const [pendingDelete, setPendingDelete] = useState(false);
+  const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
 
   return null;
 };
