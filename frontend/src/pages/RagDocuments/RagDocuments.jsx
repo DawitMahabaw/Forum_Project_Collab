@@ -450,7 +450,17 @@ const RagDocuments = () => {
         </section>
       </div>
 
-      {/* DELETE_MODAL */}
+      {pendingDelete && activeDocument && (
+        <div className={styles.modalBackdrop} role="presentation">
+          <section aria-describedby="delete-document-copy" aria-modal="true" className={styles.modal} role="dialog">
+            <h2>Delete this document?</h2>
+            <p id="delete-document-copy">
+              “{activeDocument.title}” and its private search index will be permanently removed.
+            </p>
+            {/* MODAL_ACTIONS */}
+          </section>
+        </div>
+      )}
     </section>
   );
 };
