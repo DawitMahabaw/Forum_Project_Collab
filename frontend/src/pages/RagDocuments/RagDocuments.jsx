@@ -349,7 +349,29 @@ const RagDocuments = () => {
             </div>
           )}
 
-          {/* READER_CONTENT_READY */}
+          {activeDocument?.status === "ready" && (
+            <>
+              <div className={styles.readerTitle}>
+                <div>
+                  <h2>{activeDocument.title}</h2>
+                  <p>Private document reader, semantic search, and source-grounded answers.</p>
+                </div>
+                <button
+                  aria-label={`Delete ${activeDocument.title}`}
+                  className={styles.deleteDocument}
+                  disabled={workingAction === "delete"}
+                  onClick={() => setPendingDelete(true)}
+                  type="button"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+
+              {/* READER_PREVIEW */}
+              {/* TOOL_SEARCH */}
+              {/* TOOL_ASK */}
+            </>
+          )}
         </section>
       </div>
 
