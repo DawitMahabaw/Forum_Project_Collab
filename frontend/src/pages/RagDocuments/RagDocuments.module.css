@@ -142,3 +142,18 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
+
+.statusready {
+  color: #067647;
+  background: #ecfdf3;
+}
+
+.statusprocessing {
+  color: #b54708;
+  background: #fffaeb;
+}
+
+.statusfailed {
+  color: #b42318;
+  background: #fef3f2;
+}
