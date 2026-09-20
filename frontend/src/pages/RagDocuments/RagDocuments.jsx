@@ -172,6 +172,30 @@ const RagDocuments = () => {
     setError("");
   };
 
+  // Run semantic retrieval independently from the grounded-answer form.
+  const handleSemanticSearch = async (event) => {
+    event.preventDefault();
+    if (!activeDocument || !searchQuery.trim()) return;
+
+    setWorkingAction("search");
+    setError("");
+
+    try {
+      const data = await searchDocument(
+        activeDocument.documentId,
+        searchQuery.trim(),
+      );
+      setResults(data.results || []);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Could not search this document right now.",
+      );
+    } finally {
+      setWorkingAction("");
+    }
+  };
+
   return null;
 };
 
