@@ -396,7 +396,16 @@ const RagDocuments = () => {
                   </button>
                 </form>
 
-                {/* SEARCH_RESULTS */}
+                <div className={styles.searchResults} aria-live="polite">
+                  {results.map((result) => (
+                    <article key={result.chunkId}>
+                      <b>
+                        Chunk {result.chunkIndex + 1} - relevance {result.score.toFixed(3)}
+                      </b>
+                      <p>{result.excerpt}</p>
+                    </article>
+                  ))}
+                </div>
               </section>
               {/* TOOL_ASK */}
             </>
