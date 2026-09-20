@@ -171,3 +171,19 @@
   gap: 14px;
   margin-bottom: 14px;
 }
+
+.readerTitle h2,
+.toolSection h2 {
+  margin: 0;
+  color: #1d2939;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.readerTitle p,
+.toolSection > p {
+  margin-top: 3px;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.4;
+}
