@@ -85,3 +85,26 @@
   gap: 8px;
   margin-top: 22px;
 }
+
+.documentItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 9px;
+  border: 1px solid #e6e8eb;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  color: #667085;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.documentItem:hover,
+.documentActive {
+  border-color: #f0be9b;
+  border-left-color: #e87933;
+  background: #fffdfb;
+}
