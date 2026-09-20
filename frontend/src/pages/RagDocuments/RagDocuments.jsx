@@ -196,6 +196,28 @@ const RagDocuments = () => {
     }
   };
 
+  // Ask the server for a PDF-grounded answer with passage citations.
+  const handleAsk = async (event) => {
+    event.preventDefault();
+    if (!activeDocument || !askQuery.trim()) return;
+
+    setWorkingAction("ask");
+    setError("");
+
+    try {
+      setAnswer(
+        await askDocument(activeDocument.documentId, askQuery.trim()),
+      );
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Could not answer from this document right now.",
+      );
+    } finally {
+      setWorkingAction("");
+    }
+  };
+
   return null;
 };
 
