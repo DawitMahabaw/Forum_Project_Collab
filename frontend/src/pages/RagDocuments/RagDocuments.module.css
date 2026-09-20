@@ -266,3 +266,30 @@
   border-color: #e87933;
   outline: 2px solid #ffeadb;
 }
+
+.toolSection form button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: fit-content;
+  min-width: 94px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid #e87933;
+  border-radius: 5px;
+  color: #fff;
+  background: #e87933;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toolSection form button:hover:not(:disabled) {
+  background: #c95f20;
+}
+
+.toolSection form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
