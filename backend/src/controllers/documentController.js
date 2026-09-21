@@ -194,4 +194,4 @@ const uploadDocument = async (req, res, next) => {
   }
 };
 
-export { uploadDocument, remove, search, getDocument };
+export { ask, uploadDocument, remove, search, getDocument };
