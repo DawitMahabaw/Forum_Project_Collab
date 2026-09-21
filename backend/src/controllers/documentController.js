@@ -229,4 +229,56 @@ const ask = async (req, res, next) => {
       data,
     });
 
+    
+    // Return the generated document-grounded answer
+    // to the frontend.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
+const remove = async (req, res, next) => {
+  
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+
+   
+    await deleteDocument(document, req.user.userId);
+
+   
+    return res.status(200).json({
+      success: true,
+      message: "Document deleted successfully.",
+      data: { documentId: document.documentId },
+    });
+
+    // Tell the frontend that deletion succeeded.
+    //
+    // data contains the ID of the deleted document.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
+export {
+  ask,
+  getDocument,
+  listDocuments,
+  remove,
+  search,
+  streamDocument,
+  uploadDocument,
+};
+
+
+
+
 export { search, uploadDocument };
