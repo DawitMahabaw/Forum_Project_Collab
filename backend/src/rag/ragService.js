@@ -2,6 +2,10 @@ import env from "../config/env.js";
 import * as ai from "../ai/gemini.js";
 import { cosineSimilarity } from "../ai/vectorMath.js";
 import Document from "../models/Document.js";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { PDFParse } from "pdf-parse";
+import { splitText } from "./chunking.js";
 
 const rankDocumentChunks = async (document, query, requestedK) => {
   // Step 1: Ensure the document processing is completely finished before allowing a search
@@ -59,5 +63,157 @@ const searchDocument = async (document, query, requestedK) => {
   };
 };
 
-export { searchDocument };
+// --- TASK T-22 ADDITIONS: PDF Extraction & Processing ---
+
+const extractText = async (filePath) => {
+  const parser = new PDFParse({ data: await fs.readFile(filePath) });
+  try {
+    const result = await parser.getText();
+    return result.text || "";
+  } finally {
+    await parser.destroy();
+  }
+};
+
+const processDocument = async (documentId, filePath) => {
+  try {
+    const rawText = await extractText(filePath);
+    const chunks = splitText(rawText);
+    if (!chunks.length) {
+      throw new Error("The PDF does not contain readable text.");
+    }
+for (let index = 0; index < chunks.length; index += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const embeddingResult = await ai.embedContent(
+        chunks[index],
+        "RETRIEVAL_DOCUMENT",
+      );
+if (!embeddingResult.success) {
+        throw new Error("Could not generate document embeddings.");
+      }
+
+// eslint-disable-next-line no-await-in-loop
+      const chunkId = await Document.addChunk(documentId, index, chunks[index]);
+
+// eslint-disable-next-line no-await-in-loop
+      await Document.addChunkVector(chunkId, embeddingResult.embedding);
+    }
+await Document.updateStatus(documentId, "ready");
+  } catch (error) {
+    await Document.updateStatus(
+      documentId,
+      "failed",
+      error.message || "Document processing failed.",
+    );
+  }
+};
+const createDocument = async ({ userId, file }) => {
+  const documentId = await Document.create({
+    userId,
+    title: file.originalname,
+    mimeType: file.mimetype,
+    storagePath: path.resolve(file.path),
+    byteSize: file.size,
+  });
+void processDocument(documentId, path.resolve(file.path));
+
+  return Document.findByIdForUser(documentId, userId);
+};
+const noEvidenceAnswer = (query) =>
+  `The provided documents do not include the information: ${query}`;
+
+const parseGroundedAnswer = (rawText) => {
+  const jsonText = rawText
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
+try {
+    const data = JSON.parse(jsonText);
+    return {
+      supported: data?.supported === true,
+      answer: typeof data?.answer === "string" ? data.answer.trim() : "",
+    };
+  } catch {
+    return { supported: false, answer: "" };
+  }
+};
+const queryDocument = async (document, query) => {
+  const results = await rankDocumentChunks(document, query);
+
+  const evidence = results.filter(
+    (result) => result.score >= env.rag.evidenceThreshold,
+  );
+
+  if (!evidence.length) {
+    return {
+      answer: noEvidenceAnswer(query),
+      citations: [],
+      chunksUsed: [],
+      isGrounded: false,
+    };
+  }
+const context = evidence
+    .map((result, index) => `[${index + 1}] ${result.excerpt}`)
+    .join("\n\n");
+
+  const prompt = `You answer questions about one uploaded PDF. Use ONLY the excerpts below. Never add information from memory or general knowledge.
+
+Return ONLY valid JSON with this exact shape:
+{"supported": true, "answer": "a concise answer supported by the excerpts"}
+
+Set "supported" to false when the excerpts do not directly answer the question. In that case set "answer" exactly to: "${noEvidenceAnswer(query)}"
+
+Question:
+${query}
+
+Retrieved PDF excerpts:
+${context}`;
+try {
+    const generated = parseGroundedAnswer(await ai.generateContent(prompt));
+
+    if (!generated.supported || !generated.answer) {
+      return {
+        answer: noEvidenceAnswer(query),
+        citations: [],
+        chunksUsed: [],
+        isGrounded: false,
+      };
+    }
+return {
+      answer: generated.answer,
+      citations: evidence.map((result, index) => ({
+        ref: index + 1,
+        chunkIndex: result.chunkIndex,
+        excerpt: result.excerpt,
+      })),
+      chunksUsed: evidence.map((result) => result.chunkId),
+      isGrounded: true,
+    };
+  } catch (error) {
+    return {
+      answer:
+        "Relevant passages were found, but the answer generator is temporarily busy. Please review the cited passages below.",
+      citations: evidence.map((result, index) => ({
+        ref: index + 1,
+        chunkIndex: result.chunkIndex,
+        excerpt: result.excerpt,
+      })),
+      chunksUsed: evidence.map((result) => result.chunkId),
+      isGrounded: true,
+    };
+  }
+};
+const deleteDocument = async (document, userId) => {
+  const deleted = await Document.deleteById(document.documentId, userId);
+
+  if (deleted) {
+    await fs.rm(document.storagePath, { force: true });
+  }
+
+  return deleted;
+};
+
+// --- UPDATED EXPORTS ---
+export { createDocument, deleteDocument, queryDocument, searchDocument };
+
 

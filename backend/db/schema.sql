@@ -57,3 +57,26 @@ CREATE TABLE IF NOT EXISTS answers (
     CONSTRAINT fk_answers_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     INDEX idx_answers_question_id (question_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- ============================================================
+-- RAG DOCUMENTS TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS documents (
+    document_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(512) NOT NULL,
+    mime_type VARCHAR(128) NOT NULL DEFAULT 'application/pdf',
+    storage_path VARCHAR(1024) NOT NULL,
+    byte_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    status ENUM('processing', 'ready', 'failed') NOT NULL DEFAULT 'processing',
+    error_message TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_documents_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+        ON DELETE CASCADE,
+
+    INDEX idx_documents_user_created (user_id, created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;

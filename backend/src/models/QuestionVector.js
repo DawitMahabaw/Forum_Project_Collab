@@ -82,7 +82,6 @@ const QuestionVector = {
             `,
             [questionId],
         );
-
         if (!rows[0]) {
             return null;
         }
@@ -93,7 +92,23 @@ const QuestionVector = {
             status: rows[0].status,
         };
     },
+// ---------------------------------------------------------
+  // DELETE BY QUESTION ID (Task T-22 Addition Only)
+  // ---------------------------------------------------------
+  async deleteByQuestionId(questionId) {
+    const [result] = await pool.execute(
+      `
+      DELETE FROM question_vectors
+      WHERE question_id = ?
+      `,
+      [questionId],
+    );
 
+    return result.affectedRows > 0;
+  },
+
+
+    
     async upsert({ questionId, embedding, status }) {
         const serializedEmbedding = Array.isArray(embedding)
             ? JSON.stringify(embedding)
