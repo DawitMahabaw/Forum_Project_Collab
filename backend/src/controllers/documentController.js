@@ -183,4 +183,16 @@ const search = async (req, res, next) => {
     //
     // This ownership check happens BEFORE searching the document.
 
+       const data = await searchDocument(
+      document,
+      requireQuery(req.query.query),
+      req.query.k,
+    );
+
+  
+    return res.status(200).json({
+      success: true,
+      message: "Ranked chunk excerpts.",
+      data,
+    });
 export { search, uploadDocument };
