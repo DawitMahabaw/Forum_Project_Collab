@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import Document from "../models/Document.js";
-import { searchDocument } from "../rag/ragService.js";
+import { createDocument,deleteDocument, queryDocument,searchDocument } from "../rag/ragService.js";
 
 // Accept document ID
 const getDocumentId = (rawDocumentId) => {
@@ -104,5 +104,13 @@ const uploadDocument = async (req, res, next) => {
     return next(error);
   }
 };
+const getDocument = async (req, res, next) => {
+  // Controller for retrieving information about one document.
+
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
 
 export { search, uploadDocument };
