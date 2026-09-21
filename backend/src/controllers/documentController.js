@@ -219,5 +219,14 @@ const ask = async (req, res, next) => {
     //
     // Again, ownership is checked before accessing the document.
 
+      const data = await queryDocument(document, requireQuery(req.body.query));
+
+   
+
+    return res.status(200).json({
+      success: true,
+      message: "Answer generated from document sources.",
+      data,
+    });
 
 export { search, uploadDocument };
