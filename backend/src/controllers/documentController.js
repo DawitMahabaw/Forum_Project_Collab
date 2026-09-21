@@ -113,4 +113,21 @@ const getDocument = async (req, res, next) => {
       req.user.userId,
     );
 
+        // Get the document ID from the URL.
+    //
+   
+    return res.status(200).json({
+      success: true,
+      message: "Document fetched successfully.",
+      data: document,
+    });
+
+    // Return the document information to the frontend.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
 export { search, uploadDocument };
