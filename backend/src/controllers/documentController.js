@@ -130,4 +130,21 @@ const getDocument = async (req, res, next) => {
   // Pass errors to the centralized error handler.
 };
 
+const streamDocument = async (req, res, next) => {
+  // Controller for sending the actual PDF file to the client.
+  //
+ 
+
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+
+    // Find the authenticated user's document.
+    //
+    // Notice the third argument:
+    //
+
 export { search, uploadDocument };
