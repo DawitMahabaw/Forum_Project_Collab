@@ -195,4 +195,16 @@ const search = async (req, res, next) => {
       message: "Ranked chunk excerpts.",
       data,
     });
+
+    // Return the ranked search results to the frontend.
+    //
+    // "Ranked chunk excerpts" means the response can contain
+    // pieces of the document ordered according to semantic relevance.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
 export { search, uploadDocument };
