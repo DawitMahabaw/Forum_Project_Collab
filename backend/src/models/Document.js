@@ -69,6 +69,23 @@ const Document = {
       embedding: parseEmbedding(row.embedding),
     }));
   },
+    // ----------------------------------------------------------
+  // DELETE OWNED DOCUMENT
+  // ----------------------------------------------------------
+  async deleteById(documentId, userId) {
+    // Execute the DELETE query.
+    const [result] = await pool.execute(
+    
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
+
+      // Values for the placeholders.
+      [documentId, userId],
+    );
+
+  
+    return result.affectedRows > 0;
+  },
 };
+
 
 export default Document;
