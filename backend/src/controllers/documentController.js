@@ -133,6 +133,17 @@ const uploadDocument = async (req, res, next) => {
       throw error;
     }
 
+    const document = await createDocument({
+      userId: req.user.userId,
+      file: req.file,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Document uploaded and is being processed.",
+      data: document,
+    });
+
     const documentId = await Document.create({
       userId: req.user.userId,
       title: req.file.originalname,
@@ -154,11 +165,11 @@ const uploadDocument = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file?.path) {
-      await fs.rm(req.file.path, { force: true }).catch(() => {});
+      await fs.rm(req.file.path, { force: true }).catch(() => { });
     }
 
     return next(error);
   }
 };
 
-export {uploadDocument, remove, search, getDocument};
+export { uploadDocument, remove, search, getDocument };
