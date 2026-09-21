@@ -30,8 +30,6 @@ const findOwnedDocument = async (rawDocumentId, userId, options = {}) => {
     options,
   );
 
-  // Handle missing documents & Handle unauthorized access
-  // Returning generic 404 prevents unauthorized users from knowing if a document exists
   if (!document) {
     const error = new Error("Document not found.");
     error.statusCode = 404;
@@ -67,52 +65,36 @@ const getDocument = async (req, res, next) => {
     return next(error);
   }
 
-  // Pass errors to the centralized error handler.
 };
 
-
-// Create semantic search endpoint
 const search = async (req, res, next) => {
   try {
-    // 1. Accept document ID & Verify document ownership
     const document = await findOwnedDocument(
       req.params.documentId,
       req.user.userId,
     );
-    // 2. Accept search query and delegate down to your lower service layers
     const data = await searchDocument(
       document,
       requireQuery(req.query.query),
       req.query.k,
     );
-    // 3. Return chunk text and relevance information
     return res.status(200).json({
       success: true,
       message: "Ranked chunk excerpts.",
-      data, // Contains chunk texts and their calculated metrics
+      data,
     });
   } catch (error) {
-    // 4. Handle embedding errors & Handle database errors
     return next(error);
   }
 };
 
-// delete document
-
 const remove = async (req, res, next) => {
-  //  Find the document and verify ownership.
   try {
     const document = await findOwnedDocument(
       req.params.documentId,
       req.user.userId,
       { includeStoragePath: true },
     );
-
-    // Delegate deletion to the RAG service
-    // The service can handle the complete deletion process,
-    // such as removing:
-    // document database information: chunks, embeddings, physical PDF file
-
     await deleteDocument(document, req.user.userId);
 
     return res.status(200).json({
