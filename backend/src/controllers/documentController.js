@@ -165,7 +165,7 @@ const streamDocument = async (req, res, next) => {
   // Pass errors to the centralized error handler.
 };
 
-const search = async (req, res, next) => {
+const Search = async (req, res, next) => {
   // Controller for semantic search inside a document.
   //
   // The user provides a search query,
@@ -277,8 +277,4 @@ export {
   streamDocument,
   uploadDocument,
 };
-
-
-
-
 export { search, uploadDocument };
