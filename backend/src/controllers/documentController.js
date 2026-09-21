@@ -207,4 +207,17 @@ const search = async (req, res, next) => {
   // Pass errors to the centralized error handler.
 };
 
+const ask = async (req, res, next) => {
+  
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    // Verify that the authenticated user owns the document.
+    //
+    // Again, ownership is checked before accessing the document.
+
+
 export { search, uploadDocument };
