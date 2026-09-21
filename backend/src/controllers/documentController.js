@@ -147,4 +147,22 @@ const streamDocument = async (req, res, next) => {
     // Notice the third argument:
     //
 
+    
+    if (!fs.existsSync(document.storagePath)) {
+      const error = new Error("The uploaded PDF file is no longer available.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+   
+    res.type("application/pdf");
+    return res.sendFile(document.storagePath);
+
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
 export { search, uploadDocument };
