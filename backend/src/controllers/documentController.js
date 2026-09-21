@@ -125,6 +125,28 @@ const remove = async (req, res, next) => {
   }
 };
 
+const ask = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    const data = await queryDocument(document, requireQuery(req.body.query));
+
+    return res.status(200).json({
+      success: true,
+      message: "Answer generated from document sources.",
+      data,
+    });
+
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
 const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) {
