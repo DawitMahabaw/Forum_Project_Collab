@@ -165,4 +165,22 @@ const streamDocument = async (req, res, next) => {
   // Pass errors to the centralized error handler.
 };
 
+const search = async (req, res, next) => {
+  // Controller for semantic search inside a document.
+  //
+  // The user provides a search query,
+  // and the RAG service finds the most semantically relevant
+  // chunks/passages from that document.
+
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    // First verify that the requested document belongs
+    // to the authenticated user.
+    //
+    // This ownership check happens BEFORE searching the document.
+
 export { search, uploadDocument };
