@@ -9,7 +9,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api"
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-
   headers: {
     "Content-Type": "application/json",
   },
@@ -20,6 +19,12 @@ const api = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
+    // Let the browser create the multipart boundary for uploads. Keeping the
+    // JSON default here causes Multer to receive an empty request body.
+    if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+      config.headers.delete("Content-Type");
+    }
+
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

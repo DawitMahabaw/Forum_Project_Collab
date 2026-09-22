@@ -2,35 +2,25 @@ import express from "express";
 import authenticate from "../middleware/authMiddleware.js";
 import {
   ask,
+  getDocument,
+  listDocuments,
   remove,
   search,
-  uploadDocument,
-  getDocument,
   streamDocument,
+  uploadDocument,
 } from "../controllers/documentController.js";
 import { uploadPdf } from "../middleware/uploadMiddleware.js";
 
-// Initialize the Express router instance
 const router = express.Router();
-// Enforce global authentication across all routes declared in this file
+
 router.use(authenticate);
 
-// Declare the clean GET path mapped directly to your search controller
-router.get("/:documentId/search", search);
-// Upload a PDF document for the authenticated user
+router.get("/", listDocuments);
 router.post("/", uploadPdf.single("file"), uploadDocument);
-
-// ------------------------------------------------------------
-// POST /api/documents/:documentId/query
-// ------------------------------------------------------------
+router.get("/:documentId/search", search);
 router.post("/:documentId/query", ask);
-
-// ------------------------------------------------------------
-// GET /api/documents/:documentId/file
-// ------------------------------------------------------------
 router.get("/:documentId/file", streamDocument);
-
-// Authentication is already handled by router.use(authenticate).
 router.delete("/:documentId", remove);
+router.get("/:documentId", getDocument);
 
 export default router;

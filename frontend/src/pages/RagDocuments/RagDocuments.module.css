@@ -1,214 +1,619 @@
 .page {
   min-width: 0;
+  padding: 22px 24px 48px;
 }
 
-.toolSection {
-  max-width: 900px;
-  padding: 24px;
-  border-bottom: 1px solid #eaecf0;
+.hero,
+.library,
+.reader {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
-.toolSection h2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.hero {
+  max-width: 1200px;
+  padding: 25px;
+}
+
+.hero span {
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 7px 0 6px;
+  color: var(--text-primary);
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.hero p {
+  max-width: 680px;
   margin: 0;
-  color: #1d2939;
-  font-size: 18px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.55;
 }
 
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(245px, 270px) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.library {
+  padding: 18px;
+}
+
+.libraryHeader h2,
+.readerTitle h2,
+.toolSection h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+}
+
+.libraryHeader p,
+.readerTitle p,
 .toolSection > p {
-  margin-top: 6px;
-  color: #667085;
-  font-size: 13px;
-  line-height: 1.5;
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
-.selectedDocument {
-  margin-top: 16px;
-  color: #667085;
+.uploadBox {
+  margin-top: 13px;
+  padding: 14px;
+  border: 1px dashed var(--border-hover);
+  border-radius: 10px;
+  background: var(--surface-container-low);
+}
+
+.uploadBox > p,
+.uploadBox > small {
+  display: block;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.uploadBox > small {
+  margin-top: 10px;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.uploadBox input {
+  display: none;
+}
+
+.uploadActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.fileButton,
+.uploadButton,
+.toolSection form button,
+.modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.fileButton {
+  flex: 1;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.fileButton:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-highlight);
+}
+
+.uploadButton,
+.toolSection form button {
+  padding: 0 12px;
+  border: 1px solid var(--primary);
+  color: var(--text-inverse);
+  background: var(--primary);
+}
+
+.uploadButton:hover:not(:disabled),
+.toolSection form button:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
+.uploadButton:disabled,
+.toolSection form button:disabled,
+.deleteDocument:disabled,
+.modal button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.muted {
+  margin: 18px 0 0;
+  color: var(--text-tertiary);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.selectedDocument strong {
-  color: #344054;
+.documentList {
+  display: grid;
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.documentItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.documentItem:hover,
+.documentActive {
+  border-color: var(--border);
+  color: var(--primary);
+  background: var(--surface-highlight);
+}
+
+.documentItem > span {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.documentItem b,
+.documentItem small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.documentItem b {
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.documentItem small {
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.documentItem i {
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.statusready {
+  color: #067647;
+  background: color-mix(in srgb, #12b76a 14%, var(--surface));
+}
+
+.statusprocessing {
+  color: #b54708;
+  background: color-mix(in srgb, #f79009 16%, var(--surface));
+}
+
+.statusfailed {
+  color: #b42318;
+  background: color-mix(in srgb, #f04438 14%, var(--surface));
+}
+
+.reader {
+  min-height: 330px;
+  padding: 18px;
+}
+
+.emptyReader,
+.pending,
+.failed {
+  display: grid;
+  min-height: 108px;
+  place-items: center;
+  padding: 26px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  background: var(--surface-container-low);
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.emptyReader {
+  min-height: 110px;
+}
+
+.pending {
+  display: flex;
+  gap: 9px;
+}
+
+.failed,
+.error {
+  border-color: color-mix(in srgb, #f04438 45%, var(--border));
+  color: #b42318;
+  background: color-mix(in srgb, #f04438 9%, var(--surface));
+}
+
+.readerTitle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 17px;
+}
+
+.deleteDocument {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, #f04438 45%, var(--border));
+  border-radius: var(--radius-sm);
+  color: #b42318;
+  background: transparent;
+  cursor: pointer;
+}
+
+.deleteDocument:hover:not(:disabled) {
+  background: color-mix(in srgb, #f04438 10%, var(--surface));
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: -2px 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  padding: 9px 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
+.tabs button:hover,
+.activeTab {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.preview {
+  display: block;
+  width: 100%;
+  height: min(54vw, 620px);
+  min-height: 380px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-container-low);
+}
+
+.toolSection {
+  max-width: 780px;
 }
 
 .toolSection form {
   display: grid;
   gap: 8px;
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .toolSection label {
-  color: #344054;
+  color: var(--text-primary);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--font-semibold);
 }
 
 .toolSection input,
 .toolSection textarea {
   width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #d0d5dd;
-  border-radius: 5px;
-  color: #344054;
-  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  background: var(--surface);
   font: inherit;
   font-size: 13px;
 }
 
 .toolSection input {
-  min-height: 38px;
-  padding: 0 12px;
+  height: 38px;
+  padding: 0 11px;
 }
 
 .toolSection textarea {
   min-height: 90px;
-  padding: 10px 12px;
+  padding: 10px 11px;
   resize: vertical;
   line-height: 1.5;
 }
 
 .toolSection input:focus,
 .toolSection textarea:focus {
-  border-color: #e87933;
-  outline: 2px solid #ffeadb;
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
-.toolSection button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+.toolSection form button {
   width: fit-content;
-  min-height: 36px;
-  padding: 0 14px;
-  border: 1px solid #e87933;
-  border-radius: 5px;
-  color: #fff;
-  background: #e87933;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.toolSection button:hover:not(:disabled) {
-  background: #c95f20;
-}
-
-.toolSection button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.emptyState {
-  margin-top: 18px;
-  padding: 18px;
-  border: 1px dashed #d0d5dd;
-  border-radius: 5px;
-  color: #667085;
-  background: #fcfcfd;
-  font-size: 13px;
-  line-height: 1.5;
-  text-align: center;
+  min-width: 94px;
 }
 
 .searchResults {
   display: grid;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 8px;
+  margin-top: 15px;
 }
 
-.searchResults article {
+.searchResults article,
+.answer {
   padding: 12px;
-  border: 1px solid #eaecf0;
-  border-radius: 5px;
-  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-container-low);
 }
 
 .searchResults b {
-  color: #475467;
+  color: var(--text-primary);
   font-size: 11px;
 }
 
 .searchResults p {
-  margin-top: 6px;
-  color: #475467;
-  font-size: 13px;
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
   line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .answer {
-  margin-top: 18px;
-  padding: 18px;
-  border: 1px solid #eaecf0;
-  border-radius: 5px;
-  background: #f9fafb;
+  margin-top: 16px;
+  background: var(--surface-container-low);
 }
 
 .answer > p {
-  color: #344054;
+  margin: 0;
+  color: var(--text-primary);
   font-size: 13px;
   line-height: 1.65;
   white-space: pre-wrap;
 }
 
-.answer .noContext {
-  margin: 0 0 12px;
-  color: #b54708;
+.noResults {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  background: var(--surface);
   font-size: 12px;
-  font-weight: 700;
+  line-height: 1.5;
 }
 
-.answer h3 {
-  margin-top: 17px;
-  color: #344054;
-  font-size: 12px;
-}
-
-.citations {
-  display: grid;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.citations article {
-  padding: 10px 12px;
-  border: 1px solid #eaecf0;
-  border-radius: 4px;
-  background: #fff;
-}
-
-.citations b {
-  color: #475467;
-  font-size: 11px;
-}
-
-.citations p {
-  margin-top: 4px;
-  color: #475467;
-  font-size: 12px;
+.sourceReferences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  margin-top: 13px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--text-tertiary);
+  font-size: 10px;
   line-height: 1.45;
 }
 
-.error {
-  margin-top: 14px;
-  padding: 10px 12px;
-  border: 1px solid #fecdca;
-  border-radius: 5px;
-  color: #b42318;
-  background: #fef3f2;
-  font-size: 12px;
+.sourceReferences > span {
+  font-weight: var(--font-semibold);
 }
 
-@media (max-width: 600px) {
-  .toolSection {
-    padding: 18px 15px;
+.sourceReferences div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+}
+
+.sourceReferences div span:not(:last-child)::after {
+  margin-left: 6px;
+  color: var(--text-tertiary);
+  content: "\00b7";
+}
+
+.error {
+  margin-top: 16px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, #f04438 45%, var(--border));
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.toast {
+  position: fixed;
+  z-index: 50;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(420px, calc(100vw - 48px));
+  padding: 12px 13px;
+  border: 1px solid color-mix(in srgb, #12b76a 42%, var(--border));
+  border-radius: var(--radius-md);
+  color: #067647;
+  background: color-mix(in srgb, #12b76a 10%, var(--surface));
+  box-shadow: var(--shadow-md);
+  font-size: 13px;
+}
+
+.toast button {
+  display: grid;
+  margin-left: 3px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.modalBackdrop {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 55%);
+}
+
+.modal {
+  width: min(100%, 420px);
+  padding: 23px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.modal h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal p {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.modal > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 21px;
+}
+
+.modal button {
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.modal button:last-child {
+  border-color: #b42318;
+  color: #fff;
+  background: #b42318;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+:global(:root[data-theme="dark"]) .statusready,
+:global(:root[data-theme="dark"]) .toast {
+  color: #86efac;
+}
+
+:global(:root[data-theme="dark"]) .statusprocessing {
+  color: #fcd34d;
+}
+
+:global(:root[data-theme="dark"]) .statusfailed,
+:global(:root[data-theme="dark"]) .failed,
+:global(:root[data-theme="dark"]) .error,
+:global(:root[data-theme="dark"]) .deleteDocument {
+  color: #fca5a5;
+}
+
+@media (max-width: 800px) {
+  .page {
+    padding: 16px;
   }
 
-  .toolSection button {
-    width: 100%;
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .preview {
+    height: 460px;
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 500px) {
+  .hero,
+  .library,
+  .reader {
+    padding: 16px;
+  }
+
+  .uploadActions {
+    flex-direction: column;
+  }
+
+  .tabs {
+    overflow-x: auto;
+  }
+
+  .tabs button {
+    white-space: nowrap;
+  }
+
+  .preview {
+    height: 320px;
+    min-height: 250px;
   }
 }

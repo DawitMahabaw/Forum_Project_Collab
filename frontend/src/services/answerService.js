@@ -1,10 +1,17 @@
 // ============================================================
 // ANSWER API SERVICE
 // ============================================================
+                   
+// FILES
+// backend/src/controllers/documentController.js
+// backend/src/routes/documentRoutes.js
+// backend/src/services/documentService.js
+// backend/src/models/Document.js
+
 
 // Import the configured API client.
 import api from "./api.js";
-
+             
 // Create a new answer for a specific question
 const createAnswer = async ({ questionId, content }) => {
   const response = await api.post("/answers", { questionId, content });
