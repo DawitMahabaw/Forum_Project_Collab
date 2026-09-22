@@ -163,9 +163,14 @@ async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
 }
 
 // Return the configured primary model followed by a known stable fallback.
-const generationModels = () => [
-  ...new Set([env.geminiModel, env.geminiFallbackModel].filter(Boolean)),
-];
+const generationModels = () => {
+  const fallbacks = (env.geminiFallbackModel || "")
+    .split(",")
+    .map((model) => model.trim())
+    .filter(Boolean);
+
+  return [...new Set([env.geminiModel, ...fallbacks].filter(Boolean))];
+};
 
 // =============================================================
 //                   GENERATE CONTENT

@@ -80,3 +80,36 @@ CREATE TABLE IF NOT EXISTS documents (
 
     INDEX idx_documents_user_created (user_id, created_at)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS document_chunks (
+    chunk_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    document_id BIGINT UNSIGNED NOT NULL,
+    chunk_index INT UNSIGNED NOT NULL,
+    content MEDIUMTEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_document_chunks_document
+        FOREIGN KEY (document_id)
+        REFERENCES documents (document_id)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY uq_document_chunks_document_index (document_id, chunk_index),
+    INDEX idx_document_chunks_document (document_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS document_chunk_vectors (
+    vector_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    chunk_id BIGINT UNSIGNED NOT NULL,
+    embedding JSON NOT NULL,
+    status ENUM('ready', 'failed') NOT NULL DEFAULT 'ready',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_document_chunk_vectors_chunk
+        FOREIGN KEY (chunk_id)
+        REFERENCES document_chunks (chunk_id)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY uq_document_chunk_vectors_chunk (chunk_id),
+    INDEX idx_document_chunk_vectors_status (status)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;

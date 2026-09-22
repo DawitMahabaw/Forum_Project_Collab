@@ -121,7 +121,63 @@ export async function initializeDatabase() {
       COLLATE=utf8mb4_unicode_ci
     `);
 
-    console.log("Questions, question_vectors and answers tables initialized successfully.");
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS documents (
+        document_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
+        title VARCHAR(512) NOT NULL,
+        mime_type VARCHAR(128) NOT NULL DEFAULT 'application/pdf',
+        storage_path VARCHAR(1024) NOT NULL,
+        byte_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        status ENUM('processing', 'ready', 'failed') NOT NULL DEFAULT 'processing',
+        error_message TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_documents_user
+          FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+        INDEX idx_documents_user_created (user_id, created_at)
+      )
+      ENGINE=InnoDB
+      DEFAULT CHARSET=utf8mb4
+      COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS document_chunks (
+        chunk_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        document_id BIGINT UNSIGNED NOT NULL,
+        chunk_index INT UNSIGNED NOT NULL,
+        content MEDIUMTEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_document_chunks_document
+          FOREIGN KEY (document_id) REFERENCES documents(document_id) ON DELETE CASCADE,
+        UNIQUE KEY uq_document_chunks_document_index (document_id, chunk_index),
+        INDEX idx_document_chunks_document (document_id)
+      )
+      ENGINE=InnoDB
+      DEFAULT CHARSET=utf8mb4
+      COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS document_chunk_vectors (
+        vector_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        chunk_id BIGINT UNSIGNED NOT NULL,
+        embedding JSON NOT NULL,
+        status ENUM('ready', 'failed') NOT NULL DEFAULT 'ready',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_document_chunk_vectors_chunk
+          FOREIGN KEY (chunk_id) REFERENCES document_chunks(chunk_id) ON DELETE CASCADE,
+        UNIQUE KEY uq_document_chunk_vectors_chunk (chunk_id),
+        INDEX idx_document_chunk_vectors_status (status)
+      )
+      ENGINE=InnoDB
+      DEFAULT CHARSET=utf8mb4
+      COLLATE=utf8mb4_unicode_ci
+    `);
+
+    console.log("Application and RAG tables initialized successfully.");
   } finally {
     await connection.end();
   }

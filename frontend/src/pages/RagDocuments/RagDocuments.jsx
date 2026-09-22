@@ -1,37 +1,81 @@
-import { Search, Sparkles, FileText, LoaderCircle, Upload } from "lucide-react";
-import { useState, useCallback, useEffect, useMemo } from "react";
+// ============================================================
+// KNOWLEDGE BASE / RAG DOCUMENTS PAGE
+// ============================================================
+//
+// Mirrors the supplied Knowledge Base design: a compact private
+// document library on the left and a persistent PDF reader with
+// Semantic search and Ask with AI sections on the right.
+
 import {
-  listDocuments,
-  uploadPdf,
+  CheckCircle2,
+  FileText,
+  LoaderCircle,
+  Search,
+  Sparkles,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import {
   askDocument,
+  deleteDocument,
+  getDocumentFile,
+  listDocuments,
   searchDocument,
+  uploadPdf,
 } from "../../services/ragService.js";
 import styles from "./RagDocuments.module.css";
 
-// Document selection is owned by the sidebar/page integration. This component
-// only consumes the selected document when running its two RAG tools.
-const RagDocuments = ({ selectedDocument = null }) => {
-  // Opens the hidden PDF input from the visible button.
-  const fileInput = useRef(null);
+// Keep file-size presentation compact inside a document list item.
+const formatBytes = (bytes) => {
+  if (!Number.isFinite(bytes)) return "";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
+const getSelectedPdf = (candidate) => {
+  if (!candidate) return null;
+
+  return candidate.type === "application/pdf" || /\.pdf$/i.test(candidate.name)
+    ? candidate
+    : null;
+};
+
+const RagDocuments = () => {
+  // A ref lets the visible "Choose file" button open the hidden native input.
+  const fileInput = useRef(null);
   const [documents, setDocuments] = useState([]);
   const [activeId, setActiveId] = useState(null);
+  const [activeTab, setActiveTab] = useState("ask");
   const [file, setFile] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [askQuery, setAskQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [answer, setAnswer] = useState(null);
+  const [preview, setPreview] = useState({ documentId: null, url: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [workingAction, setWorkingAction] = useState("");
+  const [pendingDelete, setPendingDelete] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
 
-  // Resolves the currently selected document.
+  // Resolve the selected document from fresh polling responses.
   const activeDocument = useMemo(
-    () =>
-      documents.find((document) => document.documentId === activeId) || null,
+    () => documents.find((document) => document.documentId === activeId) || null,
     [activeId, documents],
+  );
+  const activeDocumentId = activeDocument?.documentId;
+  const activeDocumentStatus = activeDocument?.status;
+  const hasProcessingDocuments = documents.some(
+    (document) => document.status === "processing",
   );
 
   // Load the private library and select the newest document on first visit.
   const loadDocuments = useCallback(async ({ quiet = false } = {}) => {
-    if (!quiet) setIsLoading(true);
-
     try {
       const nextDocuments = await listDocuments();
       setDocuments(nextDocuments);
@@ -51,9 +95,14 @@ const RagDocuments = ({ selectedDocument = null }) => {
     }
   }, []);
 
-  // Poll only while the currently selected upload is processing.
+  // Load the library when the page opens.
   useEffect(() => {
-    if (activeDocument?.status !== "processing") return undefined;
+    loadDocuments();
+  }, [loadDocuments]);
+
+  // Keep every in-progress upload current, even after the user selects another PDF.
+  useEffect(() => {
+    if (!hasProcessingDocuments) return undefined;
 
     const timer = window.setInterval(
       () => loadDocuments({ quiet: true }),
@@ -61,12 +110,46 @@ const RagDocuments = ({ selectedDocument = null }) => {
     );
 
     return () => window.clearInterval(timer);
-  }, [activeDocument?.status, loadDocuments]);
+  }, [hasProcessingDocuments, loadDocuments]);
 
-  const handleSelect = (documentId) => {
-    setActiveId(documentId);
-    setError("");
-  };
+  // The built-in PDF viewer supplies the reader controls shown in the design.
+  useEffect(() => {
+    let isCurrent = true;
+    let objectUrl = "";
+
+    if (
+      !activeDocumentId ||
+      activeDocumentStatus !== "ready" ||
+      activeTab !== "preview"
+    ) {
+      return undefined;
+    }
+
+    getDocumentFile(activeDocumentId)
+      .then((url) => {
+        if (!isCurrent) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+
+        objectUrl = url;
+        setPreview({ documentId: activeDocumentId, url });
+      })
+      .catch(() => setError("Could not load the PDF preview."));
+
+    return () => {
+      isCurrent = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [activeDocumentId, activeDocumentStatus, activeTab]);
+
+  // Toasts announce completed actions without interrupting the page.
+  useEffect(() => {
+    if (!toast) return undefined;
+
+    const timer = window.setTimeout(() => setToast(""), 3800);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   // Upload the selected PDF and immediately focus it in the right workspace.
   const handleUpload = async () => {
@@ -79,8 +162,10 @@ const RagDocuments = ({ selectedDocument = null }) => {
       const document = await uploadPdf(file);
       setDocuments((current) => [document, ...current]);
       setActiveId(document.documentId);
+      setActiveTab("ask");
       setFile(null);
       setResults([]);
+      setHasSearched(false);
       setAnswer(null);
       setSearchQuery("");
       setAskQuery("");
@@ -95,141 +180,132 @@ const RagDocuments = ({ selectedDocument = null }) => {
     }
   };
 
-  // Load the library when the page opens.
-  useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
-  // ============================================================
-  // SELECTED DOCUMENT
-  // ============================================================
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files?.[0] || null;
+    const pdf = getSelectedPdf(selectedFile);
 
-  // SEMANTIC SEARCH STATE
-  // ============================================================
+    if (selectedFile && !pdf) {
+      setFile(null);
+      setError("Please choose a PDF file.");
+      event.target.value = "";
+      return;
+    }
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchOutcome, setSearchOutcome] = useState({
-    documentId: null,
-    error: "",
-    hasSearched: false,
-    query: "",
-    results: [],
-  });
-  const [isSearching, setIsSearching] = useState(false);
+    setFile(pdf);
+    setError("");
+  };
 
-  // ============================================================
-  // ASK AI STATE
-  // ============================================================
+  // Switching documents clears outputs that belong to the previous PDF.
+  const handleSelect = (documentId) => {
+    setActiveId(documentId);
+    setActiveTab("ask");
+    setSearchQuery("");
+    setAskQuery("");
+    setResults([]);
+    setHasSearched(false);
+    setAnswer(null);
+    setError("");
+  };
 
-  const [askQuery, setAskQuery] = useState("");
-  const [askOutcome, setAskOutcome] = useState({
-    answer: null,
-    documentId: null,
-    error: "",
-  });
-  const [isAsking, setIsAsking] = useState(false);
-  const selectedDocumentId = selectedDocument?.documentId;
-  const isCurrentSearchOutcome =
-    searchOutcome.documentId === selectedDocumentId &&
-    searchOutcome.query === searchQuery.trim();
-  const searchResults = isCurrentSearchOutcome ? searchOutcome.results : [];
-  const searchError = isCurrentSearchOutcome ? searchOutcome.error : "";
-  const hasSearched = isCurrentSearchOutcome && searchOutcome.hasSearched;
-  const answer =
-    askOutcome.documentId === selectedDocumentId ? askOutcome.answer : null;
-  const askError =
-    askOutcome.documentId === selectedDocumentId ? askOutcome.error : "";
-
-  // ============================================================
-  // SEMANTIC SEARCH
-  // ============================================================
-
+  // Run semantic retrieval independently from the grounded-answer form.
   const handleSemanticSearch = async (event) => {
     event.preventDefault();
+    if (!activeDocument || !searchQuery.trim()) return;
 
-    // A search requires both a selected document
-    // and a search query.
-    if (!selectedDocument || !searchQuery.trim()) {
-      return;
-    }
-
-    const documentId = selectedDocument.documentId;
-    const query = searchQuery.trim();
-
-    setIsSearching(true);
-    setSearchOutcome({
-      documentId,
-      error: "",
-      hasSearched: false,
-      query,
-      results: [],
-    });
+    setWorkingAction("search");
+    setError("");
+    setHasSearched(true);
+    setResults([]);
 
     try {
-      const data = await searchDocument(documentId, query);
-
-      setSearchOutcome({
-        documentId,
-        error: "",
-        hasSearched: true,
-        query,
-        results: Array.isArray(data?.results) ? data.results : [],
-      });
-    } catch (error) {
-      setSearchOutcome({
-        documentId,
-        error:
-          error.response?.data?.message ||
+      const data = await searchDocument(
+        activeDocument.documentId,
+        searchQuery.trim(),
+      );
+      setResults(data.results || []);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
           "Could not search this document right now.",
-        hasSearched: true,
-        query,
-        results: [],
-      });
+      );
     } finally {
-      setIsSearching(false);
+      setWorkingAction("");
     }
   };
 
-  const handleSearchQueryChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  // ============================================================
-  // ASK AI
-  // ============================================================
-
+  // Ask the server for a PDF-grounded answer with passage citations.
   const handleAsk = async (event) => {
     event.preventDefault();
+    if (!activeDocument || !askQuery.trim() || workingAction === "ask") return;
 
-    // An AI question requires both a selected document
-    // and a question.
-    if (!selectedDocument || !askQuery.trim()) {
-      return;
-    }
-
-    const documentId = selectedDocument.documentId;
-
-    setIsAsking(true);
-    setAskOutcome({ answer: null, documentId, error: "" });
+    setWorkingAction("ask");
+    setError("");
 
     try {
-      const data = await askDocument(documentId, askQuery.trim());
-
-      setAskOutcome({ answer: data || {}, documentId, error: "" });
-    } catch (error) {
-      setAskOutcome({
-        answer: null,
-        documentId,
-        error:
-          error.response?.data?.message ||
+      setAnswer(
+        await askDocument(activeDocument.documentId, askQuery.trim()),
+      );
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
           "Could not answer from this document right now.",
-      });
+      );
     } finally {
-      setIsAsking(false);
+      setWorkingAction("");
+    }
+  };
+
+  // The custom confirmation panel replaces browser confirmation dialogs.
+  const handleDelete = async () => {
+    if (!activeDocument) return;
+
+    setWorkingAction("delete");
+    setError("");
+
+    try {
+      await deleteDocument(activeDocument.documentId);
+      setDocuments((current) =>
+        current.filter(
+          (document) => document.documentId !== activeDocument.documentId,
+        ),
+      );
+      setActiveId(null);
+      setResults([]);
+      setAnswer(null);
+      setPendingDelete(false);
+      setToast("Document deleted from your private library.");
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message || "Could not delete this PDF.",
+      );
+    } finally {
+      setWorkingAction("");
     }
   };
 
   return (
     <section className={styles.page}>
+      <header className={styles.hero}>
+        <span>Knowledge base</span>
+        <h1>Private PDF library</h1>
+        <p>
+          Upload study or reference PDFs to your own workspace. Each file is
+          indexed for semantic search and optional AI answers use passages
+          from that document only. File size limits apply on the server;
+          other users never see your uploads.
+        </p>
+      </header>
+
+      {toast && (
+        <div className={styles.toast} role="status">
+          <CheckCircle2 size={17} />
+          {toast}
+          <button aria-label="Dismiss notification" onClick={() => setToast("")} type="button">
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className={styles.error} role="alert">
           {error}
@@ -238,6 +314,11 @@ const RagDocuments = ({ selectedDocument = null }) => {
 
       <div className={styles.workspace}>
         <aside className={styles.library} aria-label="Private PDF library">
+          <header className={styles.libraryHeader}>
+            <h2>Library</h2>
+            <p>Add PDFs here. Processing runs once per upload.</p>
+          </header>
+
           <div className={styles.uploadBox}>
             <p>
               Accepted format: PDF. Maximum file size is enforced by the server.
@@ -245,7 +326,7 @@ const RagDocuments = ({ selectedDocument = null }) => {
 
             <input
               accept="application/pdf"
-              onChange={(event) => setFile(event.target.files?.[0] || null)}
+              onChange={handleFileChange}
               ref={fileInput}
               type="file"
             />
@@ -316,189 +397,205 @@ const RagDocuments = ({ selectedDocument = null }) => {
         <section className={styles.reader}>
           {!activeDocument && !isLoading && (
             <div className={styles.emptyReader}>
-              Choose an uploaded PDF to open it here. Semantic search and Ask
-              with AI will use only the selected document.
+              Choose an uploaded PDF to open it here. Semantic search and Ask with AI will use only the selected document.
             </div>
           )}
-          {activeDocument?.status === "processing" && (
-            <div className={styles.pending}>
-              <LoaderCircle className={styles.spin} size={21} />
-              Processing this PDF.
-            </div>
-          )}
-          {activeDocument?.status === "failed" && (
-            <div className={styles.failed}>
-              {activeDocument.errorMessage || "This PDF could not be read."}{" "}
-              Upload a text-based PDF and try again.
-            </div>
-          )}
-          ;
-        </section>
-      </div>
 
-      <div className={styles.toolSection}>
-        <h2>
-          <Search size={18} />
-          Semantic Search
-        </h2>
-
-        <p>
-          Find relevant passages in the selected PDF by meaning, not only exact
-          keywords.
-        </p>
-
-        {!selectedDocument ? (
-          <div className={styles.emptyState}>
-            Select a document to search its contents.
-          </div>
-        ) : (
-          <>
-            <p className={styles.selectedDocument}>
-              Searching:{" "}
-              <strong>{selectedDocument.title || "Selected PDF"}</strong>
-            </p>
-
-            <form onSubmit={handleSemanticSearch}>
-              <label htmlFor="semantic-search">Search this document</label>
-
-              <input
-                id="semantic-search"
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchQueryChange}
-                placeholder="Search by meaning..."
-              />
-
-              <button
-                type="submit"
-                disabled={isSearching || !searchQuery.trim()}
-              >
-                <Search size={15} />
-
-                {isSearching ? "Searching..." : "Search"}
-              </button>
-            </form>
-
-            {searchError && (
-              <div className={styles.error} role="alert">
-                {searchError}
+          {activeDocument && (
+            <>
+              <div className={styles.readerTitle}>
+                <div>
+                  <h2>{activeDocument.title}</h2>
+                  <p>Private document reader, semantic search, and source-grounded answers.</p>
+                </div>
+                <button
+                  aria-label={`Delete ${activeDocument.title}`}
+                  className={styles.deleteDocument}
+                  disabled={workingAction === "delete"}
+                  onClick={() => setPendingDelete(true)}
+                  type="button"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
-            )}
 
-            {!isSearching &&
-              hasSearched &&
-              searchResults.length === 0 &&
-              !searchError && (
-                <div className={styles.emptyState}>
-                  No relevant passages were found.
+              {activeDocument.status === "processing" && (
+                <div className={styles.pending}>
+                  <LoaderCircle className={styles.spin} size={20} />
+                  Processing this PDF. The reader will become available automatically.
                 </div>
               )}
 
-            {searchResults.length > 0 && (
-              <div className={styles.searchResults}>
-                {searchResults.map((result) => (
-                  <article key={result.chunkId}>
-                    <b>
-                      Chunk {(result.chunkIndex ?? 0) + 1}
-                      {typeof result.score === "number" &&
-                        ` • Relevance ${result.score.toFixed(3)}`}
-                    </b>
+              {activeDocument.status === "failed" && (
+                <div className={styles.failed}>
+                  {activeDocument.errorMessage || "This PDF could not be read."} Upload a text-based PDF and try again.
+                </div>
+              )}
 
-                    <p>{result.excerpt}</p>
-                  </article>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+              {activeDocument.status === "ready" && (
+                <>
+                  <div aria-label="Document tools" className={styles.tabs} role="tablist">
+                    <button
+                      aria-controls="ask-ai-panel"
+                      aria-selected={activeTab === "ask"}
+                      className={activeTab === "ask" ? styles.activeTab : ""}
+                      onClick={() => setActiveTab("ask")}
+                      role="tab"
+                      type="button"
+                    >
+                      Ask AI
+                    </button>
+                    <button
+                      aria-controls="semantic-search-panel"
+                      aria-selected={activeTab === "search"}
+                      className={activeTab === "search" ? styles.activeTab : ""}
+                      onClick={() => setActiveTab("search")}
+                      role="tab"
+                      type="button"
+                    >
+                      Semantic Search
+                    </button>
+                    <button
+                      aria-controls="pdf-preview-panel"
+                      aria-selected={activeTab === "preview"}
+                      className={activeTab === "preview" ? styles.activeTab : ""}
+                      onClick={() => setActiveTab("preview")}
+                      role="tab"
+                      type="button"
+                    >
+                      PDF Preview
+                    </button>
+                  </div>
+
+                  {activeTab === "preview" && (
+                    <section id="pdf-preview-panel" role="tabpanel">
+                      {preview.documentId === activeDocument.documentId && preview.url ? (
+                        <iframe
+                          className={styles.preview}
+                          src={preview.url}
+                          title={`Preview of ${activeDocument.title}`}
+                        />
+                      ) : (
+                        <div className={styles.pending}>
+                          <LoaderCircle className={styles.spin} size={20} />
+                          Loading PDF preview...
+                        </div>
+                      )}
+                    </section>
+                  )}
+
+                  {activeTab === "search" && (
+                    <section className={styles.toolSection} id="semantic-search-panel" role="tabpanel">
+                      <h2>Semantic search</h2>
+                      <p>Finds passages by meaning (embeddings), not only exact keywords.</p>
+                      <form onSubmit={handleSemanticSearch}>
+                        <label htmlFor="semantic-query">Search query</label>
+                        <input
+                          id="semantic-query"
+                          onChange={(event) => setSearchQuery(event.target.value)}
+                          placeholder="How does a function work?"
+                          value={searchQuery}
+                        />
+                        <button disabled={workingAction === "search" || !searchQuery.trim()} type="submit">
+                          {workingAction === "search" ? <LoaderCircle className={styles.spin} size={16} /> : <Search size={16} />}
+                          {workingAction === "search" ? "Searching..." : "Search"}
+                        </button>
+                      </form>
+
+                      <div className={styles.searchResults} aria-live="polite">
+                          {results.map((result) => (
+                            <article key={result.chunkId}>
+                              <b>
+                                Chunk {result.chunkIndex + 1} - relevance {result.score.toFixed(3)}
+                              </b>
+                              <p>{result.excerpt}</p>
+                            </article>
+                          ))}
+                          {hasSearched && !results.length && (
+                            <p className={styles.noResults}>
+                              No relevant passages were found in this document. Try a
+                              more specific question or a phrase used in the PDF.
+                            </p>
+                          )}
+                      </div>
+                    </section>
+                  )}
+
+                  {activeTab === "ask" && (
+                    <section className={styles.toolSection} id="ask-ai-panel" role="tabpanel">
+                      <h2>Ask with AI</h2>
+                      <p>
+                        Answers only use retrieved excerpts from this PDF and include source references when evidence exists.
+                      </p>
+                      <form onSubmit={handleAsk}>
+                        <label htmlFor="ask-query">Question</label>
+                        <textarea
+                          id="ask-query"
+                          onChange={(event) => setAskQuery(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                              event.preventDefault();
+                              if (askQuery.trim() && workingAction !== "ask") {
+                                event.currentTarget.form?.requestSubmit();
+                              }
+                            }
+                          }}
+                          placeholder="Ask a clear question about this document"
+                          value={askQuery}
+                        />
+                        <button disabled={workingAction === "ask" || !askQuery.trim()} type="submit">
+                          {workingAction === "ask" ? <LoaderCircle className={styles.spin} size={16} /> : <Sparkles size={16} />}
+                          {workingAction === "ask" ? "Asking..." : "Ask"}
+                        </button>
+                      </form>
+
+                      {answer && (
+                        <div className={styles.answer} aria-live="polite">
+                          <p>{answer.answer}</p>
+                          {answer.citations?.length > 0 && (
+                            <footer className={styles.sourceReferences}>
+                              <span>Source references:</span>
+                              <div>
+                                {answer.citations.map((citation) => (
+                                  <span
+                                    aria-label={`Reference ${citation.ref}, chunk ${citation.chunkIndex + 1}`}
+                                    key={citation.ref}
+                                  >
+                                    [{citation.ref}] &rarr; chunk {citation.chunkIndex + 1}
+                                  </span>
+                                ))}
+                              </div>
+                            </footer>
+                          )}
+                        </div>
+                      )}
+                    </section>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </section>
       </div>
 
-      {/* ========================================================
-          ASK AI
-          ======================================================== */}
-
-      <div className={styles.toolSection}>
-        <h2>
-          <Sparkles size={18} />
-          Ask AI
-        </h2>
-
-        <p>
-          Ask a question about the selected PDF. The answer is grounded in
-          information retrieved from the document.
-        </p>
-
-        {!selectedDocument ? (
-          <div className={styles.emptyState}>
-            Select a document to ask AI about its contents.
-          </div>
-        ) : (
-          <>
-            <p className={styles.selectedDocument}>
-              Asking about:{" "}
-              <strong>{selectedDocument.title || "Selected PDF"}</strong>
+      {pendingDelete && activeDocument && (
+        <div className={styles.modalBackdrop} role="presentation">
+          <section aria-describedby="delete-document-copy" aria-modal="true" className={styles.modal} role="dialog">
+            <h2>Delete this document?</h2>
+            <p id="delete-document-copy">
+              “{activeDocument.title}” and its private search index will be permanently removed.
             </p>
-
-            <form onSubmit={handleAsk}>
-              <label htmlFor="ask-document">Ask a question</label>
-
-              <textarea
-                id="ask-document"
-                value={askQuery}
-                onChange={(event) => setAskQuery(event.target.value)}
-                placeholder="What would you like to know about this document?"
-              />
-
-              <button type="submit" disabled={isAsking || !askQuery.trim()}>
-                <Sparkles size={15} />
-
-                {isAsking ? "Thinking..." : "Ask AI"}
+            <div>
+              <button disabled={workingAction === "delete"} onClick={() => setPendingDelete(false)} type="button">
+                Cancel
               </button>
-            </form>
-
-            {askError && (
-              <div className={styles.error} role="alert">
-                {askError}
-              </div>
-            )}
-
-            {answer && (
-              <div className={styles.answer} aria-live="polite">
-                {answer.isGrounded === false && (
-                  <p className={styles.noContext}>
-                    No supporting passages were found for this question.
-                  </p>
-                )}
-
-                {answer.answer ? (
-                  <p>{answer.answer}</p>
-                ) : (
-                  <p>No answer could be generated from this document.</p>
-                )}
-
-                {answer.citations?.length > 0 && (
-                  <>
-                    <h3>Source references</h3>
-
-                    <div className={styles.citations}>
-                      {answer.citations.map((citation) => (
-                        <article key={citation.ref}>
-                          <b>
-                            [{citation.ref}] Passage{" "}
-                            {(citation.chunkIndex ?? 0) + 1}
-                          </b>
-
-                          <p>{citation.excerpt}</p>
-                        </article>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+              <button disabled={workingAction === "delete"} onClick={handleDelete} type="button">
+                {workingAction === "delete" ? "Deleting..." : "Delete document"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 };
