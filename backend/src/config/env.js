@@ -42,13 +42,19 @@ const env = {
       10,
     ),
   },
-   //upload rag document
-  //upload rag document
   rag: {
     uploadDir: process.env.RAG_UPLOAD_DIR || "uploads/rag-documents",
     maxFileSizeBytes: numberFromEnv(
       process.env.RAG_MAX_FILE_SIZE_BYTES,
       10 * 1024 * 1024,
+    ),
+    evidenceThreshold: numberFromEnv(
+      process.env.RAG_EVIDENCE_THRESHOLD,
+      0.55,
+    ),
+    searchThreshold: numberFromEnv(
+      process.env.RAG_SEARCH_THRESHOLD,
+      0.6,
     ),
   },
 };
