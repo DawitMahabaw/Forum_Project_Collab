@@ -228,6 +228,17 @@
 .toolSection form {
   display: grid;
   gap: 8px;
+  
+  .selectedDocument {
+  margin-top: 16px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.selectedDocument strong {
+  color: #344054;
+}
   margin-top: 14px;
 }
 
@@ -285,6 +296,18 @@
   cursor: pointer;
 }
 
+.emptyState {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px dashed #d0d5dd;
+  border-radius: 5px;
+  color: #667085;
+  background: #fcfcfd;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .toolSection form button:hover:not(:disabled) {
   background: #c95f20;
 }
@@ -312,6 +335,22 @@
 .citations b {
   color: #475467;
   font-size: 11px;
+}
+.citations article {
+  padding: 10px 12px;
+  border: 1px solid #eaecf0;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.citations b {
+  color: #475467;
+  font-size: 11px;
+}
+
+.citations p {
+  margin-top: 4px;
+  color: #475467;
 }
 
 .searchResults p,
@@ -529,5 +568,15 @@
   .preview {
     height: 320px;
     min-height: 260px;
+  }
+}
+
+@media (max-width: 600px) {
+  .toolSection {
+    padding: 18px 15px;
+  }
+
+  .toolSection button {
+    width: 100%;
   }
 }

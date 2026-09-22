@@ -1,1106 +1,1497 @@
 # AI-Powered Evangadi Forum
 
-An AI-powered community forum designed to allow users to ask questions, share answers, discover similar discussions, and receive AI-assisted guidance.
+A full-stack, AI-powered discussion platform where learners can ask technical questions, share answers, discover related discussions through semantic search, receive AI-assisted writing feedback, and interact with a private document-based knowledge base using Retrieval-Augmented Generation (RAG).
 
-The project is organized into **three development milestones**, with each milestone building on the architecture and functionality of the previous one.
+The project combines a modern React frontend, an Express/Node.js backend, MySQL persistence, Google Gemini AI services, semantic search, vector embeddings, and a document-based RAG pipeline.
 
-## Project Milestones
+---
+
+## Project Overview
+
+The AI-Powered Evangadi Forum is designed to make technical discussions easier to create, discover, and understand.
+
+Traditional forum search often depends on exact keywords. This project extends the traditional forum experience with AI capabilities that understand the meaning behind questions and documents.
+
+The application provides three major areas of functionality:
 
 ```text
-Milestone 1
-Authentication & Application Foundation
-        ↓
-Milestone 2
-Questions, Answers & AI Assistance
-        ↓
-Milestone 3
-RAG Knowledge Base
+                    AI-POWERED EVANGADI FORUM
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+          v                   v                   v
+   Authentication       Forum & AI           Knowledge Base
+   & Foundation         Assistance                / RAG
+          |                   |                   |
+          v                   v                   v
+       Users          Questions & Answers     PDF Documents
+       JWT            Semantic Search         Chunking
+       Protected      Related Questions      Embeddings
+       Routes         Draft Coach             Retrieval
+                      Answer Fit              Grounded AI
 ```
 
-### Milestone 1 — Authentication & Application Foundation
+---
 
-Establishes the application's core architecture and secure user authentication system.
+## Completed Project Scope
 
-Key areas:
+All three project milestones have been completed.
+
+| Milestone   | Area                                    | Status    |
+| ----------- | --------------------------------------- | --------- |
+| Milestone 1 | Authentication & Application Foundation | Completed |
+| Milestone 2 | Questions, Answers & AI Assistance      | Completed |
+| Milestone 3 | Knowledge Base & RAG                    | Completed |
+
+---
+
+## Core Features
+
+### Authentication & User Management
 
 * User registration
 * User login
 * Password hashing with bcrypt
-* JWT authentication
+* JWT-based authentication
+* Protected API routes
 * Protected frontend routes
-* Authentication context
-* Axios API configuration
-* Centralized error handling
-* Public landing page
-* Backend MVC architecture
-* MySQL database foundation
+* Current-user authentication
+* Global authentication state
+* Automatic handling of unauthorized API responses
+* Ownership-based authorization
 
-**Status: Completed**
+### Forum
 
----
+* Create questions
+* View questions
+* Update questions
+* Delete questions
+* View individual discussions
+* Create answers
+* Update answers
+* Delete answers
+* Prevent users from answering their own questions
+* Author-only question management
+* Author-only answer management
+* Markdown-friendly question and answer content
+* Loading, empty, error, and ownership states
 
-# Milestone 1 — General Application Flow
+### Search & Discovery
 
-Milestone 1 establishes the authentication foundation of the AI-Powered Evangadi Forum.
+* Keyword-based question search
+* Semantic question search
+* Related-question recommendations
+* Question embeddings
+* Cosine similarity
+* Meaning-based question discovery
+* Search result ranking
+* Configurable similarity thresholds
 
-At a high level, the application follows this flow:
+### AI Assistance
 
-```text
-                    USER
-                     │
-                     ▼
-              React Frontend
-                     │
-                     ▼
-              React Router
-                     │
-             ┌───────┴────────┐
-             ▼                ▼
-        Landing Page       Auth Page
-                              │
-                       Login / Register
-                              │
-                              ▼
-                         API Request
-                              │
-                              ▼
-                       Axios Service
-                              │
-                              ▼
-                     Express Backend
-                              │
-                              ▼
-                           Route
-                              │
-                              ▼
-                        Controller
-                              │
-                              ▼
-                         Auth Service
-                              │
-                              ▼
-                         User Model
-                              │
-                              ▼
-                         MySQL Database
-```
+* AI Draft Coach for questions
+* AI Answer Fit evaluation
+* Gemini-powered text generation
+* Gemini-powered embeddings
+* AI service error handling
+* AI request timeout and retry handling
+* AI output treated as assistance rather than authoritative information
 
-After successful login:
+### Knowledge Base / RAG
 
-```text
-User Login
-    │
-    ▼
-Backend verifies credentials
-    │
-    ▼
-JWT generated
-    │
-    ▼
-Frontend receives JWT
-    │
-    ▼
-AuthContext updates authentication state
-    │
-    ▼
-User can access protected routes
-```
-
-For protected API requests:
-
-```text
-React Component
-      │
-      ▼
-Axios Service
-      │
-      ▼
-Axios Interceptor
-      │
-      ▼
-Attach JWT
-      │
-      ▼
-Express API
-      │
-      ▼
-Authentication Middleware
-      │
-      ▼
-Protected Controller
-      │
-      ▼
-Response
-```
+* Authenticated document upload
+* PDF document support
+* Secure document storage
+* PDF text extraction
+* Text chunking
+* Chunk embeddings
+* Semantic document search
+* Relevant document excerpt retrieval
+* Grounded AI question answering
+* Document metadata
+* Document status tracking
+* PDF file streaming
+* PDF preview
+* User document listing
+* Document deletion
+* Associated vector cleanup
 
 ---
 
-# Milestone 1 — Backend Architecture
+# Architecture
 
-The backend follows a layered MVC-style architecture:
-
-```text
-Request
-   ↓
-Route
-   ↓
-Controller
-   ↓
-Service
-   ↓
-Model
-   ↓
-MySQL
-```
-
-### Backend Responsibilities
-
-| Layer          | Responsibility                               |
-| -------------- | -------------------------------------------- |
-| `routes/`      | Defines API endpoints                        |
-| `controllers/` | Handles HTTP requests and responses          |
-| `services/`    | Contains application/business logic          |
-| `models/`      | Communicates with the database               |
-| `middleware/`  | Authentication and shared request processing |
-| `config/`      | Environment and database configuration       |
-| `utils/`       | Reusable helper functionality                |
-
-### Important Milestone 1 Files
+The application follows a layered full-stack architecture.
 
 ```text
-backend/
-├── index.js
-├── src/
-│   ├── config/
-│   │   ├── env.js
-│   │   └── db.js
-│   │
-│   ├── controllers/
-│   │   └── authController.js
-│   │
-│   ├── middleware/
-│   │   ├── authMiddleware.js
-│   │   └── errorMiddleware.js
-│   │
-│   ├── models/
-│   │   └── User.js
-│   │
-│   ├── routes/
-│   │   └── authRoutes.js
-│   │
-│   ├── services/
-│   │   └── authService.js
-│   │
-│   └── utils/
-│       ├── password.js
-│       └── jwt.js
-│
-└── db/
-    └── schema.sql
+                         React + Vite
+                              |
+                              | Axios
+                              | Bearer JWT
+                              v
+                       Express REST API
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+          v                   v                   v
+       Routes            Controllers          Middleware
+                              |
+                              v
+                          Services
+                       /     |      \
+                      /      |       \
+                     v       v        v
+                  Forum      AI       RAG
+                    |        |         |
+                    v        v         v
+                  Models   Gemini   Retrieval
+                    |        |         |
+                    v        v         v
+                  MySQL   Embeddings  Documents
 ```
 
-`index.js` starts the Express server and connects the application's middleware and routes.
+### Backend responsibility
 
-`env.js` manages environment configuration, while `db.js` provides the MySQL database connection.
+The backend is responsible for:
 
-`authRoutes.js` defines authentication endpoints such as:
+* API routing
+* Authentication
+* Authorization
+* Validation
+* Business logic
+* Database access
+* Question and answer management
+* AI generation
+* Embedding generation
+* Semantic search
+* Document processing
+* RAG retrieval
+* Error handling
+* Secure file handling
 
-```text
-POST /api/auth/register
-POST /api/auth/login
-```
+### Frontend responsibility
 
-`authController.js` handles HTTP requests and responses.
+The frontend is responsible for:
 
-`authService.js` contains the main authentication logic.
-
-`User.js` handles user-related database operations.
-
-`password.js` manages password hashing and verification using bcrypt.
-
-`jwt.js` manages JWT creation and verification.
-
-`authMiddleware.js` protects routes that require authentication.
-
-`errorMiddleware.js` provides centralized backend error handling.
-
-`schema.sql` defines the database structure.
+* Application routing
+* Authentication state
+* User interface
+* Forms
+* Forum views
+* Search interfaces
+* AI interaction interfaces
+* Document management
+* PDF preview
+* Loading and error states
+* Reusable UI components
 
 ---
 
-# Milestone 1 — Frontend Architecture
+# Technology Stack
 
-The frontend follows this general structure:
+| Area                | Technology              |
+| ------------------- | ----------------------- |
+| Frontend            | React 19                |
+| Build Tool          | Vite                    |
+| Routing             | React Router            |
+| HTTP Client         | Axios                   |
+| Styling             | CSS Modules             |
+| UI Icons            | Lucide                  |
+| Animation           | Framer Motion           |
+| Backend             | Node.js                 |
+| API Framework       | Express 5               |
+| Database            | MySQL 8+                |
+| Database Driver     | mysql2                  |
+| Authentication      | JSON Web Tokens         |
+| Password Security   | bcrypt                  |
+| AI                  | Google Gemini           |
+| Embeddings          | Gemini Embedding API    |
+| Code Quality        | Oxlint                  |
+| Document Processing | PDF processing pipeline |
+| Architecture        | MVC + Service Layer     |
+
+---
+
+# Milestone 1 — Authentication & Application Foundation
+
+The first milestone established the secure foundation of the application.
+
+## Authentication Flow
 
 ```text
 User
- ↓
-React Page
- ↓
-Frontend Service
- ↓
-Axios
- ↓
-Backend API
+ |
+ v
+Register / Login
+ |
+ v
+Express API
+ |
+ v
+Validate Credentials
+ |
+ +---- Register ---> Hash Password ---> Save User
+ |
+ +---- Login ------> Verify Password
+                         |
+                         v
+                    Generate JWT
+                         |
+                         v
+                    Return Token
+                         |
+                         v
+                 Frontend Auth State
 ```
 
-Important areas include:
+## Authentication Components
+
+The application uses:
+
+* bcrypt for password hashing
+* JWT for authentication
+* Authentication middleware for protected API routes
+* Axios configuration for authenticated requests
+* Global authentication context
+* Protected frontend routes
+
+JWT allows the API to remain stateless while the client sends the token with protected requests.
 
 ```text
-frontend/src/
-├── components/
-├── context/
-├── pages/
-├── routes/
-├── services/
-├── utils/
-├── App.jsx
-├── main.jsx
-└── index.css
+Frontend
+   |
+   | Authorization: Bearer <JWT>
+   v
+Express API
+   |
+   v
+Authentication Middleware
+   |
+   +---- Invalid ---> 401 Unauthorized
+   |
+   +---- Valid -----> Controller
 ```
-
-`main.jsx` starts the React application.
-
-`App.jsx` provides the main application structure.
-
-`AppRoutes.jsx` defines frontend navigation.
-
-`LandingPage.jsx` provides the public entry point.
-
-`AuthPage.jsx` provides login and registration.
-
-`AuthContext.jsx` manages authentication state across the application.
-
-`ProtectedRoute.jsx` prevents unauthenticated users from accessing protected pages.
-
-`api.js` provides the centralized Axios configuration.
-
-`authService.js` contains frontend authentication API functions.
-
-`auth.js` contains reusable authentication utilities.
-
-CSS Modules are used for page and component-specific styling.
 
 ---
 
 # Milestone 2 — Questions, Answers & AI Assistance
 
-Milestone 2 builds the main forum functionality on top of the authentication foundation created in Milestone 1.
+The second milestone transformed the authentication foundation into a complete AI-assisted discussion platform.
 
-The focus is now on:
-
-* Creating questions
-* Viewing questions
-* Searching questions
-* Viewing question details
-* Posting answers
-* Preventing users from answering their own questions
-* Semantic search
-* Similar-question discovery
-* AI Draft Coach
-* AI Answer Fit evaluation
-* User-specific question management
-
-**Status: In Progress / Current Milestone**
-
----
-
-# Milestone 2 — General Application Flow
-
-The main forum flow extends the architecture from Milestone 1:
+## Question Lifecycle
 
 ```text
-                         USER
-                           │
-                           ▼
-                    React Frontend
-                           │
-                           ▼
-                     Forum Page
-                           │
-                           ▼
-                    Frontend Service
-                           │
-                           ▼
-                         Axios
-                           │
-                           ▼
-                    Express Backend
-                           │
-                           ▼
-                         Route
-                           │
-                           ▼
-                      Controller
-                           │
-                           ▼
-                       Service
-                           │
-                  ┌────────┴────────┐
-                  ▼                 ▼
-                Model          AI Service
-                  │                 │
-                  ▼                 ▼
-                MySQL          AI / Vectors
-```
-
-For authenticated question creation:
-
-```text
-User
- ↓
-Post Question
- ↓
-Axios
- ↓
-JWT attached
- ↓
-Auth Middleware
- ↓
-Question Controller
- ↓
-Question Service
- ↓
-Question Model
- ↓
-MySQL
-```
-
-For AI-powered question processing:
-
-```text
-Question
-   ↓
-Question Service
-   ↓
-AI / Embedding Service
-   ↓
-Generate Vector
-   ↓
-Store Question + Vector
-```
-
----
-
-# Milestone 2 — Questions
-
-The question system allows authenticated users to create and manage forum questions.
-
-A question contains information such as:
-
-```text
-Question
-├── Title
-├── Description
-├── Author
-├── Question Hash
-├── Creation Date
-└── Vector Representation
-```
-
-The backend follows:
-
-```text
+User creates question
+        |
+        v
+Frontend form
+        |
+        v
 POST /api/questions
-        ↓
-questionRoutes.js
-        ↓
-questionController.js
-        ↓
-questionService.js
-        ↓
-Question.js
-        ↓
-MySQL
-```
-
-When appropriate, the question can also be processed into an embedding for semantic search.
-
----
-
-# Milestone 2 — Question Retrieval
-
-Questions can be retrieved through the API.
-
-The system supports:
-
-```text
-Get all questions
-Search questions
-Get my questions
-Get a specific question
-Get similar questions
-```
-
-A simplified flow is:
-
-```text
-Dashboard
-   ↓
-questionService.js
-   ↓
-Axios
-   ↓
-GET /api/questions
-   ↓
-Question Controller
-   ↓
+        |
+        v
+Controller
+        |
+        v
 Question Service
-   ↓
-Question Model
-   ↓
-MySQL
-   ↓
-Questions
+        |
+        +---- Save question
+        |
+        +---- Generate embedding
+                    |
+                    v
+              Store vector
 ```
 
-Query parameters allow the frontend to request specific results, such as a user's own questions or keyword-based searches.
+If the AI embedding service is temporarily unavailable, the question can still be stored and its vector can be generated later.
 
 ---
 
-# Milestone 2 — Semantic Search
-
-One of the major AI features introduced in Milestone 2 is **semantic search**.
+# Semantic Search
 
 Traditional keyword search looks for matching words.
 
-Semantic search attempts to find questions with similar **meaning**, even when the exact words are different.
+Semantic search looks for similar meaning.
+
+For example:
 
 ```text
-User Search
-     ↓
-Create Embedding
-     ↓
+Search:
+"Why does my React component render again?"
+
+Possible related questions:
+
+"Why is my React component re-rendering?"
+
+"My React component keeps rendering multiple times."
+
+"How can I prevent unnecessary React renders?"
+```
+
+The wording is different, but the meaning is related.
+
+## Semantic Search Flow
+
+```text
+User Search Query
+       |
+       v
+Generate Query Embedding
+       |
+       v
 Compare With Question Vectors
-     ↓
-Calculate Similarity
-     ↓
+       |
+       v
+Calculate Cosine Similarity
+       |
+       v
+Apply Similarity Threshold
+       |
+       v
 Rank Results
-     ↓
-Return Similar Questions
+       |
+       v
+Return Related Questions
 ```
 
-The system uses vector representations of questions and similarity calculations to identify related discussions.
-
-This allows the forum to discover questions that may be duplicates or closely related even when users phrase them differently.
+This allows the forum to discover discussions that may be relevant even when users do not use the same keywords.
 
 ---
 
-# Milestone 2 — Question Similarity
+# AI Draft Coach
 
-The application can also find questions related to a specific question.
-
-```text
-Existing Question
-       ↓
-Question Vector
-       ↓
-Compare Against Other Vectors
-       ↓
-Similarity Score
-       ↓
-Ranked Similar Questions
-```
-
-This supports the goal of helping users discover existing discussions before creating duplicate questions.
-
----
-
-# Milestone 2 — Answers
-
-Authenticated users can answer questions.
-
-The answer flow is:
+The Draft Coach helps users improve a question before publishing it.
 
 ```text
-User
- ↓
-Question Detail
- ↓
-Write Answer
- ↓
-Axios
- ↓
-JWT
- ↓
-Auth Middleware
- ↓
-Answer Controller
- ↓
-Answer Service
- ↓
-Answer Model
- ↓
-MySQL
-```
-
-The application also prevents a user from answering their own question when the business rules require this restriction.
-
-The question and answer relationship is:
-
-```text
-User
- │
- ├── creates → Question
- │
- └── creates → Answer
-
-Question
-   │
-   └── has many → Answers
-```
-
----
-
-# Milestone 2 — AI Draft Coach
-
-The **Draft Coach** helps a user improve a question before submitting it.
-
-The general flow is:
-
-```text
-User Writes Question
-        ↓
+Question Draft
+      |
+      v
 Draft Coach
-        ↓
-AI Service
-        ↓
-Analyze Question
-        ↓
-Return Feedback
-        ↓
-User Improves Draft
-        ↓
-Submit Question
+      |
+      v
+Gemini
+      |
+      v
+Suggestions
+      |
+      v
+User reviews suggestions
+      |
+      v
+User decides what to publish
 ```
 
-The goal is to provide useful guidance such as improving clarity, completeness, or technical detail before the question becomes a public forum post.
+The AI does not automatically publish or modify the user's question.
+
+The user remains responsible for the final content.
 
 ---
 
-# Milestone 2 — AI Answer Fit
+# AI Answer Fit
 
-The **Answer Fit** feature evaluates whether an answer appropriately addresses the question.
-
-Conceptually:
+Answer Fit provides AI feedback on a proposed answer before submission.
 
 ```text
 Question
    +
-Answer
-   ↓
-AI Service
-   ↓
-Evaluate Relevance
-   ↓
-Return Feedback / Evaluation
-```
-
-This is different from Draft Coach:
-
-```text
-Draft Coach
-→ Helps improve a question BEFORE submission
-
+Answer Draft
+   |
+   v
 Answer Fit
-→ Evaluates an answer AGAINST an existing question
+   |
+   v
+Gemini
+   |
+   v
+Relevance / Quality Feedback
+   |
+   v
+User reviews feedback
+   |
+   v
+Submit Answer
 ```
+
+Draft Coach and Answer Fit serve different purposes:
+
+| Feature     | Purpose                               |
+| ----------- | ------------------------------------- |
+| Draft Coach | Improve a question before publishing  |
+| Answer Fit  | Evaluate an answer against a question |
 
 ---
 
-# Milestone 2 — Frontend Pages
+# Milestone 3 — Knowledge Base & RAG
 
-The main frontend functionality introduced in Milestone 2 includes:
+The third milestone adds a document-based AI knowledge system.
 
-```text
-Dashboard
-   │
-   ├── Browse Questions
-   ├── Search
-   └── Open Question
+RAG stands for:
 
-Post Question
-   │
-   └── Draft Coach
+**Retrieval-Augmented Generation**
 
-Question Detail
-   │
-   ├── Question
-   ├── Answers
-   └── Answer Fit
-
-My Questions
-   │
-   └── User's Questions
-```
-
-The application also introduces reusable interface components such as:
+Instead of asking the AI to answer only from its general knowledge, the application first retrieves relevant information from documents provided by the user.
 
 ```text
-Layout
-Navbar
-Sidebar
-QuestionCard
-MarkdownContent
-Footer
-ProtectedRoute
-```
-
-These components help maintain a consistent application structure as the project grows.
-
----
-
-# Milestone 2 — Service Architecture
-
-The frontend communicates with the backend through dedicated services:
-
-```text
-frontend/src/services/
-
-api.js
-authService.js
-questionService.js
-answerService.js
-ragService.js
-```
-
-For Milestone 2:
-
-```text
-Question Page
-      ↓
-questionService.js
-      ↓
-api.js
-      ↓
-Axios
-      ↓
-Backend API
-```
-
-And:
-
-```text
-Answer Page
-      ↓
-answerService.js
-      ↓
-api.js
-      ↓
-Axios
-      ↓
-Backend API
-```
-
-This keeps API communication separate from UI components.
-
----
-
-# Milestone 2 — Backend Structure
-
-The backend now expands beyond authentication:
-
-```text
-backend/src/
-├── config/
-│
-├── controllers/
-│   ├── answerController.js
-│   ├── authController.js
-│   ├── documentController.js
-│   └── questionController.js
-│
-├── middleware/
-│
-├── models/
-│   ├── Answer.js
-│   ├── Document.js
-│   ├── Question.js
-│   ├── QuestionVector.js
-│   └── User.js
-│
-├── routes/
-│   ├── answerRoutes.js
-│   ├── authRoutes.js
-│   ├── documentRoutes.js
-│   └── questionRoutes.js
-│
-├── services/
-│   ├── aiService.js
-│   ├── answerService.js
-│   ├── authService.js
-│   ├── questionService.js
-│   └── ragService.js
-│
-└── utils/
-```
-
-The same architectural principle from Milestone 1 remains:
-
-```text
-Route
-  ↓
-Controller
-  ↓
-Service
-  ↓
-Model / AI Service
-  ↓
-Database / AI System
-```
-
----
-
-# Milestone 2 — AI Architecture
-
-AI functionality is separated from normal CRUD logic.
-
-```text
-Question / Answer
-       │
-       ▼
-Application Service
-       │
-       ├───────────────┐
-       ▼               ▼
-Database Logic      AI Logic
-                       │
-                       ▼
-                 AI / Embeddings
-```
-
-This separation makes the AI features easier to extend and maintain.
-
-The project uses vector representations to support semantic search and related-question discovery.
-
----
-
-# Database Responsibilities
-
-The database provides persistent storage for application data.
-
-Milestone 1 established the user structure.
-
-Milestone 2 extends the data model for:
-
-```text
-Users
-Questions
-Answers
-Question Vectors
-```
-
-Conceptually:
-
-```text
-User
- │
- ├── Questions
- │      │
- │      ├── Vector
- │      └── Answers
- │
- └── Answers
-```
-
-The database stores the actual forum information, while vector data supports semantic discovery.
-
----
-
-# Complete Milestone 2 Flow
-
-The main architecture can now be understood as:
-
-```text
-                         USER
-                           │
-                           ▼
-                    React Frontend
-                           │
-                           ▼
-                       React Router
-                           │
-                           ▼
-                         Page
-                           │
-                           ▼
-                   Frontend Service
-                           │
-                           ▼
-                         Axios
-                           │
-                           ▼
-                  Authentication/JWT
-                           │
-                           ▼
-                    Express Backend
-                           │
-                           ▼
-                         Route
-                           │
-                           ▼
-                      Controller
-                           │
-                           ▼
-                       Service
-                      /       \
-                     /         \
-                    ▼           ▼
-                 Model       AI Service
-                   │             │
-                   ▼             ▼
-                MySQL       AI / Vectors
-```
-
----
-
-# Milestone 1 → Milestone 2
-
-Milestone 2 depends directly on the foundation created in Milestone 1.
-
-```text
-Milestone 1
-Authentication
-     │
-     ├── JWT
-     ├── AuthContext
-     ├── ProtectedRoute
-     └── Axios Interceptor
-             │
-             ▼
-Milestone 2
-Forum Functionality
-     │
-     ├── Questions
-     ├── Answers
-     ├── Search
-     ├── Semantic Search
-     ├── Draft Coach
-     └── Answer Fit
-```
-
-Authentication is therefore not a separate feature anymore; it becomes part of the security foundation for forum operations.
-
----
-
-# API Overview
-
-### Authentication
-
-```text
-POST /api/auth/register
-POST /api/auth/login
-```
-
-### Questions
-
-```text
-POST /api/questions
-GET  /api/questions
-GET  /api/questions/search
-GET  /api/questions/:questionHash
-GET  /api/questions/:questionHash/similar
-POST /api/questions/draft-coach
-POST /api/questions/:questionHash/answer-fit
-```
-
-### Answers
-
-```text
-POST /api/answers
-```
-
-Additional RAG/document endpoints will be introduced as part of Milestone 3.
-
----
-
-# Security Foundation
-
-The application uses several layers of security:
-
-```text
-Password
-   ↓
-bcrypt hashing
-   ↓
-Stored password hash
-
-Login
-   ↓
-JWT
-   ↓
-Protected request
-   ↓
-Authentication Middleware
-   ↓
-Protected resource
-```
-
-Authentication determines **who the user is**.
-
-Authorization determines **what the authenticated user is allowed to do**.
-
-These concepts become increasingly important as users create questions, answers, and documents.
-
----
-
-# Current Architecture Mental Model
-
-The most important architectural flow is:
-
-```text
-USER
- ↓
-REACT
- ↓
-PAGE / COMPONENT
- ↓
-FRONTEND SERVICE
- ↓
-AXIOS
- ↓
-EXPRESS ROUTE
- ↓
-CONTROLLER
- ↓
-SERVICE
- ↓
-MODEL
- ↓
-MYSQL
-```
-
-When AI functionality is involved:
-
-```text
-USER
- ↓
-REACT
- ↓
-FRONTEND SERVICE
- ↓
-API
- ↓
-CONTROLLER
- ↓
-SERVICE
- ↓
-AI SERVICE
- ↓
-AI / EMBEDDING SYSTEM
-```
-
-When semantic search is involved:
-
-```text
-SEARCH QUESTION
-      ↓
-EMBEDDING
-      ↓
-VECTOR
-      ↓
-SIMILARITY CALCULATION
-      ↓
-RANK RESULTS
-      ↓
-RELATED QUESTIONS
-```
-
----
-
-# Future Milestone
-
-### Milestone 3 — RAG Knowledge Base
-
-The final milestone will extend the AI capabilities by introducing a document-based knowledge system using **Retrieval-Augmented Generation (RAG)**.
-
-Planned capabilities include:
-
-* PDF document upload
-* Secure document processing
-* PDF text extraction
-* Text chunking
-* Embeddings for document chunks
-* Semantic document search
-* Grounded AI answers
-* Document metadata
-* PDF preview
-* Document management
-* Retrieval-based AI responses
-
-The conceptual flow will become:
-
-```text
-PDF Document
-     ↓
+User Document
+      |
+      v
 Extract Text
-     ↓
+      |
+      v
 Split Into Chunks
-     ↓
-Create Embeddings
-     ↓
+      |
+      v
+Generate Embeddings
+      |
+      v
 Store Chunks + Vectors
-     ↓
-User Question
-     ↓
-Semantic Retrieval
-     ↓
-Relevant Chunks
-     ↓
-AI Model
-     ↓
+      |
+      v
+User Asks Question
+      |
+      v
+Generate Query Embedding
+      |
+      v
+Retrieve Relevant Chunks
+      |
+      v
+Build AI Context
+      |
+      v
+Gemini
+      |
+      v
 Grounded Answer
 ```
 
 ---
 
-# Project Architecture Summary
+# Document Processing
 
-The project progressively evolves through three layers of functionality:
+When a user uploads a PDF:
 
 ```text
-                 AI-POWERED EVANGADI FORUM
-                           │
-          ┌────────────────┼────────────────┐
-          ▼                ▼                ▼
-     Milestone 1      Milestone 2      Milestone 3
-   Authentication     Forum + AI          RAG
-          │                │                │
-          ▼                ▼                ▼
-       Users          Questions         Documents
-       Login           Answers           Chunks
-       JWT             Search            Embeddings
-       Security        Semantic Search   Retrieval
-                       Draft Coach        Grounded AI
-                       Answer Fit
+PDF Upload
+    |
+    v
+Authentication
+    |
+    v
+Upload Validation
+    |
+    v
+Secure File Storage
+    |
+    v
+PDF Text Extraction
+    |
+    v
+Text Chunking
+    |
+    v
+Generate Embeddings
+    |
+    v
+Store Document + Chunks + Vectors
+    |
+    v
+Ready for Retrieval
 ```
 
-Each milestone builds on the previous one rather than creating a separate application.
+Breaking a document into smaller chunks makes retrieval more precise than creating a single embedding for an entire document.
 
-The final system therefore combines:
+---
+
+# RAG Semantic Search
+
+A document search works similarly to question semantic search, but the searchable information comes from document chunks.
 
 ```text
-Secure Authentication
-        +
-Forum Questions & Answers
-        +
-Semantic Search
-        +
-AI Assistance
-        +
-RAG Knowledge Retrieval
-        ↓
-AI-Powered Evangadi Forum
+User Query
+    |
+    v
+Query Embedding
+    |
+    v
+Compare With Chunk Embeddings
+    |
+    v
+Cosine Similarity
+    |
+    v
+Rank Relevant Chunks
+    |
+    v
+Return Relevant Excerpts
+```
+
+---
+
+# Grounded AI Answers
+
+The RAG question-answering workflow adds one important step: retrieval happens before generation.
+
+```text
+User Question
+      |
+      v
+Semantic Retrieval
+      |
+      v
+Relevant Document Chunks
+      |
+      v
+AI Context
+      |
+      v
+Gemini
+      |
+      v
+Document-Grounded Answer
+```
+
+The retrieved document content gives the model context from the user's knowledge base.
+
+This makes RAG different from simply sending a question directly to an AI model.
+
+---
+
+# Knowledge Base Interface
+
+The frontend provides a dedicated knowledge-base experience.
+
+```text
+Knowledge Base
+      |
+      +---- Document Sidebar
+      |
+      +---- Upload PDF
+      |
+      +---- Ask AI
+      |
+      +---- Semantic Search
+      |
+      +---- PDF Preview
+```
+
+### Ask AI
+
+Allows users to ask questions about the selected document and receive a grounded AI response.
+
+### Semantic Search
+
+Allows users to search the document and inspect relevant excerpts without necessarily generating an AI response.
+
+### PDF Preview
+
+Allows users to view the original document alongside the knowledge-base functionality.
+
+---
+
+# RAG Document Management
+
+Users can:
+
+* Upload documents
+* View document metadata
+* View processing status
+* List their documents
+* Search document content
+* Ask questions about documents
+* Preview PDF files
+* Delete documents
+
+Deleting a document also requires removing its associated chunks and vectors so that deleted information cannot continue appearing in retrieval results.
+
+---
+
+# API Overview
+
+All protected endpoints require:
+
+```http
+Authorization: Bearer <token>
+```
+
+## Health
+
+| Method | Endpoint | Purpose                |
+| ------ | -------- | ---------------------- |
+| GET    | `/`      | Check API availability |
+
+## Authentication
+
+| Method | Endpoint             | Purpose              |
+| ------ | -------------------- | -------------------- |
+| POST   | `/api/auth/register` | Register a user      |
+| POST   | `/api/auth/login`    | Authenticate a user  |
+| GET    | `/api/auth/me`       | Get the current user |
+
+## Questions
+
+| Method | Endpoint                                  | Purpose                  |
+| ------ | ----------------------------------------- | ------------------------ |
+| GET    | `/api/questions`                          | List questions           |
+| POST   | `/api/questions`                          | Create a question        |
+| GET    | `/api/questions/search`                   | Semantic question search |
+| GET    | `/api/questions/:questionHash`            | Get a discussion         |
+| GET    | `/api/questions/:questionHash/similar`    | Find related questions   |
+| PUT    | `/api/questions/:questionHash`            | Update owned question    |
+| DELETE | `/api/questions/:questionHash`            | Delete owned question    |
+| POST   | `/api/questions/draft-coach`              | AI question feedback     |
+| POST   | `/api/questions/:questionHash/answer-fit` | AI answer feedback       |
+
+## Answers
+
+| Method | Endpoint                 | Purpose             |
+| ------ | ------------------------ | ------------------- |
+| POST   | `/api/answers`           | Create an answer    |
+| PUT    | `/api/answers/:answerId` | Update owned answer |
+| DELETE | `/api/answers/:answerId` | Delete owned answer |
+
+## Knowledge Base / RAG
+
+| Method | Endpoint                                | Purpose                      |
+| ------ | --------------------------------------- | ---------------------------- |
+| POST   | `/api/rag/documents`                    | Upload and process a PDF     |
+| GET    | `/api/rag/documents`                    | List user documents          |
+| GET    | `/api/rag/documents/:documentId`        | Get document metadata/status |
+| GET    | `/api/rag/documents/:documentId/file`   | Stream PDF file              |
+| GET    | `/api/rag/documents/:documentId/search` | Semantic document search     |
+| POST   | `/api/rag/documents/:documentId/query`  | Ask AI about a document      |
+| DELETE | `/api/rag/documents/:documentId`        | Delete document and vectors  |
+
+---
+
+# Repository Structure
+
+```text
+.
+├── backend/
+│   ├── db/
+│   │   └── schema.sql
+│   │
+│   ├── src/
+│   │   ├── ai/
+│   │   │   ├── embeddingService.js
+│   │   │   ├── gemini.js
+│   │   │   ├── generateText.js
+│   │   │   └── vectorMath.js
+│   │   │
+│   │   ├── config/
+│   │   │   ├── db.js
+│   │   │   └── env.js
+│   │   │
+│   │   ├── controllers/
+│   │   │   ├── answerController.js
+│   │   │   ├── authController.js
+│   │   │   ├── documentController.js
+│   │   │   └── questionController.js
+│   │   │
+│   │   ├── middleware/
+│   │   │   ├── authMiddleware.js
+│   │   │   ├── errorMiddleware.js
+│   │   │   └── uploadMiddleware.js
+│   │   │
+│   │   ├── models/
+│   │   │   ├── Answer.js
+│   │   │   ├── Document.js
+│   │   │   ├── Question.js
+│   │   │   ├── QuestionVector.js
+│   │   │   └── User.js
+│   │   │
+│   │   ├── routes/
+│   │   │   ├── answerRoutes.js
+│   │   │   ├── authRoutes.js
+│   │   │   ├── documentRoutes.js
+│   │   │   └── questionRoutes.js
+│   │   │
+│   │   ├── services/
+│   │   │   ├── aiService.js
+│   │   │   ├── answerService.js
+│   │   │   ├── authService.js
+│   │   │   ├── questionService.js
+│   │   │   └── ragService.js
+│   │   │
+│   │   └── utils/
+│   │       ├── gemini.js
+│   │       ├── generateText.js
+│   │       ├── hash.js
+│   │       ├── jwt.js
+│   │       ├── password.js
+│   │       └── vectorMath.js
+│   │
+│   ├── uploads/
+│   │   └── rag-documents/
+│   │
+│   ├── .env
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── index.js
+│   ├── package.json
+│   └── package-lock.json
+│
+├── frontend/
+│   ├── public/
+│   │   ├── favicon.svg
+│   │   └── icons.svg
+│   │
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   │
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── .oxlintrc.json
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   └── vite.config.js
+│
+├── .env.example
+├── .gitignore
+├── CONTRIBUTING.md
+└── README.md
+```
+
+---
+
+# Backend Architecture
+
+The backend follows a layered MVC-style architecture.
+
+```text
+Request
+   |
+   v
+Route
+   |
+   v
+Controller
+   |
+   v
+Service
+   |
+   v
+Model
+   |
+   v
+MySQL
+```
+
+### Routes
+
+Define API endpoints and connect them to controllers.
+
+### Controllers
+
+Handle HTTP requests and responses.
+
+Controllers should remain focused on the HTTP layer rather than containing large amounts of business logic.
+
+### Services
+
+Contain application and business logic.
+
+Examples include:
+
+* authentication
+* questions
+* answers
+* AI operations
+* RAG operations
+
+### Models
+
+Handle database operations and persistence.
+
+### Middleware
+
+Handles cross-cutting concerns such as:
+
+* authentication
+* authorization
+* uploads
+* error handling
+
+### AI Layer
+
+The AI-related code handles:
+
+* Gemini communication
+* text generation
+* embedding generation
+* vector operations
+
+---
+
+# Database
+
+The application uses MySQL for persistent storage.
+
+The database stores information related to:
+
+* Users
+* Questions
+* Answers
+* Question vectors
+* Documents
+* Document chunks
+* Document embeddings
+
+Conceptually:
+
+```text
+User
+ |
+ +---- Questions
+ |       |
+ |       +---- Question Vector
+ |       |
+ |       +---- Answers
+ |
+ +---- Documents
+         |
+         +---- Document Chunks
+                  |
+                  +---- Embeddings
+```
+
+---
+
+# Security
+
+Security is considered throughout the application.
+
+### Authentication
+
+Passwords are hashed before storage.
+
+JWTs are used to authenticate protected API requests.
+
+### Authorization
+
+Authentication answers:
+
+> Who are you?
+
+Authorization answers:
+
+> Are you allowed to perform this action?
+
+For example, a user can modify or delete only content they own.
+
+### File Security
+
+Uploaded documents are handled through authenticated routes and upload validation.
+
+### Environment Variables
+
+Secrets are kept outside source code.
+
+Never commit:
+
+```text
+.env
+API keys
+JWT secrets
+Database passwords
+Private credentials
+Production database dumps
+```
+
+### AI Safety
+
+AI output is treated as assistance.
+
+Users should verify AI-generated suggestions and answers before relying on or publishing them.
+
+---
+
+# Environment Configuration
+
+Create the backend environment file from the example configuration.
+
+Example:
+
+```dotenv
+PORT=4000
+
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_NAME=evangadi_forum_collab
+
+JWT_SECRET=replace_with_a_long_random_secret
+
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_EMBEDDING_MODEL=gemini-embedding-2
+GEMINI_FALLBACK_MODEL=
+
+SEMANTIC_SEARCH_DEFAULT_K=10
+SEMANTIC_SEARCH_RECOMMEND_THRESHOLD=0.6
+SEMANTIC_SEARCH_MAX_K=20
+SEMANTIC_SEARCH_BACKFILL_LIMIT=10
+```
+
+The frontend should contain:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+Frontend environment variables beginning with `VITE_` are exposed to the browser, so secrets must never be placed there.
+
+---
+
+# Getting Started
+
+## Prerequisites
+
+Make sure the following are installed:
+
+* Node.js 20+
+* npm
+* MySQL 8+
+* Git
+* Google Gemini API key
+
+---
+
+## Clone the Repository
+
+```bash
+git clone <repository-url>
+cd Evangadi_Forum_Collab
+```
+
+---
+
+## Configure MySQL
+
+Create the application database:
+
+```sql
+CREATE DATABASE evangadi_forum_collab
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
+
+Use the provided database schema:
+
+```text
+backend/db/schema.sql
+```
+
+---
+
+## Configure Environment Variables
+
+From the repository root:
+
+```bash
+cp .env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env
+```
+
+Update the values according to your local environment.
+
+---
+
+## Install Backend Dependencies
+
+```bash
+cd backend
+npm ci
+```
+
+---
+
+## Install Frontend Dependencies
+
+```bash
+cd ../frontend
+npm ci
+```
+
+---
+
+## Start the Backend
+
+From the `backend` directory:
+
+```bash
+node index.js
+```
+
+The API normally runs on:
+
+```text
+http://localhost:4000
+```
+
+---
+
+## Start the Frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Vite normally provides:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# Available Scripts
+
+## Frontend
+
+Run from `frontend/`:
+
+| Command           | Purpose                  |
+| ----------------- | ------------------------ |
+| `npm run dev`     | Start development server |
+| `npm run build`   | Create production build  |
+| `npm run lint`    | Run Oxlint               |
+| `npm run preview` | Preview production build |
+
+## Backend
+
+Run from `backend/`:
+
+```bash
+node index.js
+```
+
+For local development with nodemon:
+
+```bash
+npx nodemon index.js
+```
+
+---
+
+# Typical User Flow
+
+A complete user journey can look like this:
+
+```text
+Landing Page
+     |
+     v
+Register / Login
+     |
+     v
+Authenticated Dashboard
+     |
+     +-------------------------+
+     |                         |
+     v                         v
+Search Questions          Ask Question
+     |                         |
+     v                         v
+Semantic Results          Draft Coach
+     |                         |
+     +------------+------------+
+                  |
+                  v
+            Question Detail
+                  |
+          +-------+-------+
+          |               |
+          v               v
+    Read Answers      Write Answer
+                          |
+                          v
+                      Answer Fit
+                          |
+                          v
+                    Publish Answer
+```
+
+The knowledge-base flow extends the application:
+
+```text
+Dashboard
+    |
+    v
+Knowledge Base
+    |
+    +---- Upload PDF
+    |
+    +---- Select Document
+              |
+              +---- Ask AI
+              |
+              +---- Semantic Search
+              |
+              +---- PDF Preview
+```
+
+---
+
+# Forum Search vs Knowledge Base Search
+
+The project contains two related but different semantic search systems.
+
+### Forum Semantic Search
+
+Searches questions created by forum users.
+
+```text
+Query
+  |
+  v
+Question Embeddings
+  |
+  v
+Similar Questions
+```
+
+### Knowledge Base Semantic Search
+
+Searches chunks extracted from uploaded documents.
+
+```text
+Query
+  |
+  v
+Document Chunk Embeddings
+  |
+  v
+Relevant Document Content
+```
+
+The same embedding and similarity concepts can support both systems, but they operate on different data.
+
+---
+
+# RAG vs Normal AI Generation
+
+A normal AI request looks like:
+
+```text
+User Question
+      |
+      v
+Gemini
+      |
+      v
+AI Response
+```
+
+RAG adds retrieval:
+
+```text
+User Question
+      |
+      v
+Retrieve Relevant Document Content
+      |
+      v
+Build Context
+      |
+      v
+Gemini
+      |
+      v
+Grounded Response
+```
+
+This allows the application to use information from its own document collection during generation.
+
+---
+
+# Error Handling
+
+The application is designed to provide controlled responses when something goes wrong.
+
+Examples include:
+
+* Invalid authentication
+* Unauthorized access
+* Invalid question data
+* Missing resources
+* Database errors
+* AI provider failures
+* Embedding failures
+* Invalid uploads
+* Document processing failures
+
+The API follows a consistent response pattern.
+
+Successful responses use:
+
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+
+Errors use:
+
+```json
+{
+  "success": false,
+  "message": "A user-facing error message"
+}
+```
+
+Provider and internal implementation details should not be exposed to clients.
+
+---
+
+# Quality Checks
+
+Before submitting changes, run the frontend checks:
+
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+Then manually verify the affected application flow.
+
+For authentication changes, verify:
+
+```text
+Register
+   ↓
+Login
+   ↓
+Protected Request
+   ↓
+Authenticated Response
+```
+
+For forum changes, verify:
+
+```text
+Create Question
+   ↓
+Search
+   ↓
+Open Question
+   ↓
+Create Answer
+   ↓
+Ownership Rules
+```
+
+For AI changes, verify both successful responses and provider failure states.
+
+For RAG changes, verify:
+
+```text
+Upload PDF
+   ↓
+Process Document
+   ↓
+Search Document
+   ↓
+Ask AI
+   ↓
+Preview Document
+   ↓
+Delete Document
+```
+
+---
+
+# Project Principles
+
+The project follows several architectural principles:
+
+### Separation of Concerns
+
+Each layer has a focused responsibility.
+
+### Reusable Components
+
+Common frontend UI is implemented through reusable components.
+
+### Service-Based Business Logic
+
+Business logic is kept outside route definitions and controllers where practical.
+
+### Secure Authentication
+
+Protected resources require authentication and ownership checks.
+
+### AI as Assistance
+
+AI helps users discover, write, and understand information without replacing user responsibility.
+
+### Meaning-Based Discovery
+
+Embeddings and vector similarity allow users to discover relevant content beyond exact keyword matches.
+
+### Grounded AI
+
+RAG allows AI responses to incorporate retrieved information from user-provided documents.
+
+---
+
+# Milestone Completion Summary
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│              AI-POWERED EVANGADI FORUM                  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Milestone 1                                          │
+│  Authentication & Application Foundation              │
+│  ✓ Registration                                        │
+│  ✓ Login                                               │
+│  ✓ JWT Authentication                                  │
+│  ✓ Protected Routes                                    │
+│  ✓ Auth Context                                        │
+│                                                         │
+│  Milestone 2                                          │
+│  Questions, Answers & AI Assistance                  │
+│  ✓ Question Management                                 │
+│  ✓ Answer Management                                   │
+│  ✓ Keyword Search                                      │
+│  ✓ Semantic Search                                     │
+│  ✓ Related Questions                                   │
+│  ✓ Draft Coach                                         │
+│  ✓ Answer Fit                                          │
+│                                                         │
+│  Milestone 3                                          │
+│  Knowledge Base & RAG                                 │
+│  ✓ PDF Upload                                          │
+│  ✓ Text Extraction                                     │
+│  ✓ Chunking                                             │
+│  ✓ Embeddings                                          │
+│  ✓ Semantic Document Search                            │
+│  ✓ RAG Retrieval                                       │
+│  ✓ Grounded AI Answers                                 │
+│  ✓ PDF Preview                                         │
+│  ✓ Document Management                                 │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+# Contributing
+
+Contributions should follow the project's architecture, coding standards, Git workflow, and security practices.
+
+Before contributing, read:
+
+```text
+CONTRIBUTING.md
+```
+
+The contributing guide contains information about:
+
+* Project architecture
+* Development workflow
+* Branches
+* Commits
+* Pull requests
+* Code quality
+* Security
+* Milestone organization
+
+---
+
+# Final Project Architecture
+
+The complete system can be understood through this high-level model:
+
+```text
+                         USER
+                          |
+                          v
+                    React Frontend
+                          |
+             +------------+-------------+
+             |                          |
+             v                          v
+        Forum Features             Knowledge Base
+             |                          |
+             v                          v
+       Express REST API          Document API
+             |                          |
+      +------+-------+                  |
+      |              |                  |
+      v              v                  v
+   MySQL          Gemini AI       PDF Processing
+      |              |                  |
+      |              v                  v
+      |        Embeddings          Text Chunks
+      |              |                  |
+      |              v                  v
+      |       Vector Similarity     Chunk Embeddings
+      |              |                  |
+      +--------------+------------------+
+                     |
+                     v
+              Relevant Context
+                     |
+                     v
+                  Gemini
+                     |
+                     v
+             Grounded AI Answer
 ```
 
 ---
 
 # Project Status
 
-| Milestone   | Focus                                   | Status      |
-| ----------- | --------------------------------------- | ----------- |
-| Milestone 1 | Authentication & Application Foundation | Completed   |
-| Milestone 2 | Questions, Answers & AI Assistance      | In Progress |
-| Milestone 3 | RAG Knowledge Base                      | Planned     |
+**All three milestones are completed.**
 
-The project follows a modular architecture so that authentication, forum functionality, AI services, and RAG functionality can evolve independently while remaining part of the same application.
+The project now provides a complete AI-powered forum experience combining:
+
+* Secure authentication
+* Full question and answer workflows
+* Keyword and semantic discovery
+* AI-assisted question writing
+* AI-assisted answer evaluation
+* Document-based knowledge retrieval
+* Semantic document search
+* Retrieval-Augmented Generation
+* Grounded AI responses
+* PDF document management
+* A React-based user interface
+* A layered Express/MySQL backend
+
+The result is a full-stack forum application that combines traditional community discussion with modern AI-powered search, writing assistance, and document-grounded knowledge retrieval.
+
+---
+
+# License
+
+No license is currently declared for this repository.
+
+If the project is intended for public distribution or reuse, add an appropriate open-source license before redistribution.

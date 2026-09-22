@@ -100,21 +100,20 @@ const AuthPage = () => {
     // PASSWORD VALIDATION
     // ==========================================================
 
-    // A password is required for both registration and login.
+    // ==========================================================
+    // PASSWORD VALIDATION
+
     if (!formData.password) {
       setError("Password is required.");
       return;
     }
 
-    // Only registration requires a minimum password length.
-    // Login sends the supplied password to the backend so that
-    // incorrect credentials receive the generic authentication
-    // error: "Invalid email or password."
-    if (isRegistering) {
-      if (formData.password.length < 8) {
-        setError("Password must contain at least 8 characters.");
-        return;
-      }
+    // Only registration checks the minimum password length.
+    // Login should allow any supplied password to reach the
+    // backend, where it will be compared against the stored hash.
+    if (isRegistering && formData.password.length < 8) {
+      setError("Password must contain at least 8 characters.");
+      return;
     }
 
     // ==========================================================
@@ -155,14 +154,13 @@ const AuthPage = () => {
       navigate(destination, { replace: true });
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to connect to the server. Please try again.",
+        requestError.response?.data?.message ||
+          "Unable to sign in right now. Please try again.",
       );
     } finally {
       setIsLoading(false);
     }
-  };
+  };;;
 
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);

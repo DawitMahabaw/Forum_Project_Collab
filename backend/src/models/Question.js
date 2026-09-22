@@ -1,5 +1,11 @@
+// Import the MySQL connection pool from the team database configuration.
 import pool from "../config/db.js";
 
+// ============================================================
+// SHARED SELECT FRAGMENT
+// ============================================================
+// TASK REQUIREMENT: Retrieves necessary fields for the single question detail view.
+// Perfectly mirrors all your teammate's exact selection fields.
 const BASE_QUESTION_SELECT = `
   SELECT
     q.id,
@@ -18,6 +24,11 @@ const BASE_QUESTION_SELECT = `
   LEFT JOIN answers a ON a.question_id = q.id
 `;
 
+// ------------------------------------------------------------
+// DATA ROW MAPPER FOR FRONTEND COMPATIBILITY
+// ------------------------------------------------------------
+// TASK REQUIREMENT: Formats database snake_case columns cleanly into camelCase
+// objects to match normal JavaScript/JSON frontend conventions.
 const mapQuestionRow = (row) => ({
   id: row.id,
   questionHash: row.question_hash,
@@ -34,11 +45,34 @@ const mapQuestionRow = (row) => ({
 });
 
 const Question = {
-  // ==========================================================
-  // FIND MANY (WITH OPTIONAL FILTERS)
-  // ==========================================================
+  // ---------------------------------------------------------
+  // CREATE QUESTION
+  // ---------------------------------------------------------
 
-  // GET /api/questions - List questions with optional search and mine filter
+  async create({ questionHash, userId, title, content }) {
+    const [result] = await pool.execute(
+      `
+      INSERT INTO questions
+        (question_hash, user_id, title, content)
+      VALUES
+        (?, ?, ?, ?)
+      `,
+      [questionHash, userId, title, content],
+    );
+
+    return {
+      id: result.insertId,
+      questionHash,
+      userId,
+      title,
+      content,
+    };
+  },
+
+  // ---------------------------------------------------------
+  // FIND MANY (WITH OPTIONAL FILTERS)
+  // ---------------------------------------------------------
+
   async findMany({ search, userId }) {
     const conditions = [];
     const params = [];
@@ -70,12 +104,9 @@ const Question = {
     return rows.map(mapQuestionRow);
   },
 
-  // ============================================================
+  // ---------------------------------------------------------
   // FIND BY HASH
-  // ============================================================
-
-  // Find a question using its public question hash.
-  // Returns null when no question matches.
+  // ---------------------------------------------------------
   async findByHash(questionHash) {
     const [rows] = await pool.execute(
       `
@@ -88,6 +119,71 @@ const Question = {
     );
 
     return rows[0] ? mapQuestionRow(rows[0]) : null;
+  },
+
+  // ---------------------------------------------------------
+  // FIND BY ID (INTERNAL USE)
+  // ---------------------------------------------------------
+
+  async findById(id) {
+    const [rows] = await pool.execute(
+      `
+      ${BASE_QUESTION_SELECT}
+      WHERE q.id = ?
+      GROUP BY q.id
+      LIMIT 1
+      `,
+      [id],
+    );
+
+    return rows[0] ? mapQuestionRow(rows[0]) : null;
+  },
+
+  async updateOwnedByHash(questionHash, userId, { title, content }) {
+    const [result] = await pool.execute(
+      `UPDATE questions
+       SET title = ?, content = ?
+       WHERE question_hash = ? AND user_id = ?`,
+      [title, content, questionHash, userId],
+    );
+
+    return result.affectedRows > 0 ? this.findByHash(questionHash) : null;
+  },
+
+  async deleteOwnedByHash(questionHash, userId) {
+    const [result] = await pool.execute(
+      `DELETE FROM questions WHERE question_hash = ? AND user_id = ?`,
+      [questionHash, userId],
+    );
+
+    return result.affectedRows > 0;
+  },
+
+  // ---------------------------------------------------------
+  // FIND MANY BY IDS (PRESERVING ORDER)
+  // ---------------------------------------------------------
+
+  async findManyByIds(ids) {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const placeholders = ids.map(() => "?").join(", ");
+
+    const [rows] = await pool.execute(
+      `
+      ${BASE_QUESTION_SELECT}
+      WHERE q.id IN (${placeholders})
+      GROUP BY q.id
+      `,
+      ids,
+    );
+
+    const rowsById = new Map(rows.map((row) => [row.id, mapQuestionRow(row)]));
+
+    return ids
+      .map((id) => rowsById.get(id))
+      .filter((question) => Boolean(question));
   },
 };
 

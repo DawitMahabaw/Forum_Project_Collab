@@ -61,6 +61,43 @@ export async function initializeDatabase() {
       COLLATE=utf8mb4_unicode_ci
     `);
 
+    // The first schema used CHAR(16), but current public question IDs are
+    // 64-character hashes. Expanding the column preserves every existing ID
+    // and allows new posts to be created without truncation.
+    const [questionHashColumn] = await connection.query(`
+      SELECT CHARACTER_MAXIMUM_LENGTH AS max_length
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'questions'
+        AND COLUMN_NAME = 'question_hash'
+      LIMIT 1
+    `);
+
+    if (Number(questionHashColumn[0]?.max_length) < 64) {
+      await connection.query(`
+        ALTER TABLE questions
+        MODIFY question_hash VARCHAR(64) NOT NULL
+      `);
+      console.log("Expanded questions.question_hash to VARCHAR(64).");
+    }
+
+    // Create the question_vectors table if it does not already exist
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS question_vectors (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        question_id BIGINT UNSIGNED NOT NULL UNIQUE,
+        embedding JSON NULL,
+        status ENUM('ready', 'failed') NOT NULL DEFAULT 'failed',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_question_vectors_question FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE,
+        INDEX idx_question_vectors_status (status)
+      ) 
+      ENGINE = InnoDB DEFAULT 
+      CHARSET = utf8mb4 
+      COLLATE = utf8mb4_unicode_ci
+    `);
+
     // Create the answers table if it does not already exist
     await connection.query(`
       CREATE TABLE IF NOT EXISTS answers (
@@ -84,7 +121,7 @@ export async function initializeDatabase() {
       COLLATE=utf8mb4_unicode_ci
     `);
 
-    console.log("Questions and answers tables initialized successfully.");
+    console.log("Questions, question_vectors and answers tables initialized successfully.");
   } finally {
     await connection.end();
   }

@@ -1,52 +1,93 @@
-import { MessageCircle } from "lucide-react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import styles from "./QuestionCard.module.css";
 
-// Reusable card for displaying one forum question.
-const QuestionCard = ({ question }) => {
-  const navigate = useNavigate();
+const formatRelativeTime = (value) => {
+  const timestamp = new Date(value).getTime();
 
-  // Navigate to the question details page.
+  if (!Number.isFinite(timestamp)) {
+    return "Recently";
+  }
+
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((Date.now() - timestamp) / 1000),
+  );
+
+  if (elapsedSeconds < 60) return "Just now";
+
+  const minutes = Math.floor(elapsedSeconds / 60);
+  if (minutes < 60) {
+    return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+// Reusable question summary for the dashboard and personal-topic list.
+const QuestionCard = ({ question, variant = "card" }) => {
+  const navigate = useNavigate();
+  const questionHash = question.questionHash || question.question_hash;
+  const author = question.author || {};
+  const answerCount = Number(question.answerCount) || 0;
+  const authorName =
+    `${author.firstName || ""} ${author.lastName || ""}`.trim() ||
+    "Forum member";
+  const isFeedRow = variant === "feed";
+
   const handleClick = () => {
-    navigate(`/questions/${question.questionId}`);
+    if (questionHash) {
+      navigate(`/questions/${encodeURIComponent(questionHash)}`);
+    }
   };
 
-  // Create initials for the question author's avatar.
   const getInitials = () => {
-    const first = question.firstName?.[0] || "";
-    const last = question.lastName?.[0] || "";
+    const first = author.firstName?.[0] || "";
+    const last = author.lastName?.[0] || "";
 
     return `${first}${last}`.toUpperCase() || "U";
   };
 
   return (
-    <article className={styles.card} onClick={handleClick}>
+    <button
+      aria-label={`Open question: ${question.title}`}
+      className={`${styles.card} ${isFeedRow ? styles.feedRow : ""}`}
+      onClick={handleClick}
+      type="button"
+    >
       <div className={styles.avatar}>{getInitials()}</div>
 
       <div className={styles.content}>
         <h3 className={styles.title}>{question.title}</h3>
 
-        <p className={styles.excerpt}>{question.description}</p>
+        <p className={styles.excerpt}>{question.content}</p>
 
         <div className={styles.meta}>
-          <span>
-            {question.firstName} {question.lastName}
-          </span>
-
-          <span>•</span>
-
-          <span>{question.createdAt}</span>
-
           <span className={styles.replies}>
-            <MessageCircle size={14} />
-            {question.answerCount || 0} replies
+            <MessageCircle aria-hidden="true" size={14} />
+            {answerCount} {answerCount === 1 ? "reply" : "replies"}
           </span>
+          <span>by {authorName}</span>
+          <span>{formatRelativeTime(question.createdAt)}</span>
         </div>
       </div>
 
       {question.isOwner && <span className={styles.yours}>YOURS</span>}
-    </article>
+      {isFeedRow && (
+        <ArrowUpRight aria-hidden="true" className={styles.openIcon} size={19} />
+      )}
+    </button>
   );
 };
 

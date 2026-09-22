@@ -1,224 +1,191 @@
-import { FileText, HelpCircle, MessageCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+// ============================================================
+// HOME DASHBOARD
+// ============================================================
+//
+// Shows the community feed, plus its authenticated-user summary
+// and both keyword and semantic search result states.
 
-import { useAuth } from "../../context/AuthContext.jsx";
+import { BookOpen, MessageSquare, PenSquare, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 import QuestionCard from "../../components/QuestionCard/QuestionCard.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import {
-  getQuestions,
+  listQuestions,
   searchQuestions,
 } from "../../services/questionService.js";
-
 import styles from "./Dashboard.module.css";
 
 const Dashboard = () => {
   const { user } = useAuth();
-
-  // Read the search term from the URL.
-  // Example: /dashboard?search=react
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const searchTerm = searchParams.get("search")?.trim() || "";
-
+  const keyword = searchParams.get("keyword")?.trim() || "";
+  const mode = searchParams.get("mode") || "keyword";
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const firstName = user?.firstName || "there";
-
-  // Load questions whenever the search term changes.
   useEffect(() => {
     const loadQuestions = async () => {
+      setIsLoading(true);
+      setError("");
+
       try {
-        setIsLoading(true);
-        setError("");
-
-        // If there is a search term, use the search API.
-        // Otherwise, load the normal question feed.
-        const data = searchTerm
-          ? await searchQuestions(searchTerm)
-          : await getQuestions();
-
-        // Support both:
-        // [question1, question2]
-        //
-        // and:
-        // { questions: [question1, question2] }
-        const questionList = Array.isArray(data) ? data : data?.questions || [];
-
-        setQuestions(questionList);
-      } catch (err) {
-        console.error("Failed to load questions:", err);
-
-        setError("Unable to load questions right now. Please try again later.");
+        const data =
+          keyword && mode === "semantic"
+            ? await searchQuestions(keyword)
+            : await listQuestions({ search: keyword });
+        setQuestions(data.results || data.questions || []);
+      } catch (requestError) {
+        setError(
+          requestError.response?.data?.message ||
+          "Could not load the discussion feed.",
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
     loadQuestions();
-  }, [searchTerm]);
+  }, [keyword, mode]);
 
-  // Calculate dashboard statistics from the loaded questions.
-  const statistics = useMemo(() => {
-    const replies = questions.reduce(
-      (total, question) => total + (question.answerCount || 0),
-      0,
-    );
-
-    const unanswered = questions.filter(
-      (question) => !question.answerCount,
-    ).length;
-
-    const yours = questions.filter((question) => question.isOwner).length;
-
-    return {
+  const metrics = useMemo(
+    () => ({
       questions: questions.length,
-      replies,
-      unanswered,
-      yours,
-    };
-  }, [questions]);
+      replies: questions.reduce(
+        (total, question) => total + (question.answerCount || 0),
+        0,
+      ),
+      unanswered: questions.filter((question) => !question.answerCount).length,
+      yours: questions.filter(
+        (question) => Number(question.author?.id) === Number(user?.userId),
+      ).length,
+    }),
+    [questions, user?.userId],
+  );
+
+  const firstName = user?.firstName || "there";
+  const isSearch = Boolean(keyword);
 
   return (
-    <section className={styles.dashboard}>
-      {/* Welcome section */}
-      <header className={styles.welcome}>
-        <p className={styles.eyebrow}>FORUM HOME</p>
-
-        <h1>Good to see you, {firstName}.</h1>
-
+    <section className={styles.page}>
+      <header className={styles.welcomeCard}>
+        <span className={styles.eyebrow}>
+          {isSearch ? "Search results" : "Forum home"}
+        </span>
+        <h2>
+          {isSearch
+            ? `Results for “${keyword}”`
+            : `Good to see you, ${firstName}.`}
+        </h2>
         <p>
-          Start a topic, revisit your own threads, or skim the live feed. Search
-          above works from any page once you are back on Home.
+          {isSearch
+            ? mode === "semantic"
+              ? "AI found related discussions by meaning, not only matching words."
+              : "These threads match your search words."
+            : "Start a topic, revisit your own threads, or skim the live feed. Search above works from any page once you are back on Home."}
         </p>
+        {!isSearch && (
+          <>
+            <div className={styles.quickLinks}>
+              <button onClick={() => navigate("/questions/ask")} type="button">
+                <span>
+                  <PenSquare size={21} />
+                </span>
+                <b>New question</b>
+                <small>Share context, errors, and what you already tried</small>
+              </button>
+              <button onClick={() => navigate("/my-questions")} type="button">
+                <span>
+                  <MessageSquare size={21} />
+                </span>
+                <b>Your topics</b>
+                <small>Filtered list of threads you authored</small>
+              </button>
+              <button onClick={() => navigate("/rag-documents")} type="button">
+                <span>
+                  <BookOpen size={21} />
+                </span>
+                <b>Knowledge base</b>
+                <small>
+                  Course library, uploads, and retrieval-backed context
+                </small>
+              </button>
+            </div>
+            <div className={styles.metricsIntro}>
+              Figures below describe the newest threads in this feed (up to 100
+              from the API).
+            </div>
+            <div className={styles.metrics}>
+              <div>
+                <small>Questions</small>
+                <strong>{metrics.questions}</strong>
+              </div>
+              <div>
+                <small>Replies</small>
+                <strong>{metrics.replies}</strong>
+              </div>
+              <div>
+                <small>Unanswered</small>
+                <strong>{metrics.unanswered}</strong>
+              </div>
+              <div>
+                <small>Yours</small>
+                <strong>{metrics.yours}</strong>
+              </div>
+            </div>
+          </>
+        )}
       </header>
 
-      {/* Main feature cards */}
-      <section className={styles.featureGrid}>
-        <article className={styles.featureCard}>
-          <div className={styles.featureIcon}>
-            <HelpCircle size={20} />
-          </div>
-
-          <h2>New question</h2>
-
-          <p>Share context, errors, and what you already tried.</p>
-        </article>
-
-        <article className={styles.featureCard}>
-          <div className={styles.featureIcon}>
-            <MessageCircle size={20} />
-          </div>
-
-          <h2>Your topics</h2>
-
-          <p>Filtered list of threads you authored.</p>
-        </article>
-
-        <article className={styles.featureCard}>
-          <div className={styles.featureIcon}>
-            <FileText size={20} />
-          </div>
-
-          <h2>Knowledge base</h2>
-
+      {error && (
+        <div className={styles.error} role="alert">
+          {error}
+        </div>
+      )}
+      {isLoading && (
+        <div className={styles.loading}>Loading the latest discussions…</div>
+      )}
+      {!isLoading && !error && !questions.length && (
+        <div className={styles.empty}>
+          <h3>{isSearch ? "No matching discussions" : "No discussions yet"}</h3>
           <p>
-            Course library, uploads, and retrieval-backed context for threads.
+            {isSearch
+              ? "Try a different phrase or use more detail for AI Search."
+              : "Be the first person to start a helpful technical discussion."}
           </p>
-        </article>
-      </section>
-
-      {/* Forum statistics */}
-      <section className={styles.statsSection}>
-        <div className={styles.statsIntro}>
-          <h2>Forum activity</h2>
-
-          <p>Figures below describe the newest threads in this feed.</p>
+          {!isSearch && (
+            <button onClick={() => navigate("/questions/ask")} type="button">
+              <Plus size={16} />
+              Ask a question
+            </button>
+          )}
         </div>
-
-        <div className={styles.statsGrid}>
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Questions</span>
-
-            <strong className={styles.statValue}>
-              {isLoading ? "—" : statistics.questions}
-            </strong>
-          </article>
-
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Replies</span>
-
-            <strong className={styles.statValue}>
-              {isLoading ? "—" : statistics.replies}
-            </strong>
-          </article>
-
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Unanswered</span>
-
-            <strong className={styles.statValue}>
-              {isLoading ? "—" : statistics.unanswered}
-            </strong>
-          </article>
-
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Yours</span>
-
-            <strong className={styles.statValue}>
-              {isLoading ? "—" : statistics.yours}
-            </strong>
-          </article>
-        </div>
-      </section>
-
-      {/* Discussion feed */}
-      <section className={styles.feedSection}>
-        <div className={styles.feedHeader}>
-          <div className={styles.feedTitle}>
-            <h2>Discussion feed</h2>
-
-            <p>Your threads use a slim left accent in this list.</p>
-          </div>
-
-          <button type="button" className={styles.feedButton}>
-            NEWEST THREADS
-          </button>
-        </div>
-
-        {/* Loading state */}
-        {isLoading && (
-          <div className={styles.state}>
-            <p>Loading questions...</p>
-          </div>
-        )}
-
-        {/* Error state */}
-        {!isLoading && error && (
-          <div className={styles.state}>
-            <p>{error}</p>
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!isLoading && !error && questions.length === 0 && (
-          <div className={styles.state}>
-            <p>
-              {searchTerm
-                ? `No questions found for "${searchTerm}".`
-                : "No questions have been posted yet."}
-            </p>
-          </div>
-        )}
-
-        {/* Question results */}
-        {!isLoading && !error && questions.length > 0 && (
-          <div className={styles.questionList}>
-            {questions.map((question) => (
-              <QuestionCard key={question.questionId} question={question} />
-            ))}
-          </div>
-        )}
-      </section>
+      )}
+      {!isLoading && !error && questions.length > 0 && (
+        <section className={styles.feed}>
+          <header className={styles.feedHeader}>
+            <div>
+              <h2>{isSearch ? "Matching discussions" : "Discussion feed"}</h2>
+              <p>
+                {isSearch
+                  ? "Open a thread to read its full context and replies."
+                  : "Your threads use a slim left accent in this list."}
+              </p>
+            </div>
+            {!isSearch && <span>Newest threads</span>}
+          </header>
+          {questions.map((question) => (
+            <QuestionCard
+              key={question.questionHash}
+              question={question}
+              variant="feed"
+            />
+          ))}
+        </section>
+      )}
     </section>
   );
 };

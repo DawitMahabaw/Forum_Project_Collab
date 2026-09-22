@@ -15,6 +15,10 @@
   font-weight: 800;
 }
 
+.brand{
+  padding-left: 50px;
+}
+
 .brand p {
   max-width: 520px;
   margin: 7px 0 0;
@@ -61,4 +65,18 @@
   .copyright {
     grid-column: auto;
   }
+}
+
+:global(html[data-theme="dark"]) .footer {
+  border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .brand strong {
+  color: var(--text-primary);
+}
+
+:global(html[data-theme="dark"]) .brand p,
+:global(html[data-theme="dark"]) .copyright,
+:global(html[data-theme="dark"]) .links a {
+  color: var(--text-tertiary);
 }

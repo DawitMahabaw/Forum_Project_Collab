@@ -2,6 +2,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const numberFromEnv = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 const env = {
   port: process.env.PORT || 4000,
 
@@ -14,11 +19,37 @@ const env = {
   },
   jwtSecret: process.env.JWT_SECRET,
 
+  geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
+  geminiModel: process.env.GEMINI_MODEL?.trim(),
+  geminiEmbeddingModel: process.env.GEMINI_EMBEDDING_MODEL?.trim(),
+  geminiFallbackModel: process.env.GEMINI_FALLBACK_MODEL?.trim(),
+
   semanticSearch: {
-    defaultK: Number(process.env.SEMANTIC_SEARCH_DEFAULT_K) || 10,
-    recommendThreshold:
-      Number(process.env.SEMANTIC_SEARCH_RECOMMEND_THRESHOLD) || 0.5,
-    maxK: Number(process.env.SEMANTIC_SEARCH_MAX_K) || 20,
+    defaultK: numberFromEnv(process.env.SEMANTIC_SEARCH_DEFAULT_K, 10),
+    recommendThreshold: numberFromEnv(
+      process.env.SEMANTIC_SEARCH_RECOMMEND_THRESHOLD ??
+        process.env.RECOMMEND_THRESHOLD,
+      0.6,
+    ),
+    // Recommendations need a stricter threshold than an intentional search.
+    relatedQuestionThreshold: numberFromEnv(
+      process.env.RELATED_QUESTION_THRESHOLD,
+      0.72,
+    ),
+    maxK: numberFromEnv(process.env.SEMANTIC_SEARCH_MAX_K, 20),
+    backfillLimit: numberFromEnv(
+      process.env.SEMANTIC_SEARCH_BACKFILL_LIMIT,
+      10,
+    ),
+  },
+   //upload rag document
+  //upload rag document
+  rag: {
+    uploadDir: process.env.RAG_UPLOAD_DIR || "uploads/rag-documents",
+    maxFileSizeBytes: numberFromEnv(
+      process.env.RAG_MAX_FILE_SIZE_BYTES,
+      10 * 1024 * 1024,
+    ),
   },
 };
 

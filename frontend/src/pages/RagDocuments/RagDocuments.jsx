@@ -267,13 +267,17 @@ const RagDocuments = () => {
       <div className={styles.workspace}>
         <aside className={styles.library} aria-label="Private PDF library">
           <div className={styles.uploadBox}>
-            <p>Accepted format: PDF. Maximum file size is enforced by the server.</p>
+            <p>
+              Accepted format: PDF. Maximum file size is enforced by the server.
+            </p>
+
             <input
               accept="application/pdf"
               onChange={(event) => setFile(event.target.files?.[0] || null)}
               ref={fileInput}
               type="file"
             />
+
             <div className={styles.uploadActions}>
               <button
                 className={styles.fileButton}
@@ -283,13 +287,18 @@ const RagDocuments = () => {
                 <FileText size={16} />
                 Choose file
               </button>
+
               <button
                 className={styles.uploadButton}
                 disabled={!file || isUploading}
                 onClick={handleUpload}
                 type="button"
               >
-                {isUploading ? <LoaderCircle className={styles.spin} size={16} /> : <Upload size={16} />}
+                {isUploading ? (
+                  <LoaderCircle className={styles.spin} size={16} />
+                ) : (
+                  <Upload size={16} />
+                )}
                 {isUploading ? "Uploading..." : "Upload"}
               </button>
             </div>
@@ -299,14 +308,17 @@ const RagDocuments = () => {
           {isLoading && <p className={styles.muted}>Loading your library...</p>}
           {!isLoading && !documents.length && (
             <p className={styles.muted}>
-              Upload a PDF to make it available for private search and AI answers.
+              Upload a PDF to make it available for private search and AI
+              answers.
             </p>
           )}
 
           <div className={styles.documentList}>
             {documents.map((document) => (
               <button
-                aria-current={activeId === document.documentId ? "true" : undefined}
+                aria-current={
+                  activeId === document.documentId ? "true" : undefined
+                }
                 className={`${styles.documentItem} ${
                   activeId === document.documentId ? styles.documentActive : ""
                 }`}
