@@ -1,6 +1,16 @@
 import fs from "node:fs/promises";
 import Document from "../models/Document.js";
+<<<<<<< HEAD
 import { createDocument,deleteDocument, queryDocument,searchDocument } from "../rag/ragService.js";
+=======
+import {
+  createDocument,
+  deleteDocument,
+  queryDocument,
+  searchDocument,
+} from "../rag/ragService.js";
+
+>>>>>>> origin/main
 
 // Accept document ID
 const getDocumentId = (rawDocumentId) => {
@@ -24,8 +34,6 @@ const findOwnedDocument = async (rawDocumentId, userId, options = {}) => {
     options,
   );
 
-  // Handle missing documents & Handle unauthorized access
-  // Returning generic 404 prevents unauthorized users from knowing if a document exists
   if (!document) {
     const error = new Error("Document not found.");
     error.statusCode = 404;
@@ -44,31 +52,87 @@ const requireQuery = (rawQuery) => {
   return rawQuery.trim();
 };
 
-// Create semantic search endpoint
-const search = async (req, res, next) => {
+// Controller for retrieving information about one document.
+const getDocument = async (req, res, next) => {
   try {
-    // 1. Accept document ID & Verify document ownership
     const document = await findOwnedDocument(
       req.params.documentId,
       req.user.userId,
     );
-    // 2. Accept search query and delegate down to your lower service layers
+
+    return res.status(200).json({
+      success: true,
+      message: "Document fetched successfully.",
+      data: document,
+    });
+  } catch (error) {
+    return next(error);
+  }
+
+};
+
+const search = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
     const data = await searchDocument(
       document,
       requireQuery(req.query.query),
       req.query.k,
     );
-    // 3. Return chunk text and relevance information
     return res.status(200).json({
       success: true,
       message: "Ranked chunk excerpts.",
-      data, // Contains chunk texts and their calculated metrics
+      data,
     });
   } catch (error) {
-    // 4. Handle embedding errors & Handle database errors
     return next(error);
   }
 };
+
+const remove = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+    await deleteDocument(document, req.user.userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Document deleted successfully.",
+      data: { documentId: document.documentId },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const ask = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    const data = await queryDocument(document, requireQuery(req.body.query));
+
+    return res.status(200).json({
+      success: true,
+      message: "Answer generated from document sources.",
+      data,
+    });
+
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
 const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -76,6 +140,17 @@ const uploadDocument = async (req, res, next) => {
       error.statusCode = 400;
       throw error;
     }
+
+    const document = await createDocument({
+      userId: req.user.userId,
+      file: req.file,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Document uploaded and is being processed.",
+      data: document,
+    });
 
     const documentId = await Document.create({
       userId: req.user.userId,
@@ -98,7 +173,7 @@ const uploadDocument = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file?.path) {
-      await fs.rm(req.file.path, { force: true }).catch(() => {});
+      await fs.rm(req.file.path, { force: true }).catch(() => { });
     }
 
     return next(error);
@@ -107,6 +182,7 @@ const uploadDocument = async (req, res, next) => {
 const getDocument = async (req, res, next) => {
   // Controller for retrieving information about one document.
 
+<<<<<<< HEAD
   try {
     const document = await findOwnedDocument(
       req.params.documentId,
@@ -278,3 +354,6 @@ export {
   uploadDocument,
 };
 export { search, uploadDocument };
+=======
+export { ask, uploadDocument, remove, search, getDocument };
+>>>>>>> origin/main

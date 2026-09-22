@@ -45,7 +45,8 @@ const Document = {
     );
 
     // Step 2: If a matching document row is found, format it; otherwise return null
-    return rows ? mapDocument(rows, options) : null;
+    // return rows ? mapDocument(rows, options) : null;
+    return rows[0] ? mapDocument(rows[0], options) : null;
   },
 
   // Database lookup to retrieve all prepared text chunks and vector embeddings
@@ -69,6 +70,7 @@ const Document = {
       embedding: parseEmbedding(row.embedding),
     }));
   },
+<<<<<<< HEAD
     // ----------------------------------------------------------
   // DELETE OWNED DOCUMENT
   // ----------------------------------------------------------
@@ -83,9 +85,102 @@ const Document = {
     );
 
   
+=======
+
+  // DELETE OWNED DOCUMENT
+  // Therefore deleting the document can also delete its related
+  // records automatically.
+  async deleteById(documentId, userId) {
+    // Execute the DELETE query.
+    const [result] = await pool.execute(
+      // Delete only the document matching BOTH:
+      // document ID AND owner ID
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
+      [documentId, userId],
+    );
+
+    // affectedRows tells us whether a database row was deleted.
+>>>>>>> origin/main
     return result.affectedRows > 0;
   },
 };
 
+<<<<<<< HEAD
 
+=======
+// ==========================================
+  // TASK T-22: 
+  // ==========================================
+/**
+   * Create a new document record in the database
+   */
+  
+  async create({ userId, title, mimeType, storagePath, byteSize }) {
+    const [result] = await pool.execute(
+      `INSERT INTO documents (user_id, title, mime_type, storage_path, byte_size)
+       VALUES (?, ?, ?, ?, ?)`,
+      [userId, title, mimeType, storagePath, byteSize]
+    );
+    return result.insertId;
+  },
+
+  /**
+   * List all documents belonging to a specific user
+   */
+  async listForUser(userId) {
+    const [rows] = await pool.execute(
+      `SELECT document_id, title, mime_type, byte_size, status, error_message,
+              created_at, updated_at
+       FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
+      [userId]
+    );
+    return rows.map((row) => mapDocument(row));
+  },
+
+  /**
+   * Update document processing status and optional error message
+   */
+  async updateStatus(documentId, status, errorMessage = null) {
+    await pool.execute(
+      `UPDATE documents SET status = ?, error_message = ? WHERE document_id = ?`,
+      [status, errorMessage, documentId]
+    );
+  },
+
+  /**
+   * Insert extracted text chunk for a document
+   */
+  async addChunk(documentId, chunkIndex, content) {
+    const [result] = await pool.execute(
+      `INSERT INTO document_chunks (document_id, chunk_index, content)
+       VALUES (?, ?, ?)`,
+      [documentId, chunkIndex, content]
+    );
+    return result.insertId;
+  },
+
+  /**
+   * Save vector embedding for a specific chunk
+   */
+  async addChunkVector(chunkId, embedding) {
+    await pool.execute(
+      `INSERT INTO document_chunk_vectors (chunk_id, embedding, status)
+       VALUES (?, ?, 'ready')`,
+      [chunkId, JSON.stringify(embedding)]
+    );
+  },
+
+  /**
+   * Delete document by ID ensuring user ownership
+   */
+  async deleteById(documentId, userId) {
+    const [result] = await pool.execute(
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
+      [documentId, userId]
+    );
+    return result.affectedRows > 0;
+  },
+
+};
+>>>>>>> origin/main
 export default Document;

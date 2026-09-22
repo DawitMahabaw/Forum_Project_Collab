@@ -36,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/questions", createQuestionRoutes);
 app.use("/api/answers", answerRoutes);
 app.use("/api/rag/documents", documentRoutes);
+app.use("/api/documents", documentRoutes);
 app.use(notFound);
 app.use(errorHandler);
 const testDatabaseConnection = async () => {
