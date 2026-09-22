@@ -9,8 +9,9 @@ import {
 import { isQuestionHash } from "../utils/questionHash.js";
 import env from "../config/env.js";
 
-import { 
-  generateQuestionDraftCoachService,assessAnswerAgainstQuestionService } from "../services/aiService.js";
+import {
+  generateQuestionDraftCoachService, assessAnswerAgainstQuestionService
+} from "../services/aiService.js";
 
 // ============================================================
 // SEMANTIC SEARCH VALIDATION
