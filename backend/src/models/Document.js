@@ -70,6 +70,22 @@ const Document = {
       embedding: parseEmbedding(row.embedding),
     }));
   },
+<<<<<<< HEAD
+    // ----------------------------------------------------------
+  // DELETE OWNED DOCUMENT
+  // ----------------------------------------------------------
+  async deleteById(documentId, userId) {
+    // Execute the DELETE query.
+    const [result] = await pool.execute(
+    
+      `DELETE FROM documents WHERE document_id = ? AND user_id = ?`,
+
+      // Values for the placeholders.
+      [documentId, userId],
+    );
+
+  
+=======
 
   // DELETE OWNED DOCUMENT
   // Therefore deleting the document can also delete its related
@@ -84,10 +100,14 @@ const Document = {
     );
 
     // affectedRows tells us whether a database row was deleted.
+>>>>>>> origin/main
     return result.affectedRows > 0;
   },
 };
 
+<<<<<<< HEAD
+
+=======
 // ==========================================
   // TASK T-22: 
   // ==========================================
@@ -162,4 +182,5 @@ const Document = {
   },
 
 };
+>>>>>>> origin/main
 export default Document;

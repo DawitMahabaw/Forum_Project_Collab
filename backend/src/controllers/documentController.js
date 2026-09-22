@@ -1,5 +1,8 @@
 import fs from "node:fs/promises";
 import Document from "../models/Document.js";
+<<<<<<< HEAD
+import { createDocument,deleteDocument, queryDocument,searchDocument } from "../rag/ragService.js";
+=======
 import {
   createDocument,
   deleteDocument,
@@ -7,6 +10,7 @@ import {
   searchDocument,
 } from "../rag/ragService.js";
 
+>>>>>>> origin/main
 
 // Accept document ID
 const getDocumentId = (rawDocumentId) => {
@@ -175,5 +179,181 @@ const uploadDocument = async (req, res, next) => {
     return next(error);
   }
 };
+const getDocument = async (req, res, next) => {
+  // Controller for retrieving information about one document.
 
+<<<<<<< HEAD
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+        // Get the document ID from the URL.
+    //
+   
+    return res.status(200).json({
+      success: true,
+      message: "Document fetched successfully.",
+      data: document,
+    });
+
+    // Return the document information to the frontend.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
+const streamDocument = async (req, res, next) => {
+  // Controller for sending the actual PDF file to the client.
+  //
+ 
+
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+
+    // Find the authenticated user's document.
+    //
+    // Notice the third argument:
+    //
+
+    
+    if (!fs.existsSync(document.storagePath)) {
+      const error = new Error("The uploaded PDF file is no longer available.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+   
+    res.type("application/pdf");
+    return res.sendFile(document.storagePath);
+
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
+const Search = async (req, res, next) => {
+  // Controller for semantic search inside a document.
+  //
+  // The user provides a search query,
+  // and the RAG service finds the most semantically relevant
+  // chunks/passages from that document.
+
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    // First verify that the requested document belongs
+    // to the authenticated user.
+    //
+    // This ownership check happens BEFORE searching the document.
+
+       const data = await searchDocument(
+      document,
+      requireQuery(req.query.query),
+      req.query.k,
+    );
+
+  
+    return res.status(200).json({
+      success: true,
+      message: "Ranked chunk excerpts.",
+      data,
+    });
+
+    // Return the ranked search results to the frontend.
+    //
+    // "Ranked chunk excerpts" means the response can contain
+    // pieces of the document ordered according to semantic relevance.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
+const ask = async (req, res, next) => {
+  
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    // Verify that the authenticated user owns the document.
+    //
+    // Again, ownership is checked before accessing the document.
+
+      const data = await queryDocument(document, requireQuery(req.body.query));
+
+   
+
+    return res.status(200).json({
+      success: true,
+      message: "Answer generated from document sources.",
+      data,
+    });
+
+    
+    // Return the generated document-grounded answer
+    // to the frontend.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
+const remove = async (req, res, next) => {
+  
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+
+   
+    await deleteDocument(document, req.user.userId);
+
+   
+    return res.status(200).json({
+      success: true,
+      message: "Document deleted successfully.",
+      data: { documentId: document.documentId },
+    });
+
+    // Tell the frontend that deletion succeeded.
+    //
+    // data contains the ID of the deleted document.
+  } catch (error) {
+    return next(error);
+  }
+
+  // Pass errors to the centralized error handler.
+};
+
+export {
+  ask,
+  getDocument,
+  listDocuments,
+  remove,
+  search,
+  streamDocument,
+  uploadDocument,
+};
+export { search, uploadDocument };
+=======
 export { ask, uploadDocument, remove, search, getDocument };
+>>>>>>> origin/main
