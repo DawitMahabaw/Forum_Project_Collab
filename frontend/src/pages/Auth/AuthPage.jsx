@@ -118,6 +118,19 @@ const AuthPage = () => {
       return;
     }
 
+
+     if (!formData.confirmPassword) {
+       setError("Confirm your password");
+       return;
+     }
+
+
+    // registration requires a password confirmation match.  
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     // ==========================================================
     // SUBMIT AUTHENTICATION REQUEST
     // ==========================================================
