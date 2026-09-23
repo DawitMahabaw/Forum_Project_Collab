@@ -29,6 +29,7 @@ const AuthPage = () => {
    confirmPassword: "",
  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -255,7 +256,6 @@ const AuthPage = () => {
         </div>
       </section>
 
-    
       <section className={styles.formSection}>
         <div className={styles.formCard}>
           <AnimatePresence mode="wait">
@@ -343,6 +343,7 @@ const AuthPage = () => {
                         isRegistering ? "new-password" : "current-password"
                       }
                     />
+
                     <button
                       type="button"
                       className={styles.passwordToggle}
@@ -353,6 +354,34 @@ const AuthPage = () => {
                       aria-pressed={showPassword}
                     >
                       {showPassword ? (
+                        <EyeOff size={18} aria-hidden />
+                      ) : (
+                        <Eye size={18} aria-hidden />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor="confirmPassword">Confirm Password</label>
+                  <div className={styles.passwordWrap}>
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Confirm your password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={() => setShowConfirmPassword((value) => !value)}
+                      aria-label={
+                        showConfirmPassword ? "Hide password" : "Show password"
+                      }
+                      aria-pressed={showConfirmPassword}
+                    >
+                      {showConfirmPassword ? (
                         <EyeOff size={18} aria-hidden />
                       ) : (
                         <Eye size={18} aria-hidden />
