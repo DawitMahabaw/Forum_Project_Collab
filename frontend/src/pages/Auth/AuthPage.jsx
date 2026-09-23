@@ -118,17 +118,17 @@ const AuthPage = () => {
       return;
     }
 
+    // registration requires a password confirmation match.
+    if (isRegistering) {
+      if (!formData.confirmPassword) {
+        setError("Confirm your password");
+        return;
+      }
 
-     if (!formData.confirmPassword) {
-       setError("Confirm your password");
-       return;
-     }
-
-
-    // registration requires a password confirmation match.  
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
     }
 
     // ==========================================================
@@ -375,33 +375,39 @@ const AuthPage = () => {
                   </div>
                 </div>
 
-                <div className={styles.field}>
-                  <label htmlFor="confirmPassword">Confirm Password</label>
-                  <div className={styles.passwordWrap}>
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      placeholder="Confirm your password"
-                    />
-                    <button
-                      type="button"
-                      className={styles.passwordToggle}
-                      onClick={() => setShowConfirmPassword((value) => !value)}
-                      aria-label={
-                        showConfirmPassword ? "Hide password" : "Show password"
-                      }
-                      aria-pressed={showConfirmPassword}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff size={18} aria-hidden />
-                      ) : (
-                        <Eye size={18} aria-hidden />
-                      )}
-                    </button>
+                {isRegistering && (
+                  <div className={styles.field}>
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <div className={styles.passwordWrap}>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Confirm your password"
+                      />
+                      <button
+                        type="button"
+                        className={styles.passwordToggle}
+                        onClick={() =>
+                          setShowConfirmPassword((value) => !value)
+                        }
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                        aria-pressed={showConfirmPassword}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={18} aria-hidden />
+                        ) : (
+                          <Eye size={18} aria-hidden />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {success && (
                   <div className={styles.success} role="status">
