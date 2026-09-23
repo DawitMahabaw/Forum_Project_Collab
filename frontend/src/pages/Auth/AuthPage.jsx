@@ -21,12 +21,13 @@ const AuthPage = () => {
   const location = useLocation();
   const { login, register } = useAuth();
   const [isRegistering, setIsRegistering] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-  });
+ const [formData, setFormData] = useState({
+   firstName: "",
+   lastName: "",
+   email: "",
+   password: "",
+   confirmPassword: "",
+ });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
