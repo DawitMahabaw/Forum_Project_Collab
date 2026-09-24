@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -15,8 +15,12 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import styles from "./AuthPage.module.css";
 
 
-
 const AuthPage = () => {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
   const navigate = useNavigate();
   const location = useLocation();
   const { login, register } = useAuth();
@@ -40,7 +44,7 @@ const AuthPage = () => {
     }));
     setError("");
   };
-  
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -155,7 +159,7 @@ const AuthPage = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Unable to sign in right now. Please try again.",
+        "Unable to sign in right now. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -254,7 +258,7 @@ const AuthPage = () => {
         </div>
       </section>
 
-    
+
       <section className={styles.formSection}>
         <div className={styles.formCard}>
           <AnimatePresence mode="wait">
