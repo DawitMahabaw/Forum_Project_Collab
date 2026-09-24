@@ -18,15 +18,23 @@ import styles from "./LandingPage.module.css";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  //navigation function create enadergalen yhem ke page wede page move enadiyaderg yredanal
 
   const { isAuthenticated } = useAuth();
-
+//calls your authentication system Gets the value isAuthenticated.
+//true or false yhonal   tru kehone  user login yadergak
+//false kehone degmo user log in madreg aychlm
   const scrollToHowItWorks = () => {
-    document
+    // wede how it work smoothly scroll down yadergal
+    document // ychi document accesses yemtadergew webpage new
       .getElementById("how-it-works")
-      ?.scrollIntoView({ behavior: "smooth" });
+      //Finds an HTML element with
+      ?.scrollIntoView({ behavior: "smooth" });// ezih ga ?. yhe element kale or exist kaderege bcha smoth endiyaderg yredanal
   };
-
+{/* yhen section behula yteralnal <section
+  className={styles.process}
+  id="how-it-works"
+></section> */}
   return (
     <div className={styles.page}>
       {/* ------------------------------------------------------
@@ -34,13 +42,15 @@ const LandingPage = () => {
        * ------------------------------------------------------ */}
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <button
+          <button // the website logo is clickable.
             type="button"
             className={styles.brand}
-            onClick={() => navigate("/")}
-            aria-label="Evangadi Forum home"
+            onClick={() => navigate("/")} // navigate("/") takes them to the home page.
+            aria-label="Evangadi Forum home" //aria-label= yhe le screen readers buttonu mn endemisera yemigelts new yhem wede Evangadi Forum home ywesdenal.
           >
             <span className={styles.brandMark} aria-hidden>
+              //Creates a small area for the logo icon & aria-hidden tells
+              screen readers to ignore this decorative icon.
               <MessageSquare size={20} strokeWidth={2} />
             </span>
             <span className={styles.brandText}>
@@ -56,6 +66,7 @@ const LandingPage = () => {
               type="button"
               className={styles.navLink}
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              // yhe button click sidereg  window.scrollTo() moves the page  and top: 0 means go to the top.
             >
               Overview
             </button>
@@ -85,16 +96,22 @@ const LandingPage = () => {
            */}
           <div className={styles.headerActions}>
             {isAuthenticated ? (
+              //This is a ternary condition.
+              //It means:
+              // Is the user logged in?
+              // If yes, show the first part.
+              // If no, show the second part.
               <button
                 type="button"
                 className={styles.btnPrimary}
                 onClick={() => navigate("/dashboard")}
               >
-                Open forum
+                //Creates a primary button. Open forum
                 <ArrowRight size={16} aria-hidden />
               </button>
             ) : (
               <>
+                //So if isAuthenticated is false, show this part
                 <button
                   type="button"
                   className={styles.btnGhost}
@@ -122,10 +139,14 @@ const LandingPage = () => {
         <section className={styles.hero}>
           <div className={styles.heroInner}>
             <div>
-              <Motion.p
+              <Motion.p //Creates an animated paragraph using Framer Motion.
                 className={styles.eyebrow}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
+                //nitial animation state:
+                // opacity: 0 → invisible 1 sihon visible
+                // y: 8 → slightly lower 0 sihon normal position
+                //so fade in yadergna wede upward move yadergal
               >
                 <Sparkles size={14} aria-hidden />
                 Keyword search + embedding similarity
@@ -135,9 +156,9 @@ const LandingPage = () => {
                 className={styles.title}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
+                transition={{ delay: 0.05 }} //Waits 0.05 seconds before starting the animation.
               >
-                A calm place for{" "}
+                A calm place for // adds a space.
                 <span className={styles.titleAccent}>technical Q&A</span>
               </Motion.h1>
 
@@ -164,14 +185,18 @@ const LandingPage = () => {
                 <button
                   type="button"
                   className={styles.btnPrimary}
-                  onClick={() =>
-                    navigate(isAuthenticated ? "/dashboard" : "/auth")
+                  onClick={
+                    () => navigate(isAuthenticated ? "/dashboard" : "/auth")
+                    // This checks authentication.
+                    // If logged in wede dashboard yhedna  goto home yemil text display yadergal
+                    //if not logged in wede /auth ywesdna get started yemil display yaderglnal
                   }
                 >
                   {isAuthenticated ? "Go to home" : "Get started"}
                   <ArrowRight size={16} aria-hidden />
                 </button>
                 {!isAuthenticated && (
+                  // If the user is NOT authenticated, show the following button.
                   <button
                     type="button"
                     className={styles.btnOutline}
@@ -182,6 +207,8 @@ const LandingPage = () => {
                 )}
               </Motion.div>
             </div>
+            //Hero panel creates a side panel // aside means: ke main content ga
+            related yehone techemari information ysetenal
             <aside className={styles.heroPanel} aria-label="What you get">
               <p className={styles.heroPanelLabel}>At a glance</p>
               <ul className={styles.heroPanelList}>
@@ -218,7 +245,7 @@ const LandingPage = () => {
          * ------------------------------------------------------ */}
         <section
           className={styles.rag}
-          id="course-rag"
+          id="course-rag" // yhe id kelay yetetekemnew navigartion button yhen section lemefeleg yemitekembet new
           aria-labelledby="rag-heading"
         >
           <div className={styles.sectionInner}>
@@ -275,9 +302,12 @@ const LandingPage = () => {
             </p>
           </div>
         </section>
-        
+
         {!isAuthenticated && (
           <>
+            //It means: only user loginn kaladerege ezih wust hulunm neger user gn already log in kaderege yhe section hidden new
+
+            //Capabilities section //Capabilities section
             <section className={styles.capabilities}>
               <div className={styles.sectionInner}>
                 <h2 className={styles.sectionTitle}>
@@ -288,11 +318,15 @@ const LandingPage = () => {
                   "marketing product."
                 </p>
                 <div className={styles.cardGrid}>
+                  // ezih ga degmo lehulum card'och grid create yaderglnal
                   <article className={styles.card}>
                     <div className={styles.cardIcon} aria-hidden>
                       <Search size={22} strokeWidth={1.75} />
+                      // search icon
                     </div>
                     <h3 className={styles.cardTitle}>Find related work</h3>
+                    // bekeyword weym temesasay yehone search find madreg
+                    endemnchl yemigelts header
                     <p className={styles.cardBody}>
                       Keyword filters for exact matches, plus similarity search
                       when you're still shaping the right vocabulary.
@@ -300,9 +334,11 @@ const LandingPage = () => {
                   </article>
                   <article className={styles.card}>
                     <div className={styles.cardIcon} aria-hidden>
-                      <MessageSquare size={22} strokeWidth={1.75} />
+                      <MessageSquare size={22} strokeWidth={1.75} /> //Message
+                      icon.
                     </div>
                     <h3 className={styles.cardTitle}>Readable threads</h3>
+                    //Explains questions and answers.
                     <p className={styles.cardBody}>
                       Questions and answers stay structured so the group can
                       reuse explanations before exams.
@@ -313,6 +349,7 @@ const LandingPage = () => {
                       <Sparkles size={22} strokeWidth={1.75} />
                     </div>
                     <h3 className={styles.cardTitle}>Lightweight AI help</h3>
+                    //Explains AI suggestions.
                     <p className={styles.cardBody}>
                       Suggestions on your question draft. Always your choice to
                       apply or post.
@@ -320,10 +357,11 @@ const LandingPage = () => {
                   </article>
                   <article className={styles.card}>
                     <div className={styles.cardIcon} aria-hidden>
-                      <Layers size={22} strokeWidth={1.75} />
+                      <Layers size={22} strokeWidth={1.75} /> //Layers icon
                     </div>
                     <h3 className={styles.cardTitle}>
-                      RAG over your course library
+                      RAG over your course library //Explains course-document
+                      RAG.
                     </h3>
                     <p className={styles.cardBody}>
                       Upload PDFs and notes; the system retrieves the most
@@ -333,13 +371,12 @@ const LandingPage = () => {
                 </div>
               </div>
             </section>
-
             {/* ----------------------------------------------------
              * HOW IT WORKS
              * ---------------------------------------------------- */}
-            <section
+            <section // Creates the How It Works section.
               className={styles.process}
-              id="how-it-works"
+              id="how-it-works" //our function  search siyaderg yeneberew yhen id new
               aria-labelledby="how-heading"
             >
               <div className={styles.sectionInner}>
@@ -351,48 +388,59 @@ const LandingPage = () => {
                   person.
                 </p>
                 <ol className={styles.steps}>
+                  //step 1
                   <li className={styles.step}>
                     <span className={styles.stepIcon} aria-hidden>
-                      <PenSquare size={18} />
+                      <PenSquare size={18} /> //Shows the writing icon.
                     </span>
                     <div>
                       <h3 className={styles.stepTitle}>Ask with context</h3>
+                      //user tyakewn betegebiw huneta or slemiteykut neger beki
+                      information provide madereg alebachew
                       <p className={styles.stepText}>
                         Title, environment, and what you tried, so peers can
                         reproduce before they teach.
                       </p>
                     </div>
                   </li>
+                  //Step 2
                   <li className={styles.step}>
                     <span className={styles.stepIcon} aria-hidden>
-                      <MessageSquare size={18} />
+                      <MessageSquare size={18} /> //message icon
                     </span>
                     <div>
                       <h3 className={styles.stepTitle}>Get answers</h3>
+                      // Explains that answers appear in the question thread.
                       <p className={styles.stepText}>
                         Replies live in one thread with markdown, visible to
                         everyone in the cohort.
                       </p>
                     </div>
                   </li>
+                  //step 3
                   <li className={styles.step}>
                     <span className={styles.stepIcon} aria-hidden>
-                      <Search size={18} />
+                      <Search size={18} /> //search icon
                     </span>
                     <div>
                       <h3 className={styles.stepTitle}>Search two ways</h3>
+                      //user keyword ena semantic meaning bemeteqem search
+                      madereg ychalal
                       <p className={styles.stepText}>
                         Classic keyword search, or semantic search when you want
                         "questions like this one."
                       </p>
                     </div>
                   </li>
+                  //step 4
                   <li className={styles.step}>
                     <span className={styles.stepIcon} aria-hidden>
-                      <Layers size={18} />
+                      <Layers size={18} /> // Layers icon.
                     </span>
                     <div>
                       <h3 className={styles.stepTitle}>Own your trail</h3>
+                      //user qdmo siteyk yeneberewn tyake temelso revisit madreg
+                      endemichl ygeltslnal
                       <p className={styles.stepText}>
                         Your topics list keeps authorship clear, so you can
                         revisit what you've asked.
@@ -402,13 +450,15 @@ const LandingPage = () => {
                 </ol>
               </div>
             </section>
-
             {/* ----------------------------------------------------
              * BOTTOM CALL TO ACTION
              * ---------------------------------------------------- */}
             <section className={styles.cta}>
+              {" "}
+              //Creates the final call-to-action section.
               <div className={styles.ctaInner}>
                 <h2 className={styles.ctaTitle}>Ready when you are</h2>
+                //Displays the final heading.
                 <p className={styles.ctaText}>
                   Create a free learner account to post, reply, and search the
                   forum index.
@@ -416,7 +466,7 @@ const LandingPage = () => {
                 <button
                   type="button"
                   className={styles.btnPrimary}
-                  onClick={() => navigate("/auth")}
+                  onClick={() => navigate("/auth")} //takes the user to authentication.
                 >
                   Create free account
                   <ArrowRight size={16} aria-hidden />
@@ -431,11 +481,17 @@ const LandingPage = () => {
        * FOOTER
        * ------------------------------------------------------ */}
       <footer className={styles.footer}>
+        // Creates the bottom footer.
         <div className={styles.footerInner}>
+          //Creates the footer's inner container.
           <div>
-            <p className={styles.footerBrand}>Evangadi Forum</p>
+            //Creates a container for the footer brand.
+            <p className={styles.footerBrand}>Evangadi Forum</p> //Displays the
+            website name.
             <p className={styles.footerMeta}>
-              © {new Date().getFullYear()} · Learner-led Q&A
+              © {new Date().getFullYear()} · Learner-led Q&A // new Date() gets
+              the current date. // .getFullYear() gets the current year.So in
+              2026 it displays:
             </p>
           </div>
           <div className={styles.footerLinks}>
@@ -447,7 +503,7 @@ const LandingPage = () => {
               Sign in
             </button>
             <span className={styles.footerDot} aria-hidden>
-              ·
+              · //Displays a dot between links.
             </span>
             <a href="#" className={styles.footerLinkAnchor}>
               Privacy
