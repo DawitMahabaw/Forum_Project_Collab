@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -15,8 +15,12 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import styles from "./AuthPage.module.css";
 
 
-
 const AuthPage = () => {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
   const navigate = useNavigate();
   const location = useLocation();
   const { login, register } = useAuth();
@@ -26,8 +30,10 @@ const AuthPage = () => {
     lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +46,7 @@ const AuthPage = () => {
     }));
     setError("");
   };
-  
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -116,6 +122,19 @@ const AuthPage = () => {
       return;
     }
 
+    // registration requires a password confirmation match.
+    if (isRegistering) {
+      if (!formData.confirmPassword) {
+        setError("Confirm your password");
+        return;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+    }
+
     // ==========================================================
     // SUBMIT AUTHENTICATION REQUEST
     // ==========================================================
@@ -155,7 +174,7 @@ const AuthPage = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Unable to sign in right now. Please try again.",
+        "Unable to sign in right now. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -254,7 +273,6 @@ const AuthPage = () => {
         </div>
       </section>
 
-    
       <section className={styles.formSection}>
         <div className={styles.formCard}>
           <AnimatePresence mode="wait">
@@ -342,6 +360,7 @@ const AuthPage = () => {
                         isRegistering ? "new-password" : "current-password"
                       }
                     />
+
                     <button
                       type="button"
                       className={styles.passwordToggle}
@@ -359,6 +378,40 @@ const AuthPage = () => {
                     </button>
                   </div>
                 </div>
+
+                {isRegistering && (
+                  <div className={styles.field}>
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <div className={styles.passwordWrap}>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Confirm your password"
+                      />
+                      <button
+                        type="button"
+                        className={styles.passwordToggle}
+                        onClick={() =>
+                          setShowConfirmPassword((value) => !value)
+                        }
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                        aria-pressed={showConfirmPassword}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={18} aria-hidden />
+                        ) : (
+                          <Eye size={18} aria-hidden />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {success && (
                   <div className={styles.success} role="status">
@@ -400,7 +453,7 @@ const AuthPage = () => {
           </AnimatePresence>
         </div>
       </section>
-    </div>
+    </div >
   );
 };
 

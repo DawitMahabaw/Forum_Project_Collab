@@ -35,17 +35,27 @@ const formatBytes = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const getSelectedPdf = (candidate) => {
+  if (!candidate) return null;
+
+  return candidate.type === "application/pdf" || /\.pdf$/i.test(candidate.name)
+    ? candidate
+    : null;
+};
+
 const RagDocuments = () => {
   // A ref lets the visible "Choose file" button open the hidden native input.
   const fileInput = useRef(null);
   const [documents, setDocuments] = useState([]);
   const [activeId, setActiveId] = useState(null);
+  const [activeTab, setActiveTab] = useState("ask");
   const [file, setFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [askQuery, setAskQuery] = useState("");
   const [results, setResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [answer, setAnswer] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [preview, setPreview] = useState({ documentId: null, url: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [workingAction, setWorkingAction] = useState("");
@@ -58,11 +68,14 @@ const RagDocuments = () => {
     () => documents.find((document) => document.documentId === activeId) || null,
     [activeId, documents],
   );
+  const activeDocumentId = activeDocument?.documentId;
+  const activeDocumentStatus = activeDocument?.status;
+  const hasProcessingDocuments = documents.some(
+    (document) => document.status === "processing",
+  );
 
   // Load the private library and select the newest document on first visit.
   const loadDocuments = useCallback(async ({ quiet = false } = {}) => {
-    if (!quiet) setIsLoading(true);
-
     try {
       const nextDocuments = await listDocuments();
       setDocuments(nextDocuments);
@@ -87,9 +100,9 @@ const RagDocuments = () => {
     loadDocuments();
   }, [loadDocuments]);
 
-  // Poll only while the currently selected upload is processing.
+  // Keep every in-progress upload current, even after the user selects another PDF.
   useEffect(() => {
-    if (activeDocument?.status !== "processing") return undefined;
+    if (!hasProcessingDocuments) return undefined;
 
     const timer = window.setInterval(
       () => loadDocuments({ quiet: true }),
@@ -97,19 +110,22 @@ const RagDocuments = () => {
     );
 
     return () => window.clearInterval(timer);
-  }, [activeDocument?.status, loadDocuments]);
+  }, [hasProcessingDocuments, loadDocuments]);
 
   // The built-in PDF viewer supplies the reader controls shown in the design.
   useEffect(() => {
     let isCurrent = true;
     let objectUrl = "";
-    setPreviewUrl("");
 
-    if (!activeDocument || activeDocument.status !== "ready") {
+    if (
+      !activeDocumentId ||
+      activeDocumentStatus !== "ready" ||
+      activeTab !== "preview"
+    ) {
       return undefined;
     }
 
-    getDocumentFile(activeDocument.documentId)
+    getDocumentFile(activeDocumentId)
       .then((url) => {
         if (!isCurrent) {
           URL.revokeObjectURL(url);
@@ -117,7 +133,7 @@ const RagDocuments = () => {
         }
 
         objectUrl = url;
-        setPreviewUrl(url);
+        setPreview({ documentId: activeDocumentId, url });
       })
       .catch(() => setError("Could not load the PDF preview."));
 
@@ -125,7 +141,7 @@ const RagDocuments = () => {
       isCurrent = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [activeDocument]);
+  }, [activeDocumentId, activeDocumentStatus, activeTab]);
 
   // Toasts announce completed actions without interrupting the page.
   useEffect(() => {
@@ -146,8 +162,10 @@ const RagDocuments = () => {
       const document = await uploadPdf(file);
       setDocuments((current) => [document, ...current]);
       setActiveId(document.documentId);
+      setActiveTab("ask");
       setFile(null);
       setResults([]);
+      setHasSearched(false);
       setAnswer(null);
       setSearchQuery("");
       setAskQuery("");
@@ -162,12 +180,29 @@ const RagDocuments = () => {
     }
   };
 
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files?.[0] || null;
+    const pdf = getSelectedPdf(selectedFile);
+
+    if (selectedFile && !pdf) {
+      setFile(null);
+      setError("Please choose a PDF file.");
+      event.target.value = "";
+      return;
+    }
+
+    setFile(pdf);
+    setError("");
+  };
+
   // Switching documents clears outputs that belong to the previous PDF.
   const handleSelect = (documentId) => {
     setActiveId(documentId);
+    setActiveTab("ask");
     setSearchQuery("");
     setAskQuery("");
     setResults([]);
+    setHasSearched(false);
     setAnswer(null);
     setError("");
   };
@@ -179,6 +214,8 @@ const RagDocuments = () => {
 
     setWorkingAction("search");
     setError("");
+    setHasSearched(true);
+    setResults([]);
 
     try {
       const data = await searchDocument(
@@ -199,7 +236,7 @@ const RagDocuments = () => {
   // Ask the server for a PDF-grounded answer with passage citations.
   const handleAsk = async (event) => {
     event.preventDefault();
-    if (!activeDocument || !askQuery.trim()) return;
+    if (!activeDocument || !askQuery.trim() || workingAction === "ask") return;
 
     setWorkingAction("ask");
     setError("");
@@ -248,6 +285,17 @@ const RagDocuments = () => {
 
   return (
     <section className={styles.page}>
+      <header className={styles.hero}>
+        <span>Knowledge base</span>
+        <h1>Private PDF library</h1>
+        <p>
+          Upload study or reference PDFs to your own workspace. Each file is
+          indexed for semantic search and optional AI answers use passages
+          from that document only. File size limits apply on the server;
+          other users never see your uploads.
+        </p>
+      </header>
+
       {toast && (
         <div className={styles.toast} role="status">
           <CheckCircle2 size={17} />
@@ -266,6 +314,11 @@ const RagDocuments = () => {
 
       <div className={styles.workspace}>
         <aside className={styles.library} aria-label="Private PDF library">
+          <header className={styles.libraryHeader}>
+            <h2>Library</h2>
+            <p>Add PDFs here. Processing runs once per upload.</p>
+          </header>
+
           <div className={styles.uploadBox}>
             <p>
               Accepted format: PDF. Maximum file size is enforced by the server.
@@ -273,7 +326,7 @@ const RagDocuments = () => {
 
             <input
               accept="application/pdf"
-              onChange={(event) => setFile(event.target.files?.[0] || null)}
+              onChange={handleFileChange}
               ref={fileInput}
               type="file"
             />
@@ -348,20 +401,7 @@ const RagDocuments = () => {
             </div>
           )}
 
-          {activeDocument?.status === "processing" && (
-            <div className={styles.pending}>
-              <LoaderCircle className={styles.spin} size={21} />
-              Processing this PDF. The reader will become available automatically.
-            </div>
-          )}
-
-          {activeDocument?.status === "failed" && (
-            <div className={styles.failed}>
-              {activeDocument.errorMessage || "This PDF could not be read."} Upload a text-based PDF and try again.
-            </div>
-          )}
-
-          {activeDocument?.status === "ready" && (
+          {activeDocument && (
             <>
               <div className={styles.readerTitle}>
                 <div>
@@ -379,86 +419,160 @@ const RagDocuments = () => {
                 </button>
               </div>
 
-              {previewUrl ? (
-                <iframe
-                  className={styles.preview}
-                  src={previewUrl}
-                  title={`Preview of ${activeDocument.title}`}
-                />
-              ) : (
+              {activeDocument.status === "processing" && (
                 <div className={styles.pending}>
                   <LoaderCircle className={styles.spin} size={20} />
-                  Loading PDF preview...
+                  Processing this PDF. The reader will become available automatically.
                 </div>
               )}
 
-              <section className={styles.toolSection}>
-                <h2>Semantic search</h2>
-                <p>Finds passages by meaning (embeddings), not only exact keywords.</p>
-                <form onSubmit={handleSemanticSearch}>
-                  <label htmlFor="semantic-query">Search query</label>
-                  <input
-                    id="semantic-query"
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder="How does a function work?"
-                    value={searchQuery}
-                  />
-                  <button disabled={workingAction === "search" || !searchQuery.trim()} type="submit">
-                    {workingAction === "search" ? <LoaderCircle className={styles.spin} size={16} /> : <Search size={16} />}
-                    {workingAction === "search" ? "Searching..." : "Search"}
-                  </button>
-                </form>
-
-                <div className={styles.searchResults} aria-live="polite">
-                  {results.map((result) => (
-                    <article key={result.chunkId}>
-                      <b>
-                        Chunk {result.chunkIndex + 1} - relevance {result.score.toFixed(3)}
-                      </b>
-                      <p>{result.excerpt}</p>
-                    </article>
-                  ))}
+              {activeDocument.status === "failed" && (
+                <div className={styles.failed}>
+                  {activeDocument.errorMessage || "This PDF could not be read."} Upload a text-based PDF and try again.
                 </div>
-              </section>
+              )}
 
-              <section className={styles.toolSection}>
-                <h2>Ask with AI</h2>
-                <p>
-                  Answers only use retrieved excerpts from this PDF and include source references when evidence exists.
-                </p>
-                <form onSubmit={handleAsk}>
-                  <label htmlFor="ask-query">Question</label>
-                  <textarea
-                    id="ask-query"
-                    onChange={(event) => setAskQuery(event.target.value)}
-                    placeholder="Ask a clear question about this document"
-                    value={askQuery}
-                  />
-                  <button disabled={workingAction === "ask" || !askQuery.trim()} type="submit">
-                    {workingAction === "ask" ? <LoaderCircle className={styles.spin} size={16} /> : <Sparkles size={16} />}
-                    {workingAction === "ask" ? "Asking..." : "Ask"}
-                  </button>
-                </form>
+              {activeDocument.status === "ready" && (
+                <>
+                  <div aria-label="Document tools" className={styles.tabs} role="tablist">
+                    <button
+                      aria-controls="ask-ai-panel"
+                      aria-selected={activeTab === "ask"}
+                      className={activeTab === "ask" ? styles.activeTab : ""}
+                      onClick={() => setActiveTab("ask")}
+                      role="tab"
+                      type="button"
+                    >
+                      Ask AI
+                    </button>
+                    <button
+                      aria-controls="semantic-search-panel"
+                      aria-selected={activeTab === "search"}
+                      className={activeTab === "search" ? styles.activeTab : ""}
+                      onClick={() => setActiveTab("search")}
+                      role="tab"
+                      type="button"
+                    >
+                      Semantic Search
+                    </button>
+                    <button
+                      aria-controls="pdf-preview-panel"
+                      aria-selected={activeTab === "preview"}
+                      className={activeTab === "preview" ? styles.activeTab : ""}
+                      onClick={() => setActiveTab("preview")}
+                      role="tab"
+                      type="button"
+                    >
+                      PDF Preview
+                    </button>
+                  </div>
 
-                {answer && (
-                  <div className={styles.answer} aria-live="polite">
-                    <p>{answer.answer}</p>
-                    {answer.citations?.length > 0 && (
-                      <>
-                        <h3>Source references</h3>
-                        <div className={styles.citations}>
-                          {answer.citations.map((citation) => (
-                            <article key={citation.ref}>
-                              <b>[{citation.ref}] Passage {citation.chunkIndex + 1}</b>
-                              <p>{citation.excerpt}</p>
+                  {activeTab === "preview" && (
+                    <section id="pdf-preview-panel" role="tabpanel">
+                      {preview.documentId === activeDocument.documentId && preview.url ? (
+                        <iframe
+                          className={styles.preview}
+                          src={preview.url}
+                          title={`Preview of ${activeDocument.title}`}
+                        />
+                      ) : (
+                        <div className={styles.pending}>
+                          <LoaderCircle className={styles.spin} size={20} />
+                          Loading PDF preview...
+                        </div>
+                      )}
+                    </section>
+                  )}
+
+                  {activeTab === "search" && (
+                    <section className={styles.toolSection} id="semantic-search-panel" role="tabpanel">
+                      <h2>Semantic search</h2>
+                      <p>Finds passages by meaning (embeddings), not only exact keywords.</p>
+                      <form onSubmit={handleSemanticSearch}>
+                        <label htmlFor="semantic-query">Search query</label>
+                        <input
+                          id="semantic-query"
+                          onChange={(event) => setSearchQuery(event.target.value)}
+                          placeholder="How does a function work?"
+                          value={searchQuery}
+                        />
+                        <button disabled={workingAction === "search" || !searchQuery.trim()} type="submit">
+                          {workingAction === "search" ? <LoaderCircle className={styles.spin} size={16} /> : <Search size={16} />}
+                          {workingAction === "search" ? "Searching..." : "Search"}
+                        </button>
+                      </form>
+
+                      <div className={styles.searchResults} aria-live="polite">
+                          {results.map((result) => (
+                            <article key={result.chunkId}>
+                              <b>
+                                Chunk {result.chunkIndex + 1} - relevance {result.score.toFixed(3)}
+                              </b>
+                              <p>{result.excerpt}</p>
                             </article>
                           ))}
+                          {hasSearched && !results.length && (
+                            <p className={styles.noResults}>
+                              No relevant passages were found in this document. Try a
+                              more specific question or a phrase used in the PDF.
+                            </p>
+                          )}
+                      </div>
+                    </section>
+                  )}
+
+                  {activeTab === "ask" && (
+                    <section className={styles.toolSection} id="ask-ai-panel" role="tabpanel">
+                      <h2>Ask with AI</h2>
+                      <p>
+                        Answers only use retrieved excerpts from this PDF and include source references when evidence exists.
+                      </p>
+                      <form onSubmit={handleAsk}>
+                        <label htmlFor="ask-query">Question</label>
+                        <textarea
+                          id="ask-query"
+                          onChange={(event) => setAskQuery(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                              event.preventDefault();
+                              if (askQuery.trim() && workingAction !== "ask") {
+                                event.currentTarget.form?.requestSubmit();
+                              }
+                            }
+                          }}
+                          placeholder="Ask a clear question about this document"
+                          value={askQuery}
+                        />
+                        <button disabled={workingAction === "ask" || !askQuery.trim()} type="submit">
+                          {workingAction === "ask" ? <LoaderCircle className={styles.spin} size={16} /> : <Sparkles size={16} />}
+                          {workingAction === "ask" ? "Asking..." : "Ask"}
+                        </button>
+                      </form>
+
+                      {answer && (
+                        <div className={styles.answer} aria-live="polite">
+                          <p>{answer.answer}</p>
+                          {answer.citations?.length > 0 && (
+                            <footer className={styles.sourceReferences}>
+                              <span>Source references:</span>
+                              <div>
+                                {answer.citations.map((citation) => (
+                                  <span
+                                    aria-label={`Reference ${citation.ref}, chunk ${citation.chunkIndex + 1}`}
+                                    key={citation.ref}
+                                  >
+                                    [{citation.ref}] &rarr; chunk {citation.chunkIndex + 1}
+                                  </span>
+                                ))}
+                              </div>
+                            </footer>
+                          )}
                         </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </section>
+                      )}
+                    </section>
+                  )}
+                </>
+              )}
             </>
           )}
         </section>
