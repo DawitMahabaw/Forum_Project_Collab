@@ -30,8 +30,10 @@ const AuthPage = () => {
     lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -118,6 +120,19 @@ const AuthPage = () => {
     if (isRegistering && formData.password.length < 8) {
       setError("Password must contain at least 8 characters.");
       return;
+    }
+
+    // registration requires a password confirmation match.
+    if (isRegistering) {
+      if (!formData.confirmPassword) {
+        setError("Confirm your password");
+        return;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
     }
 
     // ==========================================================
@@ -258,7 +273,6 @@ const AuthPage = () => {
         </div>
       </section>
 
-
       <section className={styles.formSection}>
         <div className={styles.formCard}>
           <AnimatePresence mode="wait">
@@ -346,6 +360,7 @@ const AuthPage = () => {
                         isRegistering ? "new-password" : "current-password"
                       }
                     />
+
                     <button
                       type="button"
                       className={styles.passwordToggle}
@@ -363,6 +378,40 @@ const AuthPage = () => {
                     </button>
                   </div>
                 </div>
+
+                {isRegistering && (
+                  <div className={styles.field}>
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <div className={styles.passwordWrap}>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Confirm your password"
+                      />
+                      <button
+                        type="button"
+                        className={styles.passwordToggle}
+                        onClick={() =>
+                          setShowConfirmPassword((value) => !value)
+                        }
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                        aria-pressed={showConfirmPassword}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={18} aria-hidden />
+                        ) : (
+                          <Eye size={18} aria-hidden />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {success && (
                   <div className={styles.success} role="status">
@@ -404,7 +453,7 @@ const AuthPage = () => {
           </AnimatePresence>
         </div>
       </section>
-    </div>
+    </div >
   );
 };
 

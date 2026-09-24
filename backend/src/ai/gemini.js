@@ -202,6 +202,11 @@ const generateContent = async (prompt) => {
             parts: [{ text: prompt }],
           },
         ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+          maxOutputTokens: 512,
+        },
       },
     });
 
