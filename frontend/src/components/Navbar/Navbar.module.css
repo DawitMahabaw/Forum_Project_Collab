@@ -2,42 +2,90 @@
   display: grid;
   grid-template-columns: minmax(250px, 1fr) minmax(300px, 1.25fr) auto auto;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
   position: sticky;
   top: 0;
   z-index: 20;
-  min-height: 68px;
-  padding: 12px 32px;
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
+  height: 76px;
+  min-height: 76px;
+  max-height: 76px;
+  padding: 0 28px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  box-sizing: border-box;
 }
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sidebarToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--border, #dbe3ee);
+  border-radius: 8px;
+  color: #475569;
+  background: #f8fafc;
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.sidebarToggle:hover {
+  color: #ea580c;
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.titleBlock {
+  min-width: 0;
+}
+
 .titleBlock h1 {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
+  line-height: 1.2;
 }
+
 .homeTitleText {
   border: 0;
   background: transparent;
   color: #0f172a;
   font: inherit;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .homeTitleText:hover {
   color: #f97316;
 }
+
 .titleBlock p {
+  margin: 3px 0 0;
   color: #475569;
   font-size: 12px;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .searchForm {
   position: relative;
   width: 100%;
 }
+
 .searchFormReady .searchInput {
   border: 2px solid #f97316;
   box-shadow: none;
@@ -51,6 +99,7 @@
 .searchFormReady.searchFormWithQuery .searchInput {
   padding-right: 150px;
 }
+
 .searchIcon {
   position: absolute;
   z-index: 1;
@@ -60,9 +109,10 @@
   color: #334155;
   pointer-events: none;
 }
+
 .searchInput {
   width: 100%;
-  height: 36px;
+  height: 38px;
   padding: 0 14px 0 40px;
   border: 1px solid #dbe3ee;
   border-radius: 14px;
@@ -71,6 +121,7 @@
   font-size: 14px;
   box-sizing: border-box;
 }
+
 .searchInput::placeholder {
   color: #94a3b8;
 }
@@ -120,11 +171,14 @@
   background: #f97316;
   font-size: 13px;
   font-weight: 700;
+  cursor: pointer;
   z-index: 2;
 }
+
 .aiSearchButton:hover {
   background: #ea580c;
 }
+
 .suggestions {
   position: absolute;
   top: calc(100% + 6px);
@@ -136,11 +190,13 @@
   background: #fff;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
 }
+
 .suggestions p {
   padding: 11px 14px;
   color: #64748b;
   font-size: 13px;
 }
+
 .suggestions button {
   display: grid;
   width: 100%;
@@ -151,30 +207,37 @@
   text-align: left;
   color: #0f172a;
   background: #fff;
+  cursor: pointer;
 }
+
 .suggestions button:last-child {
   border-bottom: 0;
 }
+
 .suggestions button:hover {
   background: #fff7ed;
 }
+
 .suggestions b {
   overflow: hidden;
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .suggestions small {
   color: #64748b;
   font-size: 11px;
 }
+
 .userSection {
   display: flex;
   align-items: center;
   gap: 12px;
   padding-left: 15px;
-  border-left: 1px solid #e2e8f0;
+  border-left: 1px solid var(--border, #e2e8f0);
 }
+
 .themeToggle {
   display: grid;
   width: 36px;
@@ -186,7 +249,10 @@
   color: #475569;
   background: #f1f5f9;
   cursor: pointer;
-  transition: background-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
 }
 
 .themeToggle:hover {
@@ -199,12 +265,14 @@
   outline: 3px solid #fed7aa;
   outline-offset: 2px;
 }
+
 .userName {
   color: #0f172a;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
+
 .avatar {
   display: grid;
   width: 32px;
@@ -216,21 +284,25 @@
   font-size: 12px;
   font-weight: 700;
 }
+
 .logoutButton {
   display: grid;
   padding: 4px;
   border: 0;
   color: #334155;
   background: transparent;
+  cursor: pointer;
 }
+
 .logoutButton:hover {
   color: #f97316;
 }
+
 @media (max-width: 1050px) {
   .navbar {
     grid-template-columns: 1fr minmax(240px, 1fr) auto auto;
     gap: 16px;
-    padding: 12px 20px;
+    padding: 0 20px;
   }
   .titleBlock p {
     display: none;
@@ -239,13 +311,18 @@
     display: none;
   }
 }
+
 @media (max-width: 720px) {
   .navbar {
     position: sticky;
     top: 0;
     z-index: 5;
+    height: auto;
+    min-height: 76px;
+    max-height: none;
     grid-template-columns: minmax(0, 1fr) auto auto;
     padding: 10px 16px;
+    gap: 12px;
   }
   .searchForm {
     grid-column: 1 / -1;
@@ -259,6 +336,18 @@
 :global(html[data-theme="dark"]) .navbar {
   background: var(--surface);
   border-color: var(--border);
+}
+
+:global(html[data-theme="dark"]) .sidebarToggle {
+  border-color: var(--border);
+  color: var(--text-secondary);
+  background: var(--surface-container-low);
+}
+
+:global(html[data-theme="dark"]) .sidebarToggle:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--surface-highlight);
 }
 
 :global(html[data-theme="dark"]) .homeTitleText,

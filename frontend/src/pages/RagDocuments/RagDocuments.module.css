@@ -1,6 +1,7 @@
 .page {
   min-width: 0;
-  padding: 22px 24px 48px;
+  display: grid;
+  gap: 18px;
 }
 
 .hero,
@@ -13,7 +14,6 @@
 }
 
 .hero {
-  max-width: 1200px;
   padding: 25px;
 }
 
@@ -33,7 +33,7 @@
 }
 
 .hero p {
-  max-width: 680px;
+  max-width: 720px;
   margin: 0;
   color: var(--text-secondary);
   font-size: var(--text-sm);
@@ -42,10 +42,9 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(245px, 270px) minmax(0, 1fr);
+  grid-template-columns: minmax(245px, 280px) minmax(0, 1fr);
   align-items: start;
   gap: 18px;
-  margin-top: 18px;
 }
 
 .library {
@@ -115,7 +114,10 @@
   font-size: 12px;
   font-weight: var(--font-semibold);
   cursor: pointer;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .fileButton {
@@ -147,7 +149,7 @@
 
 .uploadButton:disabled,
 .toolSection form button:disabled,
-.deleteDocument:disabled,
+.deleteButton:disabled,
 .modal button:disabled {
   cursor: not-allowed;
   opacity: 0.56;
@@ -162,79 +164,118 @@
 
 .documentList {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   margin-top: 16px;
 }
 
-.documentItem {
+.documentCard {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
   width: 100%;
   min-width: 0;
-  padding: 10px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: var(--text-secondary);
-  background: transparent;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-container-low);
   text-align: left;
   cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  box-sizing: border-box;
 }
 
-.documentItem:hover,
-.documentActive {
-  border-color: var(--border);
-  color: var(--primary);
+.documentCard:hover {
+  border-color: var(--border-hover);
   background: var(--surface-highlight);
 }
 
-.documentItem > span {
-  display: grid;
-  min-width: 0;
-  flex: 1;
-  gap: 2px;
+.documentCardActive {
+  border-color: var(--primary);
+  background: var(--surface-highlight);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
-.documentItem b,
-.documentItem small {
+.documentMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.documentTitle {
+  display: block;
   overflow: hidden;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.documentItem b {
-  color: var(--text-primary);
-  font-size: 12px;
+.badgeWrapper {
+  display: flex;
+  align-items: center;
 }
 
-.documentItem small {
-  color: var(--text-tertiary);
-  font-size: 10px;
-}
-
-.documentItem i {
-  padding: 3px 5px;
+.statusready,
+.statusprocessing,
+.statusfailed {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 10px;
   font-style: normal;
-  font-weight: var(--font-bold);
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .statusready {
   color: #067647;
-  background: color-mix(in srgb, #12b76a 14%, var(--surface));
+  background: #ecfdf3;
 }
 
 .statusprocessing {
   color: #b54708;
-  background: color-mix(in srgb, #f79009 16%, var(--surface));
+  background: #fffaeb;
 }
 
 .statusfailed {
   color: #b42318;
-  background: color-mix(in srgb, #f04438 14%, var(--surface));
+  background: #fef3f2;
+}
+
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #ef4444;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.deleteButton:hover {
+  color: #dc2626;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: scale(1.05);
 }
 
 .reader {
@@ -280,22 +321,6 @@
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 17px;
-}
-
-.deleteDocument {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, #f04438 45%, var(--border));
-  border-radius: var(--radius-sm);
-  color: #b42318;
-  background: transparent;
-  cursor: pointer;
-}
-
-.deleteDocument:hover:not(:disabled) {
-  background: color-mix(in srgb, #f04438 10%, var(--surface));
 }
 
 .tabs {
@@ -562,20 +587,50 @@
   }
 }
 
+:global(:root[data-theme="dark"]) .documentCard {
+  background: var(--surface-container-low);
+  border-color: var(--border);
+}
+
+:global(:root[data-theme="dark"]) .documentCard:hover {
+  background: var(--surface-highlight);
+  border-color: var(--border-hover);
+}
+
+:global(:root[data-theme="dark"]) .documentCardActive {
+  border-color: var(--primary);
+  background: var(--surface-highlight);
+}
+
+:global(:root[data-theme="dark"]) .deleteButton {
+  background: var(--surface);
+  border-color: var(--border);
+  color: #f87171;
+  box-shadow: none;
+}
+
+:global(:root[data-theme="dark"]) .deleteButton:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
 :global(:root[data-theme="dark"]) .statusready,
 :global(:root[data-theme="dark"]) .toast {
   color: #86efac;
+  background: rgba(16, 185, 129, 0.15);
 }
 
 :global(:root[data-theme="dark"]) .statusprocessing {
   color: #fcd34d;
+  background: rgba(245, 158, 11, 0.15);
 }
 
 :global(:root[data-theme="dark"]) .statusfailed,
 :global(:root[data-theme="dark"]) .failed,
-:global(:root[data-theme="dark"]) .error,
-:global(:root[data-theme="dark"]) .deleteDocument {
+:global(:root[data-theme="dark"]) .error {
   color: #fca5a5;
+  background: rgba(239, 68, 68, 0.15);
 }
 
 @media (max-width: 800px) {
