@@ -121,7 +121,7 @@ const uploadDocument = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file?.path) {
-      await fs.rm(req.file.path, { force: true }).catch(() => {});
+      await fs.rm(req.file.path, { force: true }).catch(() => { });
     }
 
     return next(error);
