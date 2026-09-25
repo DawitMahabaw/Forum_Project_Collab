@@ -28,13 +28,6 @@ import {
 } from "../../services/ragService.js";
 import styles from "./RagDocuments.module.css";
 
-// Keep file-size presentation compact inside a document list item.
-const formatBytes = (bytes) => {
-  if (!Number.isFinite(bytes)) return "";
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
-
 const getSelectedPdf = (candidate) => {
   if (!candidate) return null;
 
@@ -59,13 +52,14 @@ const RagDocuments = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [workingAction, setWorkingAction] = useState("");
-  const [pendingDelete, setPendingDelete] = useState(false);
+  const [pendingDeleteDoc, setPendingDeleteDoc] = useState(null);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
   // Resolve the selected document from fresh polling responses.
   const activeDocument = useMemo(
-    () => documents.find((document) => document.documentId === activeId) || null,
+    () =>
+      documents.find((document) => document.documentId === activeId) || null,
     [activeId, documents],
   );
   const activeDocumentId = activeDocument?.documentId;
@@ -242,9 +236,7 @@ const RagDocuments = () => {
     setError("");
 
     try {
-      setAnswer(
-        await askDocument(activeDocument.documentId, askQuery.trim()),
-      );
+      setAnswer(await askDocument(activeDocument.documentId, askQuery.trim()));
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
@@ -257,22 +249,25 @@ const RagDocuments = () => {
 
   // The custom confirmation panel replaces browser confirmation dialogs.
   const handleDelete = async () => {
-    if (!activeDocument) return;
+    if (!pendingDeleteDoc) return;
 
     setWorkingAction("delete");
     setError("");
 
     try {
-      await deleteDocument(activeDocument.documentId);
+      await deleteDocument(pendingDeleteDoc.documentId);
       setDocuments((current) =>
         current.filter(
-          (document) => document.documentId !== activeDocument.documentId,
+          (document) => document.documentId !== pendingDeleteDoc.documentId,
         ),
       );
-      setActiveId(null);
-      setResults([]);
-      setAnswer(null);
-      setPendingDelete(false);
+      if (activeId === pendingDeleteDoc.documentId) {
+        setActiveId(null);
+        setResults([]);
+        setAnswer(null);
+        setPreview({ documentId: null, url: "" });
+      }
+      setPendingDeleteDoc(null);
       setToast("Document deleted from your private library.");
     } catch (requestError) {
       setError(
@@ -290,9 +285,9 @@ const RagDocuments = () => {
         <h1>Private PDF library</h1>
         <p>
           Upload study or reference PDFs to your own workspace. Each file is
-          indexed for semantic search and optional AI answers use passages
-          from that document only. File size limits apply on the server;
-          other users never see your uploads.
+          indexed for semantic search and optional AI answers use passages from
+          that document only. File size limits apply on the server; other users
+          never see your uploads.
         </p>
       </header>
 
@@ -300,7 +295,11 @@ const RagDocuments = () => {
         <div className={styles.toast} role="status">
           <CheckCircle2 size={17} />
           {toast}
-          <button aria-label="Dismiss notification" onClick={() => setToast("")} type="button">
+          <button
+            aria-label="Dismiss notification"
+            onClick={() => setToast("")}
+            type="button"
+          >
             <X size={15} />
           </button>
         </div>
@@ -316,7 +315,9 @@ const RagDocuments = () => {
         <aside className={styles.library} aria-label="Private PDF library">
           <header className={styles.libraryHeader}>
             <h2>Library</h2>
-            <p>Add PDFs here. Processing runs once per upload.</p>
+            <p>
+              Add PDFs here. Processing starts automatically after each upload.
+            </p>
           </header>
 
           <div className={styles.uploadBox}>
@@ -368,28 +369,50 @@ const RagDocuments = () => {
 
           <div className={styles.documentList}>
             {documents.map((document) => (
-              <button
+              <div
                 aria-current={
                   activeId === document.documentId ? "true" : undefined
                 }
-                className={`${styles.documentItem} ${
-                  activeId === document.documentId ? styles.documentActive : ""
+                className={`${styles.documentCard} ${
+                  activeId === document.documentId
+                    ? styles.documentCardActive
+                    : ""
                 }`}
                 key={document.documentId}
                 onClick={() => handleSelect(document.documentId)}
-                type="button"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSelect(document.documentId);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
-                <FileText size={17} />
-                <span>
-                  <b>{document.title}</b>
-                  <small>
-                    {document.byteSize ? formatBytes(document.byteSize) : "PDF"}
-                  </small>
-                </span>
-                <i className={styles[`status${document.status}`]}>
-                  {document.status}
-                </i>
-              </button>
+                <div className={styles.documentMeta}>
+                  <b className={styles.documentTitle} title={document.title}>
+                    {document.title}
+                  </b>
+                  <div className={styles.badgeWrapper}>
+                    <span className={styles[`status${document.status}`]}>
+                      {document.status}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  aria-label={`Delete ${document.title}`}
+                  className={styles.deleteButton}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPendingDeleteDoc(document);
+                  }}
+                  title="Delete PDF"
+                  type="button"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             ))}
           </div>
         </aside>
@@ -397,7 +420,8 @@ const RagDocuments = () => {
         <section className={styles.reader}>
           {!activeDocument && !isLoading && (
             <div className={styles.emptyReader}>
-              Choose an uploaded PDF to open it here. Semantic search and Ask with AI will use only the selected document.
+              Choose an uploaded PDF to open it here. Semantic search and Ask
+              with AI will use only the selected document.
             </div>
           )}
 
@@ -406,35 +430,35 @@ const RagDocuments = () => {
               <div className={styles.readerTitle}>
                 <div>
                   <h2>{activeDocument.title}</h2>
-                  <p>Private document reader, semantic search, and source-grounded answers.</p>
+                  <p>
+                    Private document reader, semantic search, and
+                    source-grounded answers.
+                  </p>
                 </div>
-                <button
-                  aria-label={`Delete ${activeDocument.title}`}
-                  className={styles.deleteDocument}
-                  disabled={workingAction === "delete"}
-                  onClick={() => setPendingDelete(true)}
-                  type="button"
-                >
-                  <Trash2 size={16} />
-                </button>
               </div>
 
               {activeDocument.status === "processing" && (
                 <div className={styles.pending}>
                   <LoaderCircle className={styles.spin} size={20} />
-                  Processing this PDF. The reader will become available automatically.
+                  Processing this PDF. The reader will become available
+                  automatically.
                 </div>
               )}
 
               {activeDocument.status === "failed" && (
                 <div className={styles.failed}>
-                  {activeDocument.errorMessage || "This PDF could not be read."} Upload a text-based PDF and try again.
+                  {activeDocument.errorMessage || "This PDF could not be read."}{" "}
+                  Upload a text-based PDF and try again.
                 </div>
               )}
 
               {activeDocument.status === "ready" && (
                 <>
-                  <div aria-label="Document tools" className={styles.tabs} role="tablist">
+                  <div
+                    aria-label="Document tools"
+                    className={styles.tabs}
+                    role="tablist"
+                  >
                     <button
                       aria-controls="ask-ai-panel"
                       aria-selected={activeTab === "ask"}
@@ -458,7 +482,9 @@ const RagDocuments = () => {
                     <button
                       aria-controls="pdf-preview-panel"
                       aria-selected={activeTab === "preview"}
-                      className={activeTab === "preview" ? styles.activeTab : ""}
+                      className={
+                        activeTab === "preview" ? styles.activeTab : ""
+                      }
                       onClick={() => setActiveTab("preview")}
                       role="tab"
                       type="button"
@@ -469,7 +495,8 @@ const RagDocuments = () => {
 
                   {activeTab === "preview" && (
                     <section id="pdf-preview-panel" role="tabpanel">
-                      {preview.documentId === activeDocument.documentId && preview.url ? (
+                      {preview.documentId === activeDocument.documentId &&
+                      preview.url ? (
                         <iframe
                           className={styles.preview}
                           src={preview.url}
@@ -485,47 +512,74 @@ const RagDocuments = () => {
                   )}
 
                   {activeTab === "search" && (
-                    <section className={styles.toolSection} id="semantic-search-panel" role="tabpanel">
+                    <section
+                      className={styles.toolSection}
+                      id="semantic-search-panel"
+                      role="tabpanel"
+                    >
                       <h2>Semantic search</h2>
-                      <p>Finds passages by meaning (embeddings), not only exact keywords.</p>
+                      <p>
+                        Finds passages by meaning (embeddings), not only exact
+                        keywords.
+                      </p>
                       <form onSubmit={handleSemanticSearch}>
                         <label htmlFor="semantic-query">Search query</label>
                         <input
                           id="semantic-query"
-                          onChange={(event) => setSearchQuery(event.target.value)}
+                          onChange={(event) =>
+                            setSearchQuery(event.target.value)
+                          }
                           placeholder="How does a function work?"
                           value={searchQuery}
                         />
-                        <button disabled={workingAction === "search" || !searchQuery.trim()} type="submit">
-                          {workingAction === "search" ? <LoaderCircle className={styles.spin} size={16} /> : <Search size={16} />}
-                          {workingAction === "search" ? "Searching..." : "Search"}
+                        <button
+                          disabled={
+                            workingAction === "search" || !searchQuery.trim()
+                          }
+                          type="submit"
+                        >
+                          {workingAction === "search" ? (
+                            <LoaderCircle className={styles.spin} size={16} />
+                          ) : (
+                            <Search size={16} />
+                          )}
+                          {workingAction === "search"
+                            ? "Searching..."
+                            : "Search"}
                         </button>
                       </form>
 
                       <div className={styles.searchResults} aria-live="polite">
-                          {results.map((result) => (
-                            <article key={result.chunkId}>
-                              <b>
-                                Chunk {result.chunkIndex + 1} - relevance {result.score.toFixed(3)}
-                              </b>
-                              <p>{result.excerpt}</p>
-                            </article>
-                          ))}
-                          {hasSearched && !results.length && (
-                            <p className={styles.noResults}>
-                              No relevant passages were found in this document. Try a
-                              more specific question or a phrase used in the PDF.
-                            </p>
-                          )}
+                        {results.map((result) => (
+                          <article key={result.chunkId}>
+                            <b>
+                              Chunk {result.chunkIndex + 1} - relevance{" "}
+                              {result.score.toFixed(3)}
+                            </b>
+                            <p>{result.excerpt}</p>
+                          </article>
+                        ))}
+                        {hasSearched && !results.length && (
+                          <p className={styles.noResults}>
+                            No relevant passages were found in this document.
+                            Try a more specific question or a phrase used in the
+                            PDF.
+                          </p>
+                        )}
                       </div>
                     </section>
                   )}
 
                   {activeTab === "ask" && (
-                    <section className={styles.toolSection} id="ask-ai-panel" role="tabpanel">
+                    <section
+                      className={styles.toolSection}
+                      id="ask-ai-panel"
+                      role="tabpanel"
+                    >
                       <h2>Ask with AI</h2>
                       <p>
-                        Answers only use retrieved excerpts from this PDF and include source references when evidence exists.
+                        Answers only use retrieved excerpts from this PDF and
+                        include source references when evidence exists.
                       </p>
                       <form onSubmit={handleAsk}>
                         <label htmlFor="ask-query">Question</label>
@@ -543,8 +597,15 @@ const RagDocuments = () => {
                           placeholder="Ask a clear question about this document"
                           value={askQuery}
                         />
-                        <button disabled={workingAction === "ask" || !askQuery.trim()} type="submit">
-                          {workingAction === "ask" ? <LoaderCircle className={styles.spin} size={16} /> : <Sparkles size={16} />}
+                        <button
+                          disabled={workingAction === "ask" || !askQuery.trim()}
+                          type="submit"
+                        >
+                          {workingAction === "ask" ? (
+                            <LoaderCircle className={styles.spin} size={16} />
+                          ) : (
+                            <Sparkles size={16} />
+                          )}
                           {workingAction === "ask" ? "Asking..." : "Ask"}
                         </button>
                       </form>
@@ -561,7 +622,8 @@ const RagDocuments = () => {
                                     aria-label={`Reference ${citation.ref}, chunk ${citation.chunkIndex + 1}`}
                                     key={citation.ref}
                                   >
-                                    [{citation.ref}] &rarr; chunk {citation.chunkIndex + 1}
+                                    [{citation.ref}] &rarr; chunk{" "}
+                                    {citation.chunkIndex + 1}
                                   </span>
                                 ))}
                               </div>
@@ -578,18 +640,32 @@ const RagDocuments = () => {
         </section>
       </div>
 
-      {pendingDelete && activeDocument && (
+      {pendingDeleteDoc && (
         <div className={styles.modalBackdrop} role="presentation">
-          <section aria-describedby="delete-document-copy" aria-modal="true" className={styles.modal} role="dialog">
+          <section
+            aria-describedby="delete-document-copy"
+            aria-modal="true"
+            className={styles.modal}
+            role="dialog"
+          >
             <h2>Delete this document?</h2>
             <p id="delete-document-copy">
-              “{activeDocument.title}” and its private search index will be permanently removed.
+              “{pendingDeleteDoc.title}” and its private search index will be
+              permanently removed.
             </p>
             <div>
-              <button disabled={workingAction === "delete"} onClick={() => setPendingDelete(false)} type="button">
+              <button
+                disabled={workingAction === "delete"}
+                onClick={() => setPendingDeleteDoc(null)}
+                type="button"
+              >
                 Cancel
               </button>
-              <button disabled={workingAction === "delete"} onClick={handleDelete} type="button">
+              <button
+                disabled={workingAction === "delete"}
+                onClick={handleDelete}
+                type="button"
+              >
                 {workingAction === "delete" ? "Deleting..." : "Delete document"}
               </button>
             </div>
