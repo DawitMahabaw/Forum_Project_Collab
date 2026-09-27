@@ -4,7 +4,8 @@
 .hero span { color: #ea580c; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .hero h2 { margin-top: 7px; font-size: 31px; letter-spacing: -.03em; }
 .hero p { max-width: 650px; margin-top: 8px; color: #334155; font-size: 15px; }
-.hero button, .state button { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border: 0; border-radius: 8px; color: #fff; background: #ff6d11; font-size: 14px; white-space: nowrap; }
+.hero button, .state button { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border: 0; border-radius: 8px; color: #fff; background: #ff6d11; font-size: 14px; white-space: nowrap; cursor: pointer; transition: background-color 0.16s ease; }
+.hero button:hover, .state button:hover { background: #e95d05; }
 .list { overflow: hidden; }
 .state { padding: 48px; color: #475569; text-align: center; }
 .state h3 { color: #0f172a; font-size: 18px; }

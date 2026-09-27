@@ -150,6 +150,18 @@ const createDocument = async ({ userId, file }) => {
 const noEvidenceAnswer = (query) =>
   `The provided document does not contain information on: ${query}`;
 
+const extractiveFallbackAnswer = (evidence) => {
+  const normalized = evidence[0].excerpt.replace(/\s+/g, " ").trim();
+  const firstSentenceEnd = normalized.search(/[.!?](?:\s|$)/);
+  const excerpt = (
+    firstSentenceEnd >= 0
+      ? normalized.slice(0, firstSentenceEnd + 1)
+      : normalized.slice(0, 600)
+  ).trim();
+
+  return `The answer generator is temporarily unavailable. The most relevant passage from the document is: ${excerpt}`;
+};
+
 const parseGroundedAnswer = (rawText) => {
   const jsonText = rawText
     .trim()
@@ -211,8 +223,7 @@ const queryDocument = async (document, query) => {
     };
   } catch {
     return {
-      answer:
-        "Relevant passages were found, but the answer generator is temporarily unavailable. Please review the cited passages below.",
+      answer: extractiveFallbackAnswer(evidence),
       citations: evidence.map((result, index) => ({
         ref: index + 1,
         chunkIndex: result.chunkIndex,
