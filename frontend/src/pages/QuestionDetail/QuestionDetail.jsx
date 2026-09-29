@@ -13,6 +13,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -47,7 +49,13 @@ const formatDate = (value) =>
 // Keep user-authored details safe to render even when no Markdown renderer is
 // installed. The styling preserves line breaks and long code/error messages.
 const MarkdownContent = ({ className = "", content }) => (
-  <div className={className}>{typeof content === "string" ? content : ""}</div>
+  <div className={className}>
+    {typeof content === "string" ? (
+      <ReactMarkdown>{content}</ReactMarkdown>
+    ) : (
+      ""
+    )}
+  </div>
 );
 
 // Reuse the same four Markdown actions for new posts and inline edits.
