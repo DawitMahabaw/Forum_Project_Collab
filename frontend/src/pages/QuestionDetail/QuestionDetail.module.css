@@ -649,3 +649,8 @@
   color: #bbf7d0;
   background: #052e16;
 }
+
+/* Fix the title color when dark mode is turned on */
+:global(html[data-theme="dark"]) .questionCard h1 {
+  color: var(--text-primary) !important;
+}
