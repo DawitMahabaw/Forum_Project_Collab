@@ -3,8 +3,6 @@ const GEMINI_BASE_URL =
   "https://generativelanguage.googleapis.com/v1beta/models";
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
 
-//https://generativelanguage.googleapis.com/v1beta/models/gemini-xxx:generateContent?key=YOUR_KEY
-//https://generativelanguage.googleapis.com/v1beta/models/gemini-xxx:embedContent?key=YOUR_KEY
 const REQUEST_TIMEOUT_MS = 30_000;
 const GENERATION_ATTEMPTS_PER_MODEL = 3;
 const EMBEDDING_ATTEMPTS = 2;

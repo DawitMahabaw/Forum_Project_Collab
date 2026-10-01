@@ -2,10 +2,10 @@
 // UI looks like the designs instead of being empty. Run once with:
 // node src/utils/seed.js
 // Safe to re-run — it skips users that already exist by email.
-
 import bcrypt from "bcrypt";
-import { randomUUID } from "crypto";
 import pool from "../config/db.js";
+import { hashPassword as generateHash } from "./password.js";
+
 
 const users = [
   {
@@ -28,6 +28,8 @@ const users = [
   },
 ];
 
+// title/content pairs pulled straight from the dashboard design mockup,
+// so the seeded feed visually matches what the designer intended.
 const questionsByEmail = {
   "abebe@example.com": [
     {
@@ -43,7 +45,6 @@ const questionsByEmail = {
         "I recently added a new route in Express, but requests to it still return 404. I have checked the route path and method, but I am not sure whether the problem is the order of middleware, a missing router mount, or a mismatch between the path registered and the URL I am hitting.\n\nWhat is the quickest way to debug this?",
     },
   ],
-
   "newuser@example.com": [
     {
       title: "How to design a scalable QR code digital menu system?",
@@ -54,7 +55,7 @@ const questionsByEmail = {
       title:
         "How to design a scalable Role-Based Access Control (RBAC) system?",
       content:
-        "I'm designing a role-based access control (RBAC) system for a web application, and I'm trying to figure out how to structure permissions and roles in a scalable and maintainable way. The application has multiple user types (e.g., admin, manager, regular user), and each role can have different permissions such as creating, reading, updating, or deleting resources.",
+        "I'm designing a role-based access control (RBAC) system for a web application, and I'm trying to figure out the best way to structure permissions and roles in a scalable and maintainable way. The application has multiple user types (e.g., admin, manager, regular user), and each role can have different permissions such as creating, reading, updating, or deleting resources.",
     },
     {
       title:
@@ -68,7 +69,6 @@ const questionsByEmail = {
         "I am creating a service that accepts PDF uploads from users. I want to validate the file type, size, and extension before saving it. What is the safest way to do this with Express and Multer?",
     },
   ],
-
   "string@example.com": [
     {
       title: "Lexical scoping and inner functions in JS",
@@ -109,7 +109,7 @@ const questionsByEmail = {
       title:
         "What is the difference between let, const, and var in JavaScript?",
       content:
-        "I am learning JavaScript and I see people using var, let, and const in JavaScript. I know const is for constants, but what is the real difference between let and var? When should I use which?",
+        "I am learning JavaScript and I see people using var, let, and const to declare variables. I know const is for constants, but what is the real difference between let and var? When should I use which?",
     },
     {
       title: "How do I center a div in CSS?",
@@ -142,59 +142,49 @@ async function seed() {
       "SELECT user_id FROM users WHERE email = ?",
       [u.email],
     );
-
     if (existing.length > 0) {
       userIdByEmail[u.email] = existing[0].user_id;
       console.log(`User already exists: ${u.email}`);
       continue;
     }
-
     const passwordHash = await bcrypt.hash(u.password, 10);
-
     const [result] = await pool.query(
       "INSERT INTO users (first_name, last_name, email, password_hash) VALUES (?, ?, ?, ?)",
       [u.firstName, u.lastName, u.email, passwordHash],
     );
-
     userIdByEmail[u.email] = result.insertId;
     console.log(`Created user: ${u.email} (password: ${u.password})`);
   }
 
   for (const [email, questions] of Object.entries(questionsByEmail)) {
     const userId = userIdByEmail[email];
-
     for (const q of questions) {
       const [existing] = await pool.query(
         "SELECT id FROM questions WHERE title = ?",
         [q.title],
       );
-
       if (existing.length > 0) {
         console.log(`Question already exists: ${q.title}`);
         continue;
       }
-
-      const hash = randomUUID();
-
+      const hash = generateHash();
       await pool.query(
         "INSERT INTO questions (question_hash, user_id, title, content) VALUES (?, ?, ?, ?)",
         [hash, userId, q.title, q.content],
       );
-
       console.log(`Created question: ${q.title}`);
     }
   }
 
+  // One sample answer, matching the question-detail design.
   const [[question]] = await pool.query(
     "SELECT id, question_hash FROM questions WHERE title LIKE 'React Router: useParams()%' LIMIT 1",
   );
-
   if (question) {
     const [existingAnswer] = await pool.query(
       "SELECT id FROM answers WHERE question_id = ?",
       [question.id],
     );
-
     if (existingAnswer.length === 0) {
       await pool.query(
         "INSERT INTO answers (question_id, user_id, content) VALUES (?, ?, ?)",
@@ -204,7 +194,6 @@ async function seed() {
           'Most common cause on hard refresh: the browser asks the server for /question/abc123. If the server is not configured to serve your SPA\'s index.html for that path, you get a 404 or a different document — your React app may not mount with the route you expect, or a fallback page loads without the router seeing the URL.\n\nVerify first: (1) Dev/prod server: Vite preview/production needs SPA fallback (history API) so every path returns index.html. (2) Route definition: confirm a parent <Route path="/question/:questionHash" /> (or equivalent) exists and matches the URL you refresh on — typos, missing :param, or a different basename break useParams(). (3) Quick sanity check: after refresh, log window.location.pathname and compare to your declared routes. If the path is correct but useParams() is still wrong, the mismatch is almost always in the route tree (nested routes, relative paths, or duplicate routers).',
         ],
       );
-
       console.log("Created sample answer.");
     }
   }
@@ -212,7 +201,6 @@ async function seed() {
   console.log(
     "✅ Seeding complete. NOTE: run backfillEmbeddings.js afterward if you want Related Questions to work on these.",
   );
-
   process.exit(0);
 }
 
