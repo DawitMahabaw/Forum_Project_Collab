@@ -52,9 +52,15 @@ const AuthProvider = ({ children }) => {
     restoreAuthentication();
   }, []);
 
-  // Register a new user.
+  
+  // Register a new user and automatically log them in.
   const register = async (userData) => {
     const response = await registerUser(userData);
+
+    setUser(response.user);
+    setToken(response.token);
+    saveToken(response.token);
+
     return response;
   };
 
@@ -87,7 +93,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+};;
 
 // Custom hook for accessing authentication context.
 const useAuth = () => {

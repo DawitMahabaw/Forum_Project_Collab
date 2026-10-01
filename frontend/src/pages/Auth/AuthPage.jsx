@@ -141,45 +141,32 @@ const AuthPage = () => {
 
     setIsLoading(true);
 
-    try {
-      if (isRegistering) {
-        await register({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email,
-          password: formData.password,
-        });
+        try {
+          if (isRegistering) {
+            await register({
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              email,
+              password: formData.password,
+            });
+          } else {
+            await login({
+              email,
+              password: formData.password,
+            });
+          }
 
-        setSuccess("Registration successful! Please sign in.");
-
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          password: "",
-        });
-
-        setShowPassword(false);
-        setIsRegistering(false);
-        return;
-      } else {
-        await login({
-          email,
-          password: formData.password,
-        });
-      }
-
-      const destination = location.state?.from?.pathname || "/dashboard";
-      navigate(destination, { replace: true });
-    } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-        "Unable to sign in right now. Please try again.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };;;
+          const destination = location.state?.from?.pathname || "/dashboard";
+          navigate(destination, { replace: true });
+        } catch (requestError) {
+          setError(
+            requestError.response?.data?.message ||
+              "Unable to sign in right now. Please try again.",
+          );
+        } finally {
+          setIsLoading(false);
+        }
+  };
 
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);

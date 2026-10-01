@@ -1,8 +1,17 @@
-import { LogOut, Moon, Search, Sparkles, Sun, X } from "lucide-react";
+import {
+  LogOut,
+  Moon,
+  PanelLeftOpen,
+  Search,
+  Sparkles,
+  Sun,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSidebar } from "../../context/SidebarContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { listQuestions } from "../../services/questionService.js";
 import styles from "./Navbar.module.css";
@@ -35,6 +44,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isSidebarOpen, openSidebar, isMobile } = useSidebar();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -111,9 +121,22 @@ const Navbar = () => {
 
   return (
     <header className={styles.navbar}>
-      <div className={styles.titleBlock}>
-        <h1 className={styles.homeTitleText}>{heading}</h1>
-        <p>{description}</p>
+      <div className={styles.navLeft}>
+        {isMobile && !isSidebarOpen && (
+          <button
+            aria-label="Open sidebar"
+            className={styles.sidebarToggle}
+            onClick={openSidebar}
+            title="Open sidebar"
+            type="button"
+          >
+            <PanelLeftOpen aria-hidden="true" size={19} />
+          </button>
+        )}
+        <div className={styles.titleBlock}>
+          <h1 className={styles.homeTitleText}>{heading}</h1>
+          <p>{description}</p>
+        </div>
       </div>
       <form
         className={`${styles.searchForm} ${canUseAiSearch ? styles.searchFormReady : ""} ${hasQuery ? styles.searchFormWithQuery : ""}`}
@@ -159,7 +182,8 @@ const Navbar = () => {
                 >
                   <b>{question.title}</b>
                   <small>
-                    {question.answerCount || 0} {question.answerCount === 1 ? "reply" : "replies"}
+                    {question.answerCount || 0}{" "}
+                    {question.answerCount === 1 ? "reply" : "replies"}
                   </small>
                 </button>
               ))}
