@@ -4,7 +4,7 @@
 // Safe to re-run — it skips users that already exist by email.
 import bcrypt from "bcrypt";
 import pool from "../config/db.js";
-import { hashPassword as generateHash } from "./password.js";
+import { generateQuestionHash } from "../utils/questionHash.js";
 
 
 const users = [
@@ -167,7 +167,7 @@ async function seed() {
         console.log(`Question already exists: ${q.title}`);
         continue;
       }
-      const hash = generateHash();
+      const hash = generateQuestionHash();
       await pool.query(
         "INSERT INTO questions (question_hash, user_id, title, content) VALUES (?, ?, ?, ?)",
         [hash, userId, q.title, q.content],
