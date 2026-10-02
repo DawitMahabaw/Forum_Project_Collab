@@ -671,4 +671,9 @@
     height: 320px;
     min-height: 250px;
   }
+
+  .preview {
+    height: 320px;
+    min-height: 260px;
+  }
 }
