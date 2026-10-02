@@ -1,6 +1,7 @@
 
 import { generateContent } from "../ai/gemini.js";
-
+import { generateJson } from "../ai/generateText.js";
+import { draftCoachSchema } from "../utils/draftCoachSchema.js"
 // ------------------------------------------------------------
 // PARSE JSON FROM AI RESPONSE
 // ------------------------------------------------------------
@@ -27,10 +28,12 @@ const parseJsonResponse = (rawText) => {
   }
 };
 
-// ============================================================
+
 // DRAFT COACH
-// ============================================================
-const generateQuestionDraftCoachService = async ({ title, content }) => {
+ const generateQuestionDraftCoachService = async ({
+  title,
+  content,
+}) => {
   const prompt = `
 You are a helpful coach for a technical Q&A forum, similar to
 Stack Overflow. A user is drafting a question. Give short,
@@ -47,7 +50,13 @@ Respond with STRICT JSON ONLY, no markdown, no commentary,
 matching exactly this shape:
 
 {
-  "tips": ["short actionable tip", "short actionable tip"]
+  "improvedTitle": "string",
+  "improvedContent": "string",
+  "suggestions": [
+    "string",
+    "string",
+    "string"
+  ]
 }
 
 Rules:
@@ -57,15 +66,16 @@ Rules:
   messages, and expected vs actual behavior.
 - If the draft is already excellent, return a single
   encouraging tip instead of inventing filler feedback.
+
 `.trim();
 
-  const rawText = await generateContent(prompt);
-  const parsed = parseJsonResponse(rawText);
+   const result = await generateJson(prompt);
+   const validatedResult = draftCoachSchema.parse(result);
 
-  const tips = Array.isArray(parsed.tips) ? parsed.tips : [];
-
-  return { tips };
+   return validatedResult;
+   
 };
+
 
 // ============================================================
 // ANSWER FIT
@@ -125,6 +135,6 @@ const assessAnswerAgainstQuestionService = async ({ question, answerText }) => {
 // ============================================================
 
 export {
-  generateQuestionDraftCoachService,
-  assessAnswerAgainstQuestionService,
+ generateQuestionDraftCoachService,
+ assessAnswerAgainstQuestionService,
 };
