@@ -356,9 +356,9 @@ const getSimilarQuestions = async (req, res, next) => {
 // };
 
 
-// ============================================================
+
+
 // DRAFT COACH CONTROLLER
-// 
 
 const generateQuestionDraftCoach = async (req, res, next) => {
   try {
@@ -369,15 +369,24 @@ const generateQuestionDraftCoach = async (req, res, next) => {
     const normalizedTitle = typeof title === "string" ? title.trim() : "";
     const normalizedContent = typeof content === "string" ? content.trim() : "";
 
-    // Draft coaching is allowed even when the user has only
-    // partially written the question.
-    //
-    // But completely empty input is not useful.
-
     if (!normalizedTitle && !normalizedContent) {
       return res.status(400).json({
         success: false,
         message: "Write a title or some details before requesting suggestions.",
+      });
+    }
+
+    if (normalizedTitle.length > 200) {
+      return res.status(400).json({
+        success: false,
+        message: "Title must not exceed 200 characters.",
+      });
+    }
+
+    if (normalizedContent.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        message: "Question content must not exceed 5000 characters.",
       });
     }
 
