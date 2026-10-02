@@ -410,7 +410,6 @@ export {
     getSingleQuestionService,
     searchQuestionsSemanticService,
     getSimilarQuestionsService,
-    draftCoach,
     evaluateAnswerFit,
     updateQuestionService,
 };
