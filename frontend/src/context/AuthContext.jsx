@@ -82,6 +82,11 @@ const AuthProvider = ({ children }) => {
     removeToken();
   };
 
+  // Update current user state with new fields (e.g., name or avatar updates)
+  const updateUser = (updatedFields) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : prev));
+  };
+
   const value = {
     user,
     token,
@@ -90,10 +95,11 @@ const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};;
+};
 
 // Custom hook for accessing authentication context.
 const useAuth = () => {

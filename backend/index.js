@@ -16,6 +16,12 @@ import authRoutes from "./src/routes/authRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 import pool from "./src/config/db.js";
 
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // ============================================================
 // CREATE EXPRESS APPLICATION
 // ============================================================
@@ -23,6 +29,9 @@ import pool from "./src/config/db.js";
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "100kb" }));
+
+// Serve uploaded assets (avatars, documents)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,

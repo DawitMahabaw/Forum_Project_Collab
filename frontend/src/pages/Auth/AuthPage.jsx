@@ -14,7 +14,6 @@ import { useAuth } from "../../context/AuthContext.jsx";
 
 import styles from "./AuthPage.module.css";
 
-
 const AuthPage = () => {
   const { isAuthenticated } = useAuth();
 
@@ -141,36 +140,35 @@ const AuthPage = () => {
 
     setIsLoading(true);
 
-        try {
-          if (isRegistering) {
-            await register({
-              firstName: formData.firstName,
-              lastName: formData.lastName,
-              email,
-              password: formData.password,
-            });
-          } else {
-            await login({
-              email,
-              password: formData.password,
-            });
-          }
+    try {
+      if (isRegistering) {
+        await register({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email,
+          password: formData.password,
+        });
+      } else {
+        await login({
+          email,
+          password: formData.password,
+        });
+      }
 
-          const destination = location.state?.from?.pathname || "/dashboard";
-          navigate(destination, { replace: true });
-        } catch (requestError) {
-          setError(
-            requestError.response?.data?.message ||
-              "Unable to sign in right now. Please try again.",
-          );
-        } finally {
-          setIsLoading(false);
-        }
+      const destination = location.state?.from?.pathname || "/dashboard";
+      navigate(destination, { replace: true });
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Unable to sign in right now. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);
-
 
     setFormData({
       firstName: "",
@@ -440,7 +438,7 @@ const AuthPage = () => {
           </AnimatePresence>
         </div>
       </section>
-    </div >
+    </div>
   );
 };
 

@@ -10,6 +10,8 @@ import LandingPage from "../pages/Landing/LandingPage.jsx";
 import QuestionDetail from "../pages/QuestionDetail/QuestionDetail.jsx";
 import MyQuestions from "../pages/MyQuestions/MyQuestions.jsx";
 import RagDocuments from "../pages/RagDocuments/RagDocuments.jsx";
+import Profile from "../pages/Profile/Profile.jsx";
+import Settings from "../pages/Settings/Settings.jsx";
 
 const AppRoutes = () => {
   return (
@@ -30,6 +32,8 @@ const AppRoutes = () => {
             />
             <Route path="/my-questions" element={<MyQuestions />} />
             <Route path="/rag-documents" element={<RagDocuments />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>
 

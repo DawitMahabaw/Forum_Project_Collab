@@ -2,6 +2,11 @@ import {
   registerUser,
   loginUser,
   getCurrentUser,
+  getUserProfile,
+  updateUserProfile,
+  updateUserAvatar,
+  updateUserAccount,
+  changeUserPassword,
 } from "../services/authService.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,10 +53,6 @@ const validateRegistrationInput = (input) => {
 
   const { firstName, lastName, email, password } = input;
 
-  // ----------------------------------------------------------
-  // Check required fields one by one.
-  // ----------------------------------------------------------
-
   const firstNameError = validateTextField(firstName, "First name");
   if (firstNameError) {
     return firstNameError;
@@ -72,25 +73,13 @@ const validateRegistrationInput = (input) => {
     return passwordError;
   }
 
-  // ----------------------------------------------------------
-  // Validate first name length.
-  // ----------------------------------------------------------
-
   if (firstName.trim().length < 2) {
     return "First name must contain at least 2 characters.";
   }
 
-  // ----------------------------------------------------------
-  // Validate last name length.
-  // ----------------------------------------------------------
-
   if (lastName.trim().length < 2) {
     return "Last name must contain at least 2 characters.";
   }
-
-  // ----------------------------------------------------------
-  // Validate email format.
-  // ----------------------------------------------------------
 
   if (!emailPattern.test(email.trim())) {
     return "Please provide a valid email address.";
@@ -110,10 +99,6 @@ const validateLoginInput = (input) => {
 
   const { email, password } = input;
 
-  // ----------------------------------------------------------
-  // Check email first.
-  // ----------------------------------------------------------
-
   const emailError = validateTextField(email, "Email");
   if (emailError) {
     return emailError;
@@ -123,10 +108,6 @@ const validateLoginInput = (input) => {
   if (passwordError) {
     return passwordError;
   }
-
-  // ----------------------------------------------------------
-  // Validate email format.
-  // ----------------------------------------------------------
 
   if (!emailPattern.test(email.trim())) {
     return "Please provide a valid email address.";
@@ -141,8 +122,6 @@ const validateLoginInput = (input) => {
 
 const register = async (req, res, next) => {
   try {
-    // Validate the incoming data.
-
     const validationError = validateRegistrationInput(req.body);
 
     if (validationError) {
@@ -154,15 +133,9 @@ const register = async (req, res, next) => {
 
     const { firstName, lastName, email, password } = req.body;
 
-    // Normalize user input before sending it to the service.
-
     const normalizedFirstName = firstName.trim();
-
     const normalizedLastName = lastName.trim();
-
     const normalizedEmail = email.trim().toLowerCase();
-
-    // Call the authentication service.
 
     const result = await registerUser({
       firstName: normalizedFirstName,
@@ -188,8 +161,6 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    // Validate the incoming data.
-
     const validationError = validateLoginInput(req.body);
 
     if (validationError) {
@@ -200,12 +171,7 @@ const login = async (req, res, next) => {
     }
 
     const { email, password } = req.body;
-
-    // Normalize the email before authentication.
-
     const normalizedEmail = email.trim().toLowerCase();
-
-    // Verify credentials through the authentication service.
 
     const result = await loginUser({
       email: normalizedEmail,
@@ -240,4 +206,187 @@ const getMe = async (req, res, next) => {
   }
 };
 
-export { register, login, getMe };
+// ============================================================
+// PROFILE CONTROLLERS
+// ============================================================
+
+const getProfile = async (req, res, next) => {
+  try {
+    const profile = await getUserProfile(req.user.userId);
+
+    return res.status(200).json({
+      success: true,
+      profile,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateProfile = async (req, res, next) => {
+  try {
+    const {
+      headline = "",
+      bio = "",
+      location = "",
+      githubUrl = "",
+    } = req.body || {};
+
+    const sanitizedData = {
+      headline:
+        typeof headline === "string" ? headline.trim().slice(0, 150) : "",
+      bio: typeof bio === "string" ? bio.trim().slice(0, 1000) : "",
+      location:
+        typeof location === "string" ? location.trim().slice(0, 100) : "",
+      githubUrl:
+        typeof githubUrl === "string" ? githubUrl.trim().slice(0, 255) : "",
+    };
+
+    const updatedProfile = await updateUserProfile(
+      req.user.userId,
+      sanitizedData,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      profile: updatedProfile,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select an image file to upload.",
+      });
+    }
+
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const result = await updateUserAvatar(req.user.userId, avatarUrl);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile picture updated successfully.",
+      avatarUrl: result.avatarUrl,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================
+// ACCOUNT & SECURITY CONTROLLERS
+// ============================================================
+
+const updateAccount = async (req, res, next) => {
+  try {
+    const { firstName, lastName, email } = req.body || {};
+
+    const firstNameError = validateTextField(firstName, "First name");
+    if (firstNameError)
+      return res.status(400).json({ success: false, message: firstNameError });
+
+    const lastNameError = validateTextField(lastName, "Last name");
+    if (lastNameError)
+      return res.status(400).json({ success: false, message: lastNameError });
+
+    const emailError = validateTextField(email, "Email");
+    if (emailError)
+      return res.status(400).json({ success: false, message: emailError });
+
+    if (firstName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "First name must contain at least 2 characters.",
+      });
+    }
+
+    if (lastName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Last name must contain at least 2 characters.",
+      });
+    }
+
+    if (!emailPattern.test(email.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address.",
+      });
+    }
+
+    const updatedUser = await updateUserAccount(req.user.userId, {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim().toLowerCase(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Account information updated successfully.",
+      user: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body || {};
+
+    if (!currentPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Current password is required." });
+    }
+
+    if (!newPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "New password is required." });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must contain at least 8 characters.",
+      });
+    }
+
+    if (confirmPassword !== undefined && newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password and confirmation do not match.",
+      });
+    }
+
+    const result = await changeUserPassword(req.user.userId, {
+      currentPassword,
+      newPassword,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {
+  register,
+  login,
+  getMe,
+  getProfile,
+  updateProfile,
+  uploadAvatar,
+  updateAccount,
+  changePassword,
+};
