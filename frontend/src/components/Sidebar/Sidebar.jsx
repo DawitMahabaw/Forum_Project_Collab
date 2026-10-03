@@ -1,20 +1,24 @@
 import {
   FileText,
-  LayoutDashboard,
+  Home,
   LogOut,
   MessageSquare,
   PanelLeftClose,
+  Settings,
   SquarePen,
+  User,
 } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useSidebar } from "../../context/SidebarContext.jsx";
+import { getAvatarUrl } from "../../utils/avatar.js";
 import styles from "./Sidebar.module.css";
 
 const NAV_ITEMS = [
   {
-    icon: LayoutDashboard,
+    icon: Home,
     label: "Home",
     path: "/dashboard",
   },
@@ -28,6 +32,16 @@ const NAV_ITEMS = [
     label: "Knowledge Base",
     path: "/rag-documents",
   },
+  {
+    icon: User,
+    label: "Profile",
+    path: "/profile",
+  },
+  {
+    icon: Settings,
+    label: "Settings",
+    path: "/settings",
+  },
 ];
 
 // Sidebar navigation for authenticated application pages.
@@ -35,6 +49,11 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { isSidebarOpen, closeSidebar, openSidebar } = useSidebar();
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatarUrl]);
 
   // Creates a simple avatar from the user's initials.
   const getInitials = () => {
@@ -103,21 +122,23 @@ const Sidebar = () => {
       <nav className={styles.navigation} aria-label="Main navigation">
         {isSidebarOpen && <p className={styles.label}>Navigate</p>}
 
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.map((item, index) => {
           const Icon = item.icon;
 
           return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `${styles.link} ${isActive ? styles.active : ""}`
-              }
-              title={!isSidebarOpen ? item.label : undefined}
-            >
-              <Icon size={18} />
-              {isSidebarOpen && <span>{item.label}</span>}
-            </NavLink>
+            <Fragment key={item.path}>
+              {index === 3 && <div className={styles.navDivider} />}
+              <NavLink
+                to={item.path}
+                className={({ isActive }) =>
+                  `${styles.link} ${isActive ? styles.active : ""}`
+                }
+                title={!isSidebarOpen ? item.label : undefined}
+              >
+                <Icon size={18} />
+                {isSidebarOpen && <span>{item.label}</span>}
+              </NavLink>
+            </Fragment>
           );
         })}
       </nav>
@@ -145,13 +166,36 @@ const Sidebar = () => {
 
         {isSidebarOpen ? (
           <div className={styles.user}>
-            <div className={styles.avatar}>{getInitials()}</div>
+            <div
+              className={`${styles.avatar} ${styles.avatarClickable}`}
+              onClick={() => navigate("/profile")}
+              title="View Profile"
+              role="button"
+              tabIndex={0}
+            >
+              {getAvatarUrl(user?.avatarUrl) && !avatarError ? (
+                <img
+                  src={getAvatarUrl(user?.avatarUrl)}
+                  alt={`${user?.firstName} ${user?.lastName}`}
+                  className={styles.avatarImg}
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                getInitials()
+              )}
+            </div>
 
-            <div className={styles.userInfo}>
+            <div
+              className={`${styles.userInfo} ${styles.avatarClickable}`}
+              onClick={() => navigate("/profile")}
+              title="View Profile"
+              role="button"
+              tabIndex={0}
+            >
               <span>
                 {user?.firstName} {user?.lastName}
               </span>
-              <small>Learner</small>
+              <small>{user?.headline || "Learner"}</small>
             </div>
 
             <button
@@ -167,10 +211,22 @@ const Sidebar = () => {
         ) : (
           <div className={styles.compactUser}>
             <div
-              className={styles.avatar}
-              title={`${user?.firstName || "User"} ${user?.lastName || ""}`}
+              className={`${styles.avatar} ${styles.avatarClickable}`}
+              onClick={() => navigate("/profile")}
+              title={`View Profile (${user?.firstName || "User"} ${user?.lastName || ""})`}
+              role="button"
+              tabIndex={0}
             >
-              {getInitials()}
+              {getAvatarUrl(user?.avatarUrl) && !avatarError ? (
+                <img
+                  src={getAvatarUrl(user?.avatarUrl)}
+                  alt={`${user?.firstName} ${user?.lastName}`}
+                  className={styles.avatarImg}
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                getInitials()
+              )}
             </div>
             <button
               type="button"
