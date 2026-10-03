@@ -38,6 +38,53 @@ const getCurrentUser = async () => {
   return response.data;
 };
 
+/**
+ * Fetches user profile with stats.
+ */
+const getUserProfile = async () => {
+  const response = await api.get("/auth/profile");
+  return response.data;
+};
 
+/**
+ * Updates profile details (headline, bio, location, githubUrl).
+ */
+const updateUserProfile = async (profileData) => {
+  const response = await api.put("/auth/profile", profileData);
+  return response.data;
+};
 
-export { registerUser, loginUser, getCurrentUser };
+/**
+ * Uploads a user avatar image.
+ */
+const uploadAvatar = async (formData) => {
+  const response = await api.post("/auth/avatar", formData);
+  return response.data;
+};
+
+/**
+ * Updates account details (firstName, lastName, email).
+ */
+const updateAccount = async (accountData) => {
+  const response = await api.put("/auth/account", accountData);
+  return response.data;
+};
+
+/**
+ * Changes user password.
+ */
+const changePassword = async (passwords) => {
+  const response = await api.put("/auth/change-password", passwords);
+  return response.data;
+};
+
+export {
+  registerUser,
+  loginUser,
+  getCurrentUser,
+  getUserProfile,
+  updateUserProfile,
+  uploadAvatar,
+  updateAccount,
+  changePassword,
+};
