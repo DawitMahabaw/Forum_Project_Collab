@@ -71,7 +71,15 @@ const searchDocument = async (document, query, requestedK) => ({
 });
 
 const extractText = async (filePath) => {
-  const parser = new PDFParse({ data: await fs.readFile(filePath) });
+  const extension = path.extname(filePath).toLowerCase();
+
+  if (extension === ".txt") {
+    return fs.readFile(filePath, "utf8");
+  }
+
+  const parser = new PDFParse({
+    data: await fs.readFile(filePath),
+  });
 
   try {
     const result = await parser.getText();
@@ -102,7 +110,7 @@ const processDocument = async (documentId, filePath) => {
     const chunks = splitText(rawText);
 
     if (!chunks.length) {
-      throw new Error("The PDF does not contain readable text.");
+      throw new Error("The document does not contain readable text.");
     }
 
     for (let index = 0; index < chunks.length; index += 1) {
@@ -141,7 +149,10 @@ const createDocument = async ({ userId, file }) => {
 
   // The upload request returns immediately while extraction and indexing run.
   void processDocument(documentId, filePath).catch((error) => {
-    console.error(`RAG document ${documentId} processing crashed:`, error.message);
+    console.error(
+      `RAG document ${documentId} processing crashed:`,
+      error.message,
+    );
   });
 
   return Document.findByIdForUser(documentId, userId);
@@ -247,7 +258,10 @@ const deleteDocument = async (document, userId) => {
   } catch (error) {
     // The database delete (and its vector cascade) has succeeded. Leave a
     // clear server-side signal for an administrator to clean an orphan file.
-    console.error(`Could not remove RAG file for document ${document.documentId}:`, error.message);
+    console.error(
+      `Could not remove RAG file for document ${document.documentId}:`,
+      error.message,
+    );
   }
 };
 
