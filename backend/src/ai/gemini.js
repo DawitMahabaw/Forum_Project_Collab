@@ -7,6 +7,21 @@ const REQUEST_TIMEOUT_MS = 30_000;
 const GENERATION_ATTEMPTS_PER_MODEL = 3;
 const EMBEDDING_ATTEMPTS = 2;
 
+// A 429 that says to retry in minutes or hours is a spent quota (for example
+// the free tier's daily cap). Retrying immediately only burns more requests.
+const isQuotaExhausted = (status, body) => {
+  if (status !== 429) return false;
+
+  const delaySeconds = Number(
+    String(body || "").match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/)?.[1],
+  );
+
+  return (
+    /PerDay|RESOURCE_EXHAUSTED/i.test(String(body || "")) &&
+    (!Number.isFinite(delaySeconds) || delaySeconds > 60)
+  );
+};
+
 // Wait without blocking Node's event loop between transient retry attempts.
 const wait = (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -82,6 +97,10 @@ const requestGemini = async ({
       lastFailure = { status: response.status, body };
       // Invalid credentials/request shapes cannot be fixed by retrying.
       if (!RETRYABLE_STATUS_CODES.has(response.status)) {
+        break;
+      }
+      // Do not retry a spent quota; let the caller try the fallback model.
+      if (isQuotaExhausted(response.status, body)) {
         break;
       }
       if (attempt < attempts - 1) {
@@ -197,6 +216,8 @@ const generateContent = async (prompt, options = {}) => {
     );
   }
 
+  let sawQuotaLimit = false;
+
   // Try the primary model and configured fallback model.
   for (const model of generationModels()) {
     const response = await requestGemini({
@@ -223,6 +244,7 @@ const generateContent = async (prompt, options = {}) => {
 
     // Try the next model when Gemini returns an error.
     if (!response.ok) {
+      if (response.status === 429) sawQuotaLimit = true;
       continue;
     }
 
@@ -238,6 +260,16 @@ const generateContent = async (prompt, options = {}) => {
       return text;
     }
     console.error(`Gemini generateContent returned no text for ${model}.`);
+  }
+
+  // Tell the user plainly when the AI usage limit is the reason.
+  if (sawQuotaLimit) {
+    const error = new Error(
+      "The AI usage limit has been reached. Please try again later.",
+    );
+    error.statusCode = 429;
+    error.expose = true;
+    throw error;
   }
 
   // Return a service error when all Gemini models fail.
