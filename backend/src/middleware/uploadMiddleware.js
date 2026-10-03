@@ -15,7 +15,8 @@ const storage = multer.diskStorage({
   },
 
   filename: (_req, file, callback) => {
-    const safeFilename = `${Date.now()}-${crypto.randomUUID()}.pdf`;
+    const extension = path.extname(file.originalname).toLowerCase();
+    const safeFilename = `${Date.now()}-${crypto.randomUUID()}${extension}`;
     callback(null, safeFilename);
   },
 });
@@ -30,8 +31,12 @@ const uploadPdf = multer({
   fileFilter: (_req, file, callback) => {
     const extension = path.extname(file.originalname).toLowerCase();
 
-    if (file.mimetype !== "application/pdf" || extension !== ".pdf") {
-      const error = new Error("Only PDF files are supported.");
+    const isPdf = file.mimetype === "application/pdf" && extension === ".pdf";
+
+    const isText = file.mimetype === "text/plain" && extension === ".txt";
+
+    if (!isPdf && !isText) {
+      const error = new Error("Only PDF and TXT files are supported.");
       error.statusCode = 400;
       return callback(error);
     }
