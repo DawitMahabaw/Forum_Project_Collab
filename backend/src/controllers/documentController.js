@@ -5,6 +5,7 @@ import {
   deleteDocument,
   queryDocument,
   searchDocument,
+  summarizeDocument,
 } from "../rag/ragService.js";
 
 const getDocumentId = (rawDocumentId) => {
@@ -50,6 +51,26 @@ const requireQuery = (rawQuery) => {
   }
 
   return query;
+};
+
+// The summary instruction is optional; an empty one falls back to a default.
+const optionalSummaryPrompt = (rawPrompt) => {
+  if (rawPrompt === undefined || rawPrompt === null) return "";
+
+  if (typeof rawPrompt !== "string") {
+    const error = new Error("The summary instruction must be text.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const prompt = rawPrompt.trim();
+  if (prompt.length > 2_000) {
+    const error = new Error("Summary instructions must be 2,000 characters or fewer.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return prompt;
 };
 
 const validateUploadedPdf = async (filePath) => {
@@ -168,6 +189,28 @@ const ask = async (req, res, next) => {
   }
 };
 
+const summarize = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+    const data = await summarizeDocument(
+      document,
+      optionalSummaryPrompt(req.body?.prompt),
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Document summary generated.",
+      data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const streamDocument = async (req, res, next) => {
   try {
     const document = await findOwnedDocument(
@@ -224,5 +267,6 @@ export {
   remove,
   search,
   streamDocument,
+  summarize,
   uploadDocument,
 };
