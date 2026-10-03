@@ -273,6 +273,10 @@
   white-space: nowrap;
 }
 
+.userClickable {
+  cursor: pointer;
+}
+
 .avatar {
   display: grid;
   width: 32px;
@@ -283,6 +287,17 @@
   background: #8ae1ee;
   font-size: 12px;
   font-weight: 700;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .logoutButton {

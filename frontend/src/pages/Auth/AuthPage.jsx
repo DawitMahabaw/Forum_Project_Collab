@@ -14,7 +14,6 @@ import { useAuth } from "../../context/AuthContext.jsx";
 
 import styles from "./AuthPage.module.css";
 
-
 const AuthPage = () => {
   const { isAuthenticated } = useAuth();
 
@@ -149,19 +148,6 @@ const AuthPage = () => {
           email,
           password: formData.password,
         });
-
-        setSuccess("Registration successful! Please sign in.");
-
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          password: "",
-        });
-
-        setShowPassword(false);
-        setIsRegistering(false);
-        return;
       } else {
         await login({
           email,
@@ -174,16 +160,15 @@ const AuthPage = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-        "Unable to sign in right now. Please try again.",
+          "Unable to sign in right now. Please try again.",
       );
     } finally {
       setIsLoading(false);
     }
-  };;;
+  };
 
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);
-
 
     setFormData({
       firstName: "",
@@ -453,7 +438,7 @@ const AuthPage = () => {
           </AnimatePresence>
         </div>
       </section>
-    </div >
+    </div>
   );
 };
 

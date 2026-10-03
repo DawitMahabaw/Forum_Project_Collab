@@ -10,7 +10,7 @@ import {
   deleteQuestion,
 } from "../controllers/questionController.js";
 import authenticate from "../middleware/authMiddleware.js";
-
+import { draftCoachLimiter } from "../middleware/rateLimiter.js";
 const router = express.Router();
 // GET /api/questions
 router.get("/", authenticate, getQuestions);
@@ -19,7 +19,7 @@ router.get("/", authenticate, getQuestions);
 router.get("/search", authenticate, searchQuestionsSemantic);
 
 // POST /api/questions/draft-coach   (T-17)
-router.post("/draft-coach", authenticate, generateQuestionDraftCoach);
+router.post("/draft-coach", authenticate, draftCoachLimiter, generateQuestionDraftCoach);
 
 // GET /api/questions/:questionHash/similar
 router.get("/:questionHash/similar", authenticate, getSimilarQuestions);

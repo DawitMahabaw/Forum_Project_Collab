@@ -38,6 +38,40 @@ export async function initializeDatabase() {
 
     console.log("Users table initialized successfully.");
 
+    // Ensure profile columns exist on users table for new features
+    const [userColumns] = await connection.query(`
+      SELECT COLUMN_NAME
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'users'
+    `);
+    const existingUserCols = new Set(userColumns.map((c) => c.COLUMN_NAME));
+    if (!existingUserCols.has("avatar_url")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) NULL AFTER email",
+      );
+    }
+    if (!existingUserCols.has("headline")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN headline VARCHAR(150) NULL",
+      );
+    }
+    if (!existingUserCols.has("bio")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN bio TEXT NULL",
+      );
+    }
+    if (!existingUserCols.has("location")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN location VARCHAR(100) NULL",
+      );
+    }
+    if (!existingUserCols.has("github_url")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN github_url VARCHAR(255) NULL",
+      );
+    }
+
     // Create the questions table if it does not already exist
     await connection.query(`
       CREATE TABLE IF NOT EXISTS questions (

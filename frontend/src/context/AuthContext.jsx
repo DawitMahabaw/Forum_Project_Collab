@@ -52,9 +52,15 @@ const AuthProvider = ({ children }) => {
     restoreAuthentication();
   }, []);
 
-  // Register a new user.
+  
+  // Register a new user and automatically log them in.
   const register = async (userData) => {
     const response = await registerUser(userData);
+
+    setUser(response.user);
+    setToken(response.token);
+    saveToken(response.token);
+
     return response;
   };
 
@@ -76,6 +82,11 @@ const AuthProvider = ({ children }) => {
     removeToken();
   };
 
+  // Update current user state with new fields (e.g., name or avatar updates)
+  const updateUser = (updatedFields) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : prev));
+  };
+
   const value = {
     user,
     token,
@@ -84,6 +95,7 @@ const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

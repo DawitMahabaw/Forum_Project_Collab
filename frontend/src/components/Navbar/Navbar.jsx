@@ -14,6 +14,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useSidebar } from "../../context/SidebarContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { listQuestions } from "../../services/questionService.js";
+import { getAvatarUrl } from "../../utils/avatar.js";
 import styles from "./Navbar.module.css";
 
 const pageCopy = {
@@ -32,6 +33,14 @@ const pageCopy = {
   "/rag-documents": [
     "Knowledge base",
     "Private PDF library: reader, semantic search, and AI answers with citations per document.",
+  ],
+  "/profile": [
+    "My Profile",
+    "Manage your public community profile, avatar, and view your activity.",
+  ],
+  "/settings": [
+    "Settings",
+    "Update your account name, email address, and change password.",
   ],
 };
 
@@ -54,6 +63,11 @@ const Navbar = () => {
   ];
   const canUseAiSearch = query.trim().length >= 3;
   const hasQuery = query.length > 0;
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatarUrl]);
 
   // Fetch fast keyword suggestions while the user types. The
   // debounce prevents a network request for every key press and
@@ -205,10 +219,29 @@ const Navbar = () => {
         )}
       </button>
       <div className={styles.userSection}>
-        <span className={styles.userName}>
+        <span
+          className={`${styles.userName} ${styles.userClickable}`}
+          onClick={() => navigate("/profile")}
+          title="View Profile"
+        >
           {user?.firstName} {user?.lastName}
         </span>
-        <span className={styles.avatar}>{getInitials(user)}</span>
+        <span
+          className={styles.avatar}
+          onClick={() => navigate("/profile")}
+          title="View Profile"
+        >
+          {getAvatarUrl(user?.avatarUrl) && !avatarError ? (
+            <img
+              src={getAvatarUrl(user?.avatarUrl)}
+              alt={`${user?.firstName} ${user?.lastName}`}
+              className={styles.avatarImg}
+              onError={() => setAvatarError(true)}
+            />
+          ) : (
+            getInitials(user)
+          )}
+        </span>
         <button
           aria-label="Log out"
           className={styles.logoutButton}
