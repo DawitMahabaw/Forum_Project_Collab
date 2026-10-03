@@ -12,7 +12,6 @@ import {
 import authenticate from "../middleware/authMiddleware.js";
 import { draftCoachLimiter } from "../middleware/rateLimiter.js";
 const router = express.Router();
-
 // GET /api/questions
 router.get("/", authenticate, getQuestions);
 
