@@ -5,6 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js",
+    "nodemon": "nodemon index.js",
+    "seed": "node src/utils/seed.js",
+    "embeddings:backfill": "node src/utils/backfillEmbeddings.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
