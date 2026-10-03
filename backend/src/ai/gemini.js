@@ -53,6 +53,7 @@ const requestGemini = async ({
   endpoint,
   payload,
   attempts,
+  timeoutMs = REQUEST_TIMEOUT_MS,
 }) => {
   assertApiKeyConfigured();
 
@@ -63,7 +64,7 @@ const requestGemini = async ({
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(url, {
@@ -128,7 +129,7 @@ async function embedContent(text, taskType = "RETRIEVAL_DOCUMENT") {
     payload: {
       model: `models/${env.geminiEmbeddingModel}`,
       content: { parts: [{ text }] },
-      taskType,
+      taskType: taskType,
     },
   });
 
@@ -177,7 +178,16 @@ const generationModels = () => {
 // =============================================================
 
 // Generate text using the configured Gemini model.
-const generateContent = async (prompt) => {
+// Defaults keep the original behavior (short JSON answers). Callers such as
+// document summarization can request longer plain-text output.
+const generateContent = async (prompt, options = {}) => {
+  const {
+    json = true,
+    maxOutputTokens = 512,
+    temperature = 0.1,
+    timeoutMs,
+  } = options;
+
   // Fail early when the API key is missing.
   assertApiKeyConfigured();
 
@@ -194,6 +204,7 @@ const generateContent = async (prompt) => {
       operation: "generateContent",
       endpoint: "generateContent",
       attempts: GENERATION_ATTEMPTS_PER_MODEL,
+      timeoutMs,
 
       // Send the evaluation prompt to Gemini.
       payload: {
@@ -203,9 +214,9 @@ const generateContent = async (prompt) => {
           },
         ],
         generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-          maxOutputTokens: 512,
+          ...(json ? { responseMimeType: "application/json" } : {}),
+          temperature,
+          maxOutputTokens,
         },
       },
     });
@@ -235,4 +246,15 @@ const generateContent = async (prompt) => {
   );
 };
 
-export { embedContent, generateContent };
+// Long plain-text generation (summaries): no JSON mode and a large output
+// budget, because thinking models spend part of it before writing the answer.
+const generateLongText = (prompt, options = {}) =>
+  generateContent(prompt, {
+    json: false,
+    maxOutputTokens: 8192,
+    temperature: 0.3,
+    timeoutMs: 90_000,
+    ...options,
+  });
+
+export { embedContent, generateContent, generateLongText };
