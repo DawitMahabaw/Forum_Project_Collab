@@ -99,6 +99,7 @@ const RagDocuments = () => {
   const [preview, setPreview] = useState({ documentId: null, url: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [workingAction, setWorkingAction] = useState("");
   const [pendingDeleteDoc, setPendingDeleteDoc] = useState(null);
   const [error, setError] = useState("");
@@ -253,19 +254,52 @@ const RagDocuments = () => {
     }
   };
 
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files?.[0] || null;
-    const document = getSelectedDocument(selectedFile);
+  const handleFileSelection = (selectedFile) => {
+    const document = getSelectedPdf(selectedFile);
 
     if (selectedFile && !document) {
       setFile(null);
       setError("Please choose a PDF or TXT file.");
-      event.target.value = "";
+      if (fileInput.current) {
+        fileInput.current.value = "";
+      }
       return;
     }
 
     setFile(document);
     setError("");
+  };
+
+  const handleFileChange = (event) => {
+    handleFileSelection(event.target.files?.[0] || null);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "copy";
+    }
+    if (!isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragging(false);
+
+    if (isUploading) return;
+
+    const droppedFile = event.dataTransfer.files?.[0] || null;
+    if (droppedFile) {
+      handleFileSelection(droppedFile);
+    }
   };
 
   // Switching documents clears outputs that belong to the previous document.
@@ -456,14 +490,28 @@ const RagDocuments = () => {
             </p>
           </header>
 
-          <div className={styles.uploadBox}>
+          <div
+            aria-label="Drop a PDF or TXT file here, or choose a file"
+            className={`${styles.uploadBox} ${
+              isDragging ? styles.uploadBoxDragging : ""
+            }`}
+            onDragEnter={handleDragOver}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            role="region"
+          >
             <p>
               Accepted formats: PDF and TXT. Maximum file size is enforced by
               the server.
             </p>
+            <p className={styles.dropHint}>
+              Drag and drop a PDF or TXT file here, or choose one below.
+            </p>
 
             <input
               accept=".pdf,.txt"
+              disabled={isUploading}
               onChange={handleFileChange}
               ref={fileInput}
               type="file"
@@ -472,6 +520,7 @@ const RagDocuments = () => {
             <div className={styles.uploadActions}>
               <button
                 className={styles.fileButton}
+                disabled={isUploading}
                 onClick={() => fileInput.current?.click()}
                 type="button"
               >
