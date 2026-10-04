@@ -719,7 +719,7 @@ const RagDocuments = () => {
                       <h2>Semantic search</h2>
 
                       <p>
-                        Finds passages by meaning (embeddings), not only exact
+                        Finds passages by meaning, not only exact
                         keywords.
                       </p>
 
