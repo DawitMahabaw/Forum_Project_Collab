@@ -32,12 +32,6 @@ const generateJson = async (prompt) => {
       },
     });
 
-     console.log(
-      `Gemini response time: ${Date.now() - start} ms`
-    );
-    console.log(response);
-    console.log("generateJson() WAS CALLED");
-
     // Check Gemini response
     if (!response || !response.text) {
       throw new Error("Gemini returned an empty response.");
@@ -45,9 +39,9 @@ const generateJson = async (prompt) => {
 
     // Convert JSON text into JavaScript object
     try {
-      const geminiResponse = JSON.parse(response.text);
-      console.log(geminiResponse);
-      return geminiResponse;
+
+      return JSON.parse(response.text);
+      
     } catch (error) {
       throw new Error("Gemini returned invalid JSON.");
     }

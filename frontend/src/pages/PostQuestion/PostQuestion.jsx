@@ -49,6 +49,9 @@ const PostQuestion = () => {
 
   const handleCoach = async () => {
     setCoachError("");
+    // Clear previous AI suggestions
+    setCoachFeedback("");
+  
     if (!title.trim() && !content.trim()) {
       setCoachError(
         "Write a title or some details before asking for suggestions.",

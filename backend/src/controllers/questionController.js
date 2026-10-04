@@ -395,7 +395,7 @@ const generateQuestionDraftCoach = async (req, res, next) => {
       content: normalizedContent,
     });
 
-    // Return the AI-generated suggestions.
+    // Return the AI-generated suggestions
     return res.status(200).json({
       success: true,
       message: "Draft suggestions generated",
