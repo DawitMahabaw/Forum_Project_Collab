@@ -3,7 +3,7 @@
 // ============================================================
 //
 // Private document library with semantic search,
-// Ask with AI, and PDF preview.
+// Ask with AI, and document preview.
 //
 
 import {
@@ -162,17 +162,16 @@ const RagDocuments = () => {
     return () => window.clearInterval(timer);
   }, [hasProcessingDocuments, loadDocuments]);
 
-  // The built-in PDF viewer supplies the reader controls shown in the design.
+  // The browser renders PDF and plain-text files in the document preview.
   useEffect(() => {
     let isCurrent = true;
     let objectUrl = "";
 
-    // TXT documents do not use the PDF preview.
     if (
       !activeDocumentId ||
       activeDocumentStatus !== "ready" ||
       activeTab !== "preview" ||
-      activeDocument?.mimeType !== "application/pdf"
+      !["application/pdf", "text/plain"].includes(activeDocument?.mimeType)
     ) {
       return undefined;
     }
@@ -191,7 +190,7 @@ const RagDocuments = () => {
           url,
         });
       })
-      .catch(() => setError("Could not load the PDF preview."));
+      .catch(() => setError("Could not load the document preview."));
 
     return () => {
       isCurrent = false;
@@ -680,7 +679,7 @@ const RagDocuments = () => {
                       Summarize
                     </button>
                     <button
-                      aria-controls="pdf-preview-panel"
+                      aria-controls="document-preview-panel"
                       aria-selected={activeTab === "preview"}
                       className={
                         activeTab === "preview" ? styles.activeTab : ""
@@ -689,12 +688,12 @@ const RagDocuments = () => {
                       role="tab"
                       type="button"
                     >
-                      PDF Preview
+                      Preview
                     </button>
                   </div>
 
                   {activeTab === "preview" && (
-                    <section id="pdf-preview-panel" role="tabpanel">
+                    <section id="document-preview-panel" role="tabpanel">
                       {preview.documentId === activeDocument.documentId &&
                       preview.url ? (
                         <iframe
@@ -705,7 +704,7 @@ const RagDocuments = () => {
                       ) : (
                         <div className={styles.pending}>
                           <LoaderCircle className={styles.spin} size={20} />
-                          Loading PDF preview...
+                          Loading document preview...
                         </div>
                       )}
                     </section>

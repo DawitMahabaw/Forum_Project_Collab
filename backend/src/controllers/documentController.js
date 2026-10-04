@@ -234,7 +234,7 @@ const streamDocument = async (req, res, next) => {
     } catch (error) {
       if (error.code === "ENOENT") {
         const notFoundError = new Error(
-          "The uploaded PDF file is no longer available.",
+          "The uploaded document file is no longer available.",
         );
         notFoundError.statusCode = 404;
         throw notFoundError;
@@ -242,7 +242,7 @@ const streamDocument = async (req, res, next) => {
       throw error;
     }
 
-    res.type("application/pdf");
+    res.type(document.mimeType);
     return res.sendFile(document.storagePath, (error) => {
       if (!error) return;
       if (!res.headersSent) return next(error);
