@@ -48,10 +48,6 @@ export {
   getDocumentFile,
   listDocuments,
   searchDocument,
-<<<<<<< HEAD
   summarizeDocument,
-  uploadPdf,
-=======
   uploadDocument,
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
 };

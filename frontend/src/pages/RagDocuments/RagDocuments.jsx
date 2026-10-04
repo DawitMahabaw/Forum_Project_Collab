@@ -26,17 +26,12 @@ import {
   getDocumentFile,
   listDocuments,
   searchDocument,
-<<<<<<< HEAD
   summarizeDocument,
-  uploadPdf,
-=======
   uploadDocument,
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
 } from "../../services/ragService.js";
 
 import styles from "./RagDocuments.module.css";
 
-<<<<<<< HEAD
 // Quick prompts that fill the summary box; the user can still edit them.
 const SUMMARY_PRESETS = [
   { label: "One page", prompt: "Summarize this document in one page." },
@@ -75,9 +70,6 @@ const downloadTextFile = (content, documentTitle, extension = "txt") => {
 };
 
 const getSelectedPdf = (candidate) => {
-=======
-const getSelectedDocument = (candidate) => {
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
   if (!candidate) return null;
 
   const isPdf =
@@ -102,17 +94,9 @@ const RagDocuments = () => {
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [answer, setAnswer] = useState(null);
-<<<<<<< HEAD
   const [summaryPrompt, setSummaryPrompt] = useState("");
   const [summary, setSummary] = useState(null);
   const [preview, setPreview] = useState({ documentId: null, url: "" });
-=======
-  const [preview, setPreview] = useState({
-    documentId: null,
-    url: "",
-  });
-
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [workingAction, setWorkingAction] = useState("");
@@ -262,7 +246,7 @@ const RagDocuments = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not upload this document.",
+        "Could not upload this document.",
       );
     } finally {
       setIsUploading(false);
@@ -408,15 +392,8 @@ const RagDocuments = () => {
         setActiveId(null);
         setResults([]);
         setAnswer(null);
-<<<<<<< HEAD
         setSummary(null);
         setPreview({ documentId: null, url: "" });
-=======
-        setPreview({
-          documentId: null,
-          url: "",
-        });
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
       }
 
       setPendingDeleteDoc(null);
@@ -424,7 +401,7 @@ const RagDocuments = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not delete this document.",
+        "Could not delete this document.",
       );
     } finally {
       setWorkingAction("");
@@ -644,7 +621,6 @@ const RagDocuments = () => {
                     >
                       Semantic Search
                     </button>
-<<<<<<< HEAD
                     <button
                       aria-controls="summarize-panel"
                       aria-selected={activeTab === "summarize"}
@@ -688,43 +664,6 @@ const RagDocuments = () => {
                       )}
                     </section>
                   )}
-=======
-
-                    {activeDocument.mimeType === "application/pdf" && (
-                      <button
-                        aria-controls="pdf-preview-panel"
-                        aria-selected={activeTab === "preview"}
-                        className={
-                          activeTab === "preview" ? styles.activeTab : ""
-                        }
-                        onClick={() => setActiveTab("preview")}
-                        role="tab"
-                        type="button"
-                      >
-                        PDF Preview
-                      </button>
-                    )}
-                  </div>
-
-                  {activeTab === "preview" &&
-                    activeDocument.mimeType === "application/pdf" && (
-                      <section id="pdf-preview-panel" role="tabpanel">
-                        {preview.documentId === activeDocument.documentId &&
-                        preview.url ? (
-                          <iframe
-                            className={styles.preview}
-                            src={preview.url}
-                            title={`Preview of ${activeDocument.title}`}
-                          />
-                        ) : (
-                          <div className={styles.pending}>
-                            <LoaderCircle className={styles.spin} size={20} />
-                            Loading PDF preview...
-                          </div>
-                        )}
-                      </section>
-                    )}
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
 
                   {activeTab === "search" && (
                     <section
@@ -938,7 +877,6 @@ const RagDocuments = () => {
                       {answer && (
                         <div className={styles.answer} aria-live="polite">
                           <p>{answer.answer}</p>
-<<<<<<< HEAD
                           {answer.isGrounded && (
                             <button
                               aria-label="Download this answer as a text file"
@@ -950,9 +888,6 @@ const RagDocuments = () => {
                               Download
                             </button>
                           )}
-=======
-
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
                           {answer.citations?.length > 0 && (
                             <footer className={styles.sourceReferences}>
                               <span>Source references:</span>
@@ -960,9 +895,8 @@ const RagDocuments = () => {
                               <div>
                                 {answer.citations.map((citation) => (
                                   <span
-                                    aria-label={`Reference ${citation.ref}, chunk ${
-                                      citation.chunkIndex + 1
-                                    }`}
+                                    aria-label={`Reference ${citation.ref}, chunk ${citation.chunkIndex + 1
+                                      }`}
                                     key={citation.ref}
                                   >
                                     [{citation.ref}] &rarr; chunk{" "}
