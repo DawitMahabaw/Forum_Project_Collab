@@ -89,6 +89,7 @@ const loginUser = async ({ email, password }) => {
       firstName: user.first_name,
       lastName: user.last_name,
       email: user.email,
+      role: user.role || "user",
       avatarUrl: user.avatar_url || null,
       headline: user.headline || null,
     },
@@ -114,6 +115,7 @@ const getCurrentUser = async (userId) => {
     firstName: user.first_name,
     lastName: user.last_name,
     email: user.email,
+    role: user.role || "user",
     avatarUrl: user.avatar_url || null,
     headline: user.headline || null,
   };
@@ -137,6 +139,7 @@ const getUserProfile = async (userId) => {
     firstName: profile.first_name,
     lastName: profile.last_name,
     email: profile.email,
+    role: profile.role || "user",
     avatarUrl: profile.avatar_url || null,
     headline: profile.headline || "",
     bio: profile.bio || "",
@@ -222,6 +225,7 @@ const updateUserAccount = async (userId, { firstName, lastName, email }) => {
     firstName: updated.first_name,
     lastName: updated.last_name,
     email: updated.email,
+    role: updated.role || "user",
     avatarUrl: updated.avatar_url || null,
     headline: updated.headline || null,
   };
