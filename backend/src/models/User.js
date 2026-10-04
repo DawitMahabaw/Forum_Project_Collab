@@ -1,15 +1,15 @@
 import pool from "../config/db.js";
 
 const User = {
-  async create({ firstName, lastName, email, passwordHash }) {
+   async create({ firstName, lastName, email, passwordHash, role = "user" }) {
     const [result] = await pool.execute(
       `
       INSERT INTO users
-        (first_name, last_name, email, password_hash)
+        (first_name, last_name, email, password_hash, role)
       VALUES
-        (?, ?, ?, ?)
+        (?, ?, ?, ?, ?)
       `,
-      [firstName, lastName, email, passwordHash],
+      [firstName, lastName, email, passwordHash, role],
     );
 
     return {
@@ -17,6 +17,7 @@ const User = {
       firstName,
       lastName,
       email,
+      role,
     };
   },
 
@@ -29,6 +30,7 @@ const User = {
         last_name,
         email,
         password_hash,
+        role,
         avatar_url,
         headline,
         created_at
@@ -50,6 +52,7 @@ const User = {
         first_name,
         last_name,
         email,
+        role,
         avatar_url,
         headline,
         bio,
@@ -62,6 +65,7 @@ const User = {
       `,
       [userId],
     );
+
     return rows[0] || null;
   },
 
@@ -80,6 +84,7 @@ const User = {
       `,
       [userId],
     );
+
     return rows[0] || null;
   },
 
@@ -91,6 +96,7 @@ const User = {
         u.first_name,
         u.last_name,
         u.email,
+        u.role,
         u.avatar_url,
         u.headline,
         u.bio,
@@ -105,8 +111,10 @@ const User = {
       `,
       [userId],
     );
+
     return rows[0] || null;
   },
+
 
   async updateProfile(userId, { headline, bio, location, githubUrl }) {
     await pool.execute(
