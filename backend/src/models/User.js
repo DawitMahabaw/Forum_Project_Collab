@@ -1,15 +1,15 @@
 import pool from "../config/db.js";
 
 const User = {
-  async create({ firstName, lastName, email, passwordHash }) {
+   async create({ firstName, lastName, email, passwordHash, role = "user" }) {
     const [result] = await pool.execute(
       `
       INSERT INTO users
-        (first_name, last_name, email, password_hash)
+        (first_name, last_name, email, password_hash, role)
       VALUES
-        (?, ?, ?, ?)
+        (?, ?, ?, ?, ?)
       `,
-      [firstName, lastName, email, passwordHash],
+      [firstName, lastName, email, passwordHash, role],
     );
 
     return {
@@ -17,6 +17,7 @@ const User = {
       firstName,
       lastName,
       email,
+      role,
     };
   },
 
@@ -29,6 +30,7 @@ const User = {
         last_name,
         email,
         password_hash,
+        role,
         avatar_url,
         headline,
         created_at
@@ -50,11 +52,13 @@ const User = {
         first_name,
         last_name,
         email,
+        role,
         avatar_url,
         headline,
         bio,
         location,
         github_url,
+        portfolio_url,
         created_at
       FROM users
       WHERE user_id = ?
@@ -62,6 +66,7 @@ const User = {
       `,
       [userId],
     );
+
     return rows[0] || null;
   },
 
@@ -80,6 +85,7 @@ const User = {
       `,
       [userId],
     );
+
     return rows[0] || null;
   },
 
@@ -91,11 +97,13 @@ const User = {
         u.first_name,
         u.last_name,
         u.email,
+        u.role,
         u.avatar_url,
         u.headline,
         u.bio,
         u.location,
         u.github_url,
+        u.portfolio_url,
         u.created_at,
         (SELECT COUNT(*) FROM questions WHERE user_id = u.user_id) AS questions_count,
         (SELECT COUNT(*) FROM answers WHERE user_id = u.user_id) AS answers_count
@@ -105,14 +113,16 @@ const User = {
       `,
       [userId],
     );
+
     return rows[0] || null;
   },
 
-  async updateProfile(userId, { headline, bio, location, githubUrl }) {
+
+  async updateProfile(userId, { headline, bio, location, githubUrl, portfolioUrl }) {
     await pool.execute(
       `
       UPDATE users
-      SET headline = ?, bio = ?, location = ?, github_url = ?
+      SET headline = ?, bio = ?, location = ?, github_url = ?, portfolio_url = ?
       WHERE user_id = ?
       `,
       [
@@ -120,6 +130,7 @@ const User = {
         bio || null,
         location || null,
         githubUrl || null,
+        portfolioUrl || null,
         userId,
       ],
     );

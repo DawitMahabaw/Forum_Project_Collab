@@ -13,6 +13,10 @@ import RagDocuments from "../pages/RagDocuments/RagDocuments.jsx";
 import Profile from "../pages/Profile/Profile.jsx";
 import Settings from "../pages/Settings/Settings.jsx";
 
+import AdminRoute from "../components/AdminRoute.jsx";
+import Admin from "../pages/Admin/Admin.jsx";
+
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -34,6 +38,12 @@ const AppRoutes = () => {
             <Route path="/rag-documents" element={<RagDocuments />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+
+               {/* Admin only route */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
+            
           </Route>
         </Route>
 

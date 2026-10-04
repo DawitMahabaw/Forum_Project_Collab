@@ -230,6 +230,7 @@ const updateProfile = async (req, res, next) => {
       bio = "",
       location = "",
       githubUrl = "",
+      portfolioUrl = "",
     } = req.body || {};
 
     const sanitizedData = {
@@ -240,6 +241,8 @@ const updateProfile = async (req, res, next) => {
         typeof location === "string" ? location.trim().slice(0, 100) : "",
       githubUrl:
         typeof githubUrl === "string" ? githubUrl.trim().slice(0, 255) : "",
+      portfolioUrl:
+        typeof portfolioUrl === "string" ? portfolioUrl.trim().slice(0, 255) : "",
     };
 
     const updatedProfile = await updateUserProfile(

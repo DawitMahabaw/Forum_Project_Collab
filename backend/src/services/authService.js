@@ -89,6 +89,7 @@ const loginUser = async ({ email, password }) => {
       firstName: user.first_name,
       lastName: user.last_name,
       email: user.email,
+      role: user.role || "user",
       avatarUrl: user.avatar_url || null,
       headline: user.headline || null,
     },
@@ -114,6 +115,7 @@ const getCurrentUser = async (userId) => {
     firstName: user.first_name,
     lastName: user.last_name,
     email: user.email,
+    role: user.role || "user",
     avatarUrl: user.avatar_url || null,
     headline: user.headline || null,
   };
@@ -137,11 +139,13 @@ const getUserProfile = async (userId) => {
     firstName: profile.first_name,
     lastName: profile.last_name,
     email: profile.email,
+    role: profile.role || "user",
     avatarUrl: profile.avatar_url || null,
     headline: profile.headline || "",
     bio: profile.bio || "",
     location: profile.location || "",
     githubUrl: profile.github_url || "",
+    portfolioUrl: profile.portfolio_url || "",
     createdAt: profile.created_at,
     questionsCount: Number(profile.questions_count) || 0,
     answersCount: Number(profile.answers_count) || 0,
@@ -152,8 +156,8 @@ const getUserProfile = async (userId) => {
 // UPDATE USER PROFILE
 // ============================================================
 
-const updateUserProfile = async (userId, { headline, bio, location, githubUrl }) => {
-  const profile = await User.updateProfile(userId, { headline, bio, location, githubUrl });
+const updateUserProfile = async (userId, { headline, bio, location, githubUrl, portfolioUrl }) => {
+  const profile = await User.updateProfile(userId, { headline, bio, location, githubUrl, portfolioUrl });
 
   if (!profile) {
     const error = new Error("User not found.");
@@ -171,6 +175,7 @@ const updateUserProfile = async (userId, { headline, bio, location, githubUrl })
     bio: profile.bio || "",
     location: profile.location || "",
     githubUrl: profile.github_url || "",
+    portfolioUrl: profile.portfolio_url || "",
     createdAt: profile.created_at,
     questionsCount: Number(profile.questions_count) || 0,
     answersCount: Number(profile.answers_count) || 0,
@@ -222,6 +227,7 @@ const updateUserAccount = async (userId, { firstName, lastName, email }) => {
     firstName: updated.first_name,
     lastName: updated.last_name,
     email: updated.email,
+    role: updated.role || "user",
     avatarUrl: updated.avatar_url || null,
     headline: updated.headline || null,
   };

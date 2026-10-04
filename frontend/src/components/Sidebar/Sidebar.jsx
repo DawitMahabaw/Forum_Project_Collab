@@ -5,6 +5,7 @@ import {
   MessageSquare,
   PanelLeftClose,
   Settings,
+  ShieldCheck,
   SquarePen,
   User,
 } from "lucide-react";
@@ -141,6 +142,22 @@ const Sidebar = () => {
             </Fragment>
           );
         })}
+                {user?.role === "admin" && (
+          <>
+            <div className={styles.navDivider} />
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `${styles.link} ${isActive ? styles.active : ""}`
+              }
+              title={!isSidebarOpen ? "Admin" : undefined}
+            >
+              <ShieldCheck size={18} />
+              {isSidebarOpen && <span>Admin</span>}
+            </NavLink>
+          </>
+        )}
+
       </nav>
 
       <div className={styles.footer}>
