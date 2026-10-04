@@ -5,6 +5,7 @@ import {
   deleteDocument,
   queryDocument,
   searchDocument,
+  summarizeDocument,
 } from "../rag/ragService.js";
 
 const getDocumentId = (rawDocumentId) => {
@@ -54,9 +55,40 @@ const requireQuery = (rawQuery) => {
   return query;
 };
 
-const validateUploadedFile = async (file) => {
-  if (file.mimetype === "text/plain") {
-    return;
+// The summary instruction is optional; an empty one falls back to a default.
+const optionalSummaryPrompt = (rawPrompt) => {
+  if (rawPrompt === undefined || rawPrompt === null) return "";
+
+  if (typeof rawPrompt !== "string") {
+    const error = new Error("The summary instruction must be text.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const prompt = rawPrompt.trim();
+  if (prompt.length > 2_000) {
+    const error = new Error("Summary instructions must be 2,000 characters or fewer.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return prompt;
+};
+
+const validateUploadedPdf = async (filePath) => {
+  const handle = await fs.open(filePath, "r");
+
+  try {
+    const header = Buffer.alloc(5);
+    const { bytesRead } = await handle.read(header, 0, header.length, 0);
+
+    if (bytesRead !== header.length || header.toString("ascii") !== "%PDF-") {
+      const error = new Error("The uploaded file is not a valid PDF.");
+      error.statusCode = 400;
+      throw error;
+    }
+  } finally {
+    await handle.close();
   }
 
   if (file.mimetype === "application/pdf") {
@@ -134,7 +166,7 @@ const uploadDocument = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file?.path) {
-      await fs.rm(req.file.path, { force: true }).catch(() => {});
+      await fs.rm(req.file.path, { force: true }).catch(() => { });
     }
 
     return next(error);
@@ -174,6 +206,28 @@ const ask = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Answer generated from document sources.",
+      data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const summarize = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+    const data = await summarizeDocument(
+      document,
+      optionalSummaryPrompt(req.body?.prompt),
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Document summary generated.",
       data,
     });
   } catch (error) {
@@ -239,5 +293,6 @@ export {
   remove,
   search,
   streamDocument,
+  summarize,
   uploadDocument,
 };
