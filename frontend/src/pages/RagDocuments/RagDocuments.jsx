@@ -485,8 +485,8 @@ const RagDocuments = () => {
             <h2>Library</h2>
 
             <p>
-              Add PDF or TXT documents here. Processing starts automatically
-              after each upload.
+              Add PDF or TXT documents to your library. Files are processed
+              automatically after upload. Maximum file size: 10 MB.
             </p>
           </header>
 
@@ -501,10 +501,6 @@ const RagDocuments = () => {
             onDrop={handleDrop}
             role="region"
           >
-            <p>
-              Accepted formats: PDF and TXT. Maximum file size is enforced by
-              the server.
-            </p>
             <p className={styles.dropHint}>
               Drag and drop a PDF or TXT file here, or choose one below.
             </p>
@@ -562,10 +558,11 @@ const RagDocuments = () => {
                 aria-current={
                   activeId === document.documentId ? "true" : undefined
                 }
-                className={`${styles.documentCard} ${activeId === document.documentId
-                  ? styles.documentCardActive
-                  : ""
-                  }`}
+                className={`${styles.documentCard} ${
+                  activeId === document.documentId
+                    ? styles.documentCardActive
+                    : ""
+                }`}
                 key={document.documentId}
                 onClick={() => handleSelect(document.documentId)}
                 onKeyDown={(event) => {
@@ -699,7 +696,7 @@ const RagDocuments = () => {
                   {activeTab === "preview" && (
                     <section id="pdf-preview-panel" role="tabpanel">
                       {preview.documentId === activeDocument.documentId &&
-                        preview.url ? (
+                      preview.url ? (
                         <iframe
                           className={styles.preview}
                           src={preview.url}
@@ -839,11 +836,12 @@ const RagDocuments = () => {
                       </form>
 
                       {summary && (
-                        <div className={styles.summaryResult} aria-live="polite">
+                        <div
+                          className={styles.summaryResult}
+                          aria-live="polite"
+                        >
                           <div className={styles.summaryHeader}>
-                            <b>
-                              Summary &middot; {summary.wordCount} words
-                            </b>
+                            <b>Summary &middot; {summary.wordCount} words</b>
                             <div className={styles.summaryActions}>
                               <button
                                 className={styles.downloadButton}
@@ -944,8 +942,9 @@ const RagDocuments = () => {
                               <div>
                                 {answer.citations.map((citation) => (
                                   <span
-                                    aria-label={`Reference ${citation.ref}, chunk ${citation.chunkIndex + 1
-                                      }`}
+                                    aria-label={`Reference ${citation.ref}, chunk ${
+                                      citation.chunkIndex + 1
+                                    }`}
                                     key={citation.ref}
                                   >
                                     [{citation.ref}] &rarr; chunk{" "}
