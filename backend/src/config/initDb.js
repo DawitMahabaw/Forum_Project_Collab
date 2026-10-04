@@ -24,6 +24,8 @@ export async function initializeDatabase() {
 
         password_hash VARCHAR(255) NOT NULL,
 
+        role VARCHAR(20) NOT NULL DEFAULT 'user',
+
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -71,6 +73,13 @@ export async function initializeDatabase() {
         "ALTER TABLE users ADD COLUMN github_url VARCHAR(255) NULL",
       );
     }
+
+    if (!existingUserCols.has("role")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'",
+      );
+    }
+
 
     // Create the questions table if it does not already exist
     await connection.query(`
