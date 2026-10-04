@@ -45,7 +45,9 @@ const requireQuery = (rawQuery) => {
 
   const query = rawQuery.trim();
   if (query.length > 2_000) {
-    const error = new Error("Questions and search queries must be 2,000 characters or fewer.");
+    const error = new Error(
+      "Questions and search queries must be 2,000 characters or fewer.",
+    );
     error.statusCode = 400;
     throw error;
   }
@@ -53,6 +55,7 @@ const requireQuery = (rawQuery) => {
   return query;
 };
 
+<<<<<<< HEAD
 // The summary instruction is optional; an empty one falls back to a default.
 const optionalSummaryPrompt = (rawPrompt) => {
   if (rawPrompt === undefined || rawPrompt === null) return "";
@@ -87,7 +90,35 @@ const validateUploadedPdf = async (filePath) => {
     }
   } finally {
     await handle.close();
+=======
+const validateUploadedFile = async (file) => {
+  if (file.mimetype === "text/plain") {
+    return;
+>>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
   }
+
+  if (file.mimetype === "application/pdf") {
+    const handle = await fs.open(file.path, "r");
+
+    try {
+      const header = Buffer.alloc(5);
+      const { bytesRead } = await handle.read(header, 0, header.length, 0);
+
+      if (bytesRead !== header.length || header.toString("ascii") !== "%PDF-") {
+        const error = new Error("The uploaded file is not a valid PDF.");
+        error.statusCode = 400;
+        throw error;
+      }
+    } finally {
+      await handle.close();
+    }
+
+    return;
+  }
+
+  const error = new Error("Only PDF and TXT files are supported.");
+  error.statusCode = 400;
+  throw error;
 };
 
 const listDocuments = async (req, res, next) => {
@@ -124,12 +155,11 @@ const getDocument = async (req, res, next) => {
 const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) {
-      const error = new Error("A PDF file is required.");
+      const error = new Error("A PDF or TXT file is required.");
       error.statusCode = 400;
       throw error;
     }
-
-    await validateUploadedPdf(req.file.path);
+    await validateUploadedFile(req.file);
     const document = await createDocument({
       userId: req.user.userId,
       file: req.file,
@@ -142,7 +172,7 @@ const uploadDocument = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file?.path) {
-      await fs.rm(req.file.path, { force: true }).catch(() => { });
+      await fs.rm(req.file.path, { force: true }).catch(() => {});
     }
 
     return next(error);
@@ -223,7 +253,9 @@ const streamDocument = async (req, res, next) => {
       await fs.access(document.storagePath);
     } catch (error) {
       if (error.code === "ENOENT") {
-        const notFoundError = new Error("The uploaded PDF file is no longer available.");
+        const notFoundError = new Error(
+          "The uploaded PDF file is no longer available.",
+        );
         notFoundError.statusCode = 404;
         throw notFoundError;
       }

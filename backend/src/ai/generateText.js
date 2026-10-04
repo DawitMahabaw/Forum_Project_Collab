@@ -39,8 +39,9 @@ const generateJson = async (prompt) => {
 
     // Convert JSON text into JavaScript object
     try {
-      geminiResponse = JSON.parse(response.text);
-      return geminiResponse;
+
+      return JSON.parse(response.text);
+      
     } catch (error) {
       throw new Error("Gemini returned invalid JSON.");
     }
