@@ -55,7 +55,6 @@ const requireQuery = (rawQuery) => {
   return query;
 };
 
-<<<<<<< HEAD
 // The summary instruction is optional; an empty one falls back to a default.
 const optionalSummaryPrompt = (rawPrompt) => {
   if (rawPrompt === undefined || rawPrompt === null) return "";
@@ -90,11 +89,6 @@ const validateUploadedPdf = async (filePath) => {
     }
   } finally {
     await handle.close();
-=======
-const validateUploadedFile = async (file) => {
-  if (file.mimetype === "text/plain") {
-    return;
->>>>>>> f6c9a85d327bf393ed8a756474f25b1ea5f1e600
   }
 
   if (file.mimetype === "application/pdf") {
@@ -172,7 +166,7 @@ const uploadDocument = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file?.path) {
-      await fs.rm(req.file.path, { force: true }).catch(() => {});
+      await fs.rm(req.file.path, { force: true }).catch(() => { });
     }
 
     return next(error);
