@@ -2,7 +2,10 @@ import { Bold, Code2, Italic, Link2, Send, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
 
-import { createQuestion, getDraftCoach, } from "../../services/questionService.js";
+import {
+  createQuestion,
+  getDraftCoach,
+} from "../../services/questionService.js";
 import styles from "./PostQuestion.module.css";
 
 const PostQuestion = () => {
@@ -34,7 +37,7 @@ const PostQuestion = () => {
       textarea.setSelectionRange(nextCursorStart, nextCursorEnd);
     });
   };
-
+  //post question page validation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   const validateQuestion = () => {
     if (title.trim().length < 5)
       return "Title must contain at least 5 characters.";
@@ -42,6 +45,7 @@ const PostQuestion = () => {
       return "Details must contain at least 10 characters.";
     return "";
   };
+  //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   const handleCoach = async () => {
     setCoachError("");
@@ -60,13 +64,13 @@ const PostQuestion = () => {
     } catch (requestError) {
       setCoachError(
         requestError.response?.data?.message ||
-        "AI suggestions are unavailable right now.",
+          "AI suggestions are unavailable right now.",
       );
     } finally {
       setIsCoaching(false);
     }
   };
-
+  //post question page>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validationError = validateQuestion();
@@ -83,13 +87,13 @@ const PostQuestion = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-        "Could not post your question. Please try again.",
+          "Could not post your question. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   return (
     <section className={styles.page}>
       <header className={styles.header}>
@@ -138,6 +142,8 @@ const PostQuestion = () => {
           </li>
         </ul>
       </aside>
+      {/* QUESTION CREATION FORM >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */}
+
       <form className={styles.formCard} onSubmit={handleSubmit}>
         <div className={styles.field}>
           <label htmlFor="question-title">Title</label>

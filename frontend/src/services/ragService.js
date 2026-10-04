@@ -3,7 +3,7 @@ import api from "./api.js";
 const listDocuments = async () =>
   (await api.get("/rag/documents")).data.data || [];
 
-const uploadPdf = async (file) => {
+const uploadDocument = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -38,5 +38,5 @@ export {
   getDocumentFile,
   listDocuments,
   searchDocument,
-  uploadPdf,
+  uploadDocument,
 };
