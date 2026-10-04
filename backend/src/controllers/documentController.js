@@ -75,8 +75,16 @@ const optionalSummaryPrompt = (rawPrompt) => {
   return prompt;
 };
 
-const validateUploadedPdf = async (filePath) => {
-  const handle = await fs.open(filePath, "r");
+const validateUploadedFile = async (file) => {
+  if (file.mimetype === "text/plain") return;
+
+  if (file.mimetype !== "application/pdf") {
+    const error = new Error("Only PDF and TXT files are supported.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const handle = await fs.open(file.path, "r");
 
   try {
     const header = Buffer.alloc(5);
@@ -91,28 +99,6 @@ const validateUploadedPdf = async (filePath) => {
     await handle.close();
   }
 
-  if (file.mimetype === "application/pdf") {
-    const handle = await fs.open(file.path, "r");
-
-    try {
-      const header = Buffer.alloc(5);
-      const { bytesRead } = await handle.read(header, 0, header.length, 0);
-
-      if (bytesRead !== header.length || header.toString("ascii") !== "%PDF-") {
-        const error = new Error("The uploaded file is not a valid PDF.");
-        error.statusCode = 400;
-        throw error;
-      }
-    } finally {
-      await handle.close();
-    }
-
-    return;
-  }
-
-  const error = new Error("Only PDF and TXT files are supported.");
-  error.statusCode = 400;
-  throw error;
 };
 
 const listDocuments = async (req, res, next) => {
