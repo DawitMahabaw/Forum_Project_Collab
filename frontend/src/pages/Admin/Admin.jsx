@@ -139,6 +139,19 @@ const Admin = () => {
     }
   }, [questionSearch]);
 
+
+    // Automatically dismiss the alert notification after 4 seconds
+  useEffect(() => {
+    if (alertMessage.text) {
+      const timer = setTimeout(() => {
+        setAlertMessage({ type: "", text: "" });
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alertMessage]);
+
+
   // ============================================================
   // CONFIRMATION MODAL & ACTIONS
   // ============================================================
