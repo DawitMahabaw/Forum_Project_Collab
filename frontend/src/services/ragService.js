@@ -21,6 +21,16 @@ const searchDocument = async (documentId, query) =>
 const askDocument = async (documentId, query) =>
   (await api.post(`/rag/documents/${documentId}/query`, { query })).data.data;
 
+// Summaries read the whole PDF, so allow more time than a normal request.
+const summarizeDocument = async (documentId, prompt) =>
+  (
+    await api.post(
+      `/rag/documents/${documentId}/summarize`,
+      { prompt },
+      { timeout: 120_000 },
+    )
+  ).data.data;
+
 const deleteDocument = async (documentId) =>
   (await api.delete(`/rag/documents/${documentId}`)).data.data;
 
@@ -38,5 +48,6 @@ export {
   getDocumentFile,
   listDocuments,
   searchDocument,
+  summarizeDocument,
   uploadDocument,
 };

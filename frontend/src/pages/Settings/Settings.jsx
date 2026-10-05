@@ -115,6 +115,16 @@ const Settings = () => {
       return;
     }
 
+    const hasChanges =
+      accountForm.firstName.trim() !== (user?.firstName || "").trim() ||
+      accountForm.lastName.trim() !== (user?.lastName || "").trim() ||
+      accountForm.email.trim() !== (user?.email || "").trim();
+
+    if (!hasChanges) {
+      showAccountFeedback("error", "No changes were made.");
+      return;
+    }
+
     setIsSavingAccount(true);
     try {
       const response = await updateAccount(accountForm);
@@ -155,6 +165,14 @@ const Settings = () => {
 
     if (!passwordForm.newPassword) {
       showPasswordFeedback("error", "Please enter a new password.");
+      return;
+    }
+
+    if (passwordForm.currentPassword === passwordForm.newPassword) {
+      showPasswordFeedback(
+        "error",
+        "New password must be different from your current password."
+      );
       return;
     }
 

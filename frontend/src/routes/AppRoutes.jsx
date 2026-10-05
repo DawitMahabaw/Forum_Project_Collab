@@ -15,6 +15,10 @@ import Settings from "../pages/Settings/Settings.jsx";
 import SavedQuestions from "../pages/SavedQuestions/SavedQuestions.jsx";
 
 
+import AdminRoute from "../components/AdminRoute.jsx";
+import Admin from "../pages/Admin/Admin.jsx";
+
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -22,7 +26,10 @@ const AppRoutes = () => {
         {/* Public pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
-
+        <Route
+          path="/reset-password/:token"
+          element={<AuthPage view="reset-password" />}
+        />
         {/* Protected application pages */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
@@ -38,6 +45,11 @@ const AppRoutes = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/saved-questions" element={<SavedQuestions />}
 />
+
+            {/* Admin only route */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
           </Route>
         </Route>
 

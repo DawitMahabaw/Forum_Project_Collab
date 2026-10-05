@@ -39,6 +39,33 @@ const getCurrentUser = async () => {
 };
 
 /**
+ * Initiates a password reset request for a given email address.
+ * @param {string} email - The user's email address.
+ */
+const forgotPassword = async (email) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+
+};
+
+/**
+ * 👇 ADDED: Submits the token and the new password to finalize the reset workflow.
+ * @param {string} token - The secure hex string extracted from the URL query params.
+ * @param {string} newPassword - The user's freshly picked credential string.
+ */
+const resetPasswordConfirm = async (token, newPassword) => {
+  const response = await api.post("/auth/reset-password-confirm", {
+    token,
+    newPassword,
+  });
+  return response.data;
+};
+
+
+
+
+
+/**
  * Fetches user profile with stats.
  */
 const getUserProfile = async () => {
@@ -87,4 +114,6 @@ export {
   uploadAvatar,
   updateAccount,
   changePassword,
+  forgotPassword,
+  resetPasswordConfirm,
 };

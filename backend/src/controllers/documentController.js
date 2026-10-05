@@ -5,6 +5,7 @@ import {
   deleteDocument,
   queryDocument,
   searchDocument,
+  summarizeDocument,
 } from "../rag/ragService.js";
 
 const getDocumentId = (rawDocumentId) => {
@@ -54,33 +55,50 @@ const requireQuery = (rawQuery) => {
   return query;
 };
 
+// The summary instruction is optional; an empty one falls back to a default.
+const optionalSummaryPrompt = (rawPrompt) => {
+  if (rawPrompt === undefined || rawPrompt === null) return "";
+
+  if (typeof rawPrompt !== "string") {
+    const error = new Error("The summary instruction must be text.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const prompt = rawPrompt.trim();
+  if (prompt.length > 2_000) {
+    const error = new Error("Summary instructions must be 2,000 characters or fewer.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return prompt;
+};
+
 const validateUploadedFile = async (file) => {
-  if (file.mimetype === "text/plain") {
-    return;
+  if (file.mimetype === "text/plain") return;
+
+  if (file.mimetype !== "application/pdf") {
+    const error = new Error("Only PDF and TXT files are supported.");
+    error.statusCode = 400;
+    throw error;
   }
 
-  if (file.mimetype === "application/pdf") {
-    const handle = await fs.open(file.path, "r");
+  const handle = await fs.open(file.path, "r");
 
-    try {
-      const header = Buffer.alloc(5);
-      const { bytesRead } = await handle.read(header, 0, header.length, 0);
+  try {
+    const header = Buffer.alloc(5);
+    const { bytesRead } = await handle.read(header, 0, header.length, 0);
 
-      if (bytesRead !== header.length || header.toString("ascii") !== "%PDF-") {
-        const error = new Error("The uploaded file is not a valid PDF.");
-        error.statusCode = 400;
-        throw error;
-      }
-    } finally {
-      await handle.close();
+    if (bytesRead !== header.length || header.toString("ascii") !== "%PDF-") {
+      const error = new Error("The uploaded file is not a valid PDF.");
+      error.statusCode = 400;
+      throw error;
     }
-
-    return;
+  } finally {
+    await handle.close();
   }
 
-  const error = new Error("Only PDF and TXT files are supported.");
-  error.statusCode = 400;
-  throw error;
 };
 
 const listDocuments = async (req, res, next) => {
@@ -134,7 +152,7 @@ const uploadDocument = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file?.path) {
-      await fs.rm(req.file.path, { force: true }).catch(() => {});
+      await fs.rm(req.file.path, { force: true }).catch(() => { });
     }
 
     return next(error);
@@ -181,6 +199,28 @@ const ask = async (req, res, next) => {
   }
 };
 
+const summarize = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+      { includeStoragePath: true },
+    );
+    const data = await summarizeDocument(
+      document,
+      optionalSummaryPrompt(req.body?.prompt),
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Document summary generated.",
+      data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const streamDocument = async (req, res, next) => {
   try {
     const document = await findOwnedDocument(
@@ -194,7 +234,7 @@ const streamDocument = async (req, res, next) => {
     } catch (error) {
       if (error.code === "ENOENT") {
         const notFoundError = new Error(
-          "The uploaded PDF file is no longer available.",
+          "The uploaded document file is no longer available.",
         );
         notFoundError.statusCode = 404;
         throw notFoundError;
@@ -202,7 +242,7 @@ const streamDocument = async (req, res, next) => {
       throw error;
     }
 
-    res.type("application/pdf");
+    res.type(document.mimeType);
     return res.sendFile(document.storagePath, (error) => {
       if (!error) return;
       if (!res.headersSent) return next(error);
@@ -239,5 +279,6 @@ export {
   remove,
   search,
   streamDocument,
+  summarize,
   uploadDocument,
 };

@@ -25,8 +25,8 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
     "mysql2": "^3.24.3",
-    "pdf-parse": "^2.4.5",
-    "zod": "^4.6.5"
+    "nodemailer": "^10.0.14",
+    "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

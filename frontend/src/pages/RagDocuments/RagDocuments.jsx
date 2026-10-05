@@ -3,11 +3,12 @@
 // ============================================================
 //
 // Private document library with semantic search,
-// Ask with AI, and PDF preview.
+// Ask with AI, and document preview.
 //
 
 import {
   CheckCircle2,
+  Download,
   FileText,
   LoaderCircle,
   Search,
@@ -17,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 import {
   askDocument,
@@ -24,12 +26,50 @@ import {
   getDocumentFile,
   listDocuments,
   searchDocument,
+  summarizeDocument,
   uploadDocument,
 } from "../../services/ragService.js";
 
 import styles from "./RagDocuments.module.css";
 
-const getSelectedDocument = (candidate) => {
+// Quick prompts that fill the summary box; the user can still edit them.
+const SUMMARY_PRESETS = [
+  { label: "One page", prompt: "Summarize this document in one page." },
+  {
+    label: "Under 500 words",
+    prompt: "Summarize this document in no more than 500 words.",
+  },
+  {
+    label: "Bullet points",
+    prompt: "Summarize the key points of this document as bullet points.",
+  },
+  {
+    label: "Executive summary",
+    prompt: "Write an executive summary of this document.",
+  },
+];
+
+// Save text as a .txt or .md file, entirely in the browser.
+const downloadTextFile = (content, documentTitle, extension = "txt") => {
+  const baseName =
+    (documentTitle || "document")
+      .replace(/\.pdf$/i, "")
+      .replace(/[^\w-]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "document";
+  const mimeType = extension === "md" ? "text/markdown" : "text/plain";
+  const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+  const url = URL.createObjectURL(blob);
+  const link = window.document.createElement("a");
+
+  link.href = url;
+  link.download = `${baseName}-summary.${extension}`;
+  window.document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+const getSelectedPdf = (candidate) => {
   if (!candidate) return null;
 
   const isPdf =
@@ -54,13 +94,12 @@ const RagDocuments = () => {
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [answer, setAnswer] = useState(null);
-  const [preview, setPreview] = useState({
-    documentId: null,
-    url: "",
-  });
-
+  const [summaryPrompt, setSummaryPrompt] = useState("");
+  const [summary, setSummary] = useState(null);
+  const [preview, setPreview] = useState({ documentId: null, url: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [workingAction, setWorkingAction] = useState("");
   const [pendingDeleteDoc, setPendingDeleteDoc] = useState(null);
   const [error, setError] = useState("");
@@ -97,7 +136,7 @@ const RagDocuments = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not load your document library.",
+        "Could not load your document library.",
       );
     } finally {
       if (!quiet) {
@@ -123,17 +162,16 @@ const RagDocuments = () => {
     return () => window.clearInterval(timer);
   }, [hasProcessingDocuments, loadDocuments]);
 
-  // The built-in PDF viewer supplies the reader controls shown in the design.
+  // The browser renders PDF and plain-text files in the document preview.
   useEffect(() => {
     let isCurrent = true;
     let objectUrl = "";
 
-    // TXT documents do not use the PDF preview.
     if (
       !activeDocumentId ||
       activeDocumentStatus !== "ready" ||
       activeTab !== "preview" ||
-      activeDocument?.mimeType !== "application/pdf"
+      !["application/pdf", "text/plain"].includes(activeDocument?.mimeType)
     ) {
       return undefined;
     }
@@ -152,7 +190,7 @@ const RagDocuments = () => {
           url,
         });
       })
-      .catch(() => setError("Could not load the PDF preview."));
+      .catch(() => setError("Could not load the document preview."));
 
     return () => {
       isCurrent = false;
@@ -195,6 +233,8 @@ const RagDocuments = () => {
       setResults([]);
       setHasSearched(false);
       setAnswer(null);
+      setSummary(null);
+      setSummaryPrompt("");
       setSearchQuery("");
       setAskQuery("");
 
@@ -206,26 +246,59 @@ const RagDocuments = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not upload this document.",
+        "Could not upload this document.",
       );
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files?.[0] || null;
-    const document = getSelectedDocument(selectedFile);
+  const handleFileSelection = (selectedFile) => {
+    const document = getSelectedPdf(selectedFile);
 
     if (selectedFile && !document) {
       setFile(null);
       setError("Please choose a PDF or TXT file.");
-      event.target.value = "";
+      if (fileInput.current) {
+        fileInput.current.value = "";
+      }
       return;
     }
 
     setFile(document);
     setError("");
+  };
+
+  const handleFileChange = (event) => {
+    handleFileSelection(event.target.files?.[0] || null);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "copy";
+    }
+    if (!isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragging(false);
+
+    if (isUploading) return;
+
+    const droppedFile = event.dataTransfer.files?.[0] || null;
+    if (droppedFile) {
+      handleFileSelection(droppedFile);
+    }
   };
 
   // Switching documents clears outputs that belong to the previous document.
@@ -237,6 +310,8 @@ const RagDocuments = () => {
     setResults([]);
     setHasSearched(false);
     setAnswer(null);
+    setSummary(null);
+    setSummaryPrompt("");
     setError("");
   };
 
@@ -261,7 +336,7 @@ const RagDocuments = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not search this document right now.",
+        "Could not search this document right now.",
       );
     } finally {
       setWorkingAction("");
@@ -284,11 +359,50 @@ const RagDocuments = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not answer from this document right now.",
+        "Could not answer from this document right now.",
       );
     } finally {
       setWorkingAction("");
     }
+  };
+
+  // Summarize the whole PDF following the user's instruction.
+  const handleSummarize = async (event) => {
+    event.preventDefault();
+    if (!activeDocument || workingAction === "summarize") return;
+
+    setWorkingAction("summarize");
+    setError("");
+    setSummary(null);
+
+    try {
+      setSummary(
+        await summarizeDocument(activeDocument.documentId, summaryPrompt.trim()),
+      );
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+        "Could not summarize this document right now.",
+      );
+    } finally {
+      setWorkingAction("");
+    }
+  };
+
+  // Download the Ask AI answer as a text file.
+  const handleDownloadAnswer = () => {
+    if (!answer?.answer) return;
+
+    downloadTextFile(answer.answer, activeDocument?.title, "txt");
+    setToast("Answer downloaded.");
+  };
+
+  // Download the generated summary as .txt or .md.
+  const handleDownloadSummary = (extension) => {
+    if (!summary?.summary) return;
+
+    downloadTextFile(summary.summary, activeDocument?.title, extension);
+    setToast(`Summary downloaded as .${extension}.`);
   };
 
   // The custom confirmation panel replaces browser confirmation dialogs.
@@ -311,10 +425,8 @@ const RagDocuments = () => {
         setActiveId(null);
         setResults([]);
         setAnswer(null);
-        setPreview({
-          documentId: null,
-          url: "",
-        });
+        setSummary(null);
+        setPreview({ documentId: null, url: "" });
       }
 
       setPendingDeleteDoc(null);
@@ -322,7 +434,7 @@ const RagDocuments = () => {
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
-          "Could not delete this document.",
+        "Could not delete this document.",
       );
     } finally {
       setWorkingAction("");
@@ -372,19 +484,29 @@ const RagDocuments = () => {
             <h2>Library</h2>
 
             <p>
-              Add PDF or TXT documents here. Processing starts automatically
-              after each upload.
+              Add PDF or TXT documents to your library. Files are processed
+              automatically after upload. Maximum file size: 10 MB.
             </p>
           </header>
 
-          <div className={styles.uploadBox}>
-            <p>
-              Accepted formats: PDF and TXT. Maximum file size is enforced by
-              the server.
+          <div
+            aria-label="Drop a PDF or TXT file here, or choose a file"
+            className={`${styles.uploadBox} ${
+              isDragging ? styles.uploadBoxDragging : ""
+            }`}
+            onDragEnter={handleDragOver}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            role="region"
+          >
+            <p className={styles.dropHint}>
+              Drag and drop a PDF or TXT file here, or choose one below.
             </p>
 
             <input
               accept=".pdf,.txt"
+              disabled={isUploading}
               onChange={handleFileChange}
               ref={fileInput}
               type="file"
@@ -393,6 +515,7 @@ const RagDocuments = () => {
             <div className={styles.uploadActions}>
               <button
                 className={styles.fileButton}
+                disabled={isUploading}
                 onClick={() => fileInput.current?.click()}
                 type="button"
               >
@@ -543,41 +666,49 @@ const RagDocuments = () => {
                     >
                       Semantic Search
                     </button>
-
-                    {activeDocument.mimeType === "application/pdf" && (
-                      <button
-                        aria-controls="pdf-preview-panel"
-                        aria-selected={activeTab === "preview"}
-                        className={
-                          activeTab === "preview" ? styles.activeTab : ""
-                        }
-                        onClick={() => setActiveTab("preview")}
-                        role="tab"
-                        type="button"
-                      >
-                        PDF Preview
-                      </button>
-                    )}
+                    <button
+                      aria-controls="summarize-panel"
+                      aria-selected={activeTab === "summarize"}
+                      className={
+                        activeTab === "summarize" ? styles.activeTab : ""
+                      }
+                      onClick={() => setActiveTab("summarize")}
+                      role="tab"
+                      type="button"
+                    >
+                      Summarize
+                    </button>
+                    <button
+                      aria-controls="document-preview-panel"
+                      aria-selected={activeTab === "preview"}
+                      className={
+                        activeTab === "preview" ? styles.activeTab : ""
+                      }
+                      onClick={() => setActiveTab("preview")}
+                      role="tab"
+                      type="button"
+                    >
+                      Preview
+                    </button>
                   </div>
 
-                  {activeTab === "preview" &&
-                    activeDocument.mimeType === "application/pdf" && (
-                      <section id="pdf-preview-panel" role="tabpanel">
-                        {preview.documentId === activeDocument.documentId &&
-                        preview.url ? (
-                          <iframe
-                            className={styles.preview}
-                            src={preview.url}
-                            title={`Preview of ${activeDocument.title}`}
-                          />
-                        ) : (
-                          <div className={styles.pending}>
-                            <LoaderCircle className={styles.spin} size={20} />
-                            Loading PDF preview...
-                          </div>
-                        )}
-                      </section>
-                    )}
+                  {activeTab === "preview" && (
+                    <section id="document-preview-panel" role="tabpanel">
+                      {preview.documentId === activeDocument.documentId &&
+                      preview.url ? (
+                        <iframe
+                          className={styles.preview}
+                          src={preview.url}
+                          title={`Preview of ${activeDocument.title}`}
+                        />
+                      ) : (
+                        <div className={styles.pending}>
+                          <LoaderCircle className={styles.spin} size={20} />
+                          Loading document preview...
+                        </div>
+                      )}
+                    </section>
+                  )}
 
                   {activeTab === "search" && (
                     <section
@@ -588,7 +719,7 @@ const RagDocuments = () => {
                       <h2>Semantic search</h2>
 
                       <p>
-                        Finds passages by meaning (embeddings), not only exact
+                        Finds passages by meaning, not only exact
                         keywords.
                       </p>
 
@@ -645,6 +776,104 @@ const RagDocuments = () => {
                     </section>
                   )}
 
+                  {activeTab === "summarize" && (
+                    <section
+                      className={styles.toolSection}
+                      id="summarize-panel"
+                      role="tabpanel"
+                    >
+                      <h2>Summarize PDF</h2>
+                      <p>
+                        Tell the AI how to summarize the whole document, for
+                        example its length or format, then download the result.
+                      </p>
+
+                      <div className={styles.presetRow}>
+                        {SUMMARY_PRESETS.map((preset) => (
+                          <button
+                            key={preset.label}
+                            onClick={() => setSummaryPrompt(preset.prompt)}
+                            type="button"
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <form onSubmit={handleSummarize}>
+                        <label htmlFor="summary-prompt">Instructions</label>
+                        <textarea
+                          id="summary-prompt"
+                          maxLength={2000}
+                          onChange={(event) =>
+                            setSummaryPrompt(event.target.value)
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                              event.preventDefault();
+                              if (workingAction !== "summarize") {
+                                event.currentTarget.form?.requestSubmit();
+                              }
+                            }
+                          }}
+                          placeholder="e.g. Summarize this in one page, or in no more than 500 words, or as bullet points"
+                          value={summaryPrompt}
+                        />
+                        <button
+                          disabled={workingAction === "summarize"}
+                          type="submit"
+                        >
+                          {workingAction === "summarize" ? (
+                            <LoaderCircle className={styles.spin} size={16} />
+                          ) : (
+                            <Sparkles size={16} />
+                          )}
+                          {workingAction === "summarize"
+                            ? "Summarizing..."
+                            : "Summarize"}
+                        </button>
+                      </form>
+
+                      {summary && (
+                        <div
+                          className={styles.summaryResult}
+                          aria-live="polite"
+                        >
+                          <div className={styles.summaryHeader}>
+                            <b>Summary &middot; {summary.wordCount} words</b>
+                            <div className={styles.summaryActions}>
+                              <button
+                                className={styles.downloadButton}
+                                onClick={() => handleDownloadSummary("txt")}
+                                type="button"
+                              >
+                                <Download size={14} />
+                                Download .txt
+                              </button>
+                              <button
+                                className={styles.downloadButton}
+                                onClick={() => handleDownloadSummary("md")}
+                                type="button"
+                              >
+                                <Download size={14} />
+                                Download .md
+                              </button>
+                            </div>
+                          </div>
+                          {summary.truncated && (
+                            <p className={styles.summaryNote}>
+                              This PDF is very long, so only the first part of
+                              it was summarized.
+                            </p>
+                          )}
+                          <div className={styles.summaryBody}>
+                            <ReactMarkdown>{summary.summary}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </section>
+                  )}
+
                   {activeTab === "ask" && (
                     <section
                       className={styles.toolSection}
@@ -694,7 +923,17 @@ const RagDocuments = () => {
                       {answer && (
                         <div className={styles.answer} aria-live="polite">
                           <p>{answer.answer}</p>
-
+                          {answer.isGrounded && (
+                            <button
+                              aria-label="Download this answer as a text file"
+                              className={styles.downloadButton}
+                              onClick={handleDownloadAnswer}
+                              type="button"
+                            >
+                              <Download size={14} />
+                              Download
+                            </button>
+                          )}
                           {answer.citations?.length > 0 && (
                             <footer className={styles.sourceReferences}>
                               <span>Source references:</span>

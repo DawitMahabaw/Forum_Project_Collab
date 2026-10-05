@@ -26,6 +26,10 @@ import {
   updateAnswer,
 } from "../../services/answerService.js";
 import {
+  createReply,
+  getRepliesByAnswer,
+} from "../../services/replyService.js";
+import {
   deleteQuestion,
   getAnswerFit,
   getQuestion,
@@ -165,6 +169,37 @@ const MarkdownEditor = ({
     </div>
   );
 };
+
+const ExpandableAnswerContent = ({ content }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isLongText = content.length > 220;
+  let displayedContent = content;
+  if (isLongText && !isExpanded) {
+    const cutoff = content.lastIndexOf(" ", 220);
+    displayedContent =
+      cutoff > 0
+        ? `${content.substring(0, cutoff)}...`
+        : `${content.substring(0, 220)}...`;
+  }
+    
+  return (
+    <div>
+      <MarkdownContent content={displayedContent} />
+      {isLongText && (
+        <button
+          type="button"
+          className={styles.readMoreButton}
+          onClick={() => setIsExpanded(!isExpanded)}
+          style={{ marginTop: "4px" }}
+        >
+          {isExpanded ? "Show Less" : "Read More"}
+        </button>
+      )}
+    </div>
+  );
+};
+
 
 const QuestionDetail = () => {
   const { questionHash } = useParams();
@@ -746,7 +781,10 @@ const handleToggleSavedQuestion = async () => {
                     )}
                   </>
                 ) : (
-                  <MarkdownContent content={answer.content} />
+                  <>
+                    <ExpandableAnswerContent content={answer.content} />
+                    <AnswerReplies answerId={answer.id} />
+                  </>
                 )}
 
                 {isOwnAnswer && !isEditing && (
@@ -883,3 +921,151 @@ const handleToggleSavedQuestion = async () => {
 };
 
 export default QuestionDetail;
+ 
+
+
+
+// ============================================================
+// NESTED REPLIES COMPONENT
+// ============================================================
+
+const ExpandableReplyItem = ({ reply }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isLongText = reply.content.length > 120;
+  const displayedContent =
+    isLongText && !isExpanded
+      ? `${reply.content.substring(0, 120)}...`
+      : reply.content;
+
+  return (
+    <div className={styles.nestedReplyItem}>
+      <div className={styles.nestedReplyHeader}>
+        <span className={styles.nestedReplyUser}>
+          {reply.author?.firstName} {reply.author?.lastName}
+        </span>
+        <span className={styles.nestedReplyDate}>
+          {formatDate(reply.createdAt)}
+        </span>
+      </div>
+
+      <p className={styles.nestedReplyBody}>
+        {displayedContent}
+        {isLongText && (
+          <button
+            type="button"
+            className={styles.readMoreButton}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? "Show Less" : "Read More"}
+          </button>
+        )}
+      </p>
+    </div>
+  );
+};
+const AnswerReplies = ({ answerId }) => {
+  const [replies, setReplies] = useState([]);
+  const [showReplies, setShowReplies] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  // 1. Reference for the scrollable container
+  const scrollAreaRef = useRef(null);
+
+  useEffect(() => {
+
+    const fetchReplies = async () => {
+      try {
+        const data = await getRepliesByAnswer(answerId);
+        setReplies(data || []);
+      } catch (err) {
+        console.error("Failed to load replies", err);
+      }
+    };
+    fetchReplies();
+  }, [answerId]);
+
+  // 2. Automatically slide down smoothly when a new reply arrives
+  useEffect(() => {
+    if (showReplies && scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [replies, showReplies]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (replyText.trim().length < 2) {
+      setError("Reply must contain at least 2 characters.");
+      return;
+    }
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const newReply = await createReply({
+        answerId,
+        content: replyText.trim(),
+      });
+      setReplies((prev) => [...prev, newReply]);
+      setReplyText("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not post reply.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className={styles.repliesWrapper}>
+      <button
+        onClick={() => setShowReplies(!showReplies)}
+        type="button"
+        className={styles.replyActionButton}
+      >
+        <MessageSquare size={15} />
+        <span>
+          {showReplies ? "Hide Replies" : `${replies.length} Replies`}
+        </span>
+      </button>
+
+      {showReplies && (
+        <div className={styles.repliesDropdownContent}>
+          {/* 3. Added ref here to hook into the scrolling element */}
+          <div ref={scrollAreaRef} className={styles.repliesScrollArea}>
+            {replies.length === 0 ? (
+              <p className={styles.noRepliesText}>No replies yet.</p>
+            ) : (
+              replies.map((reply) => (
+                <ExpandableReplyItem key={reply.id} reply={reply} />
+              ))
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className={styles.nestedReplyForm}>
+            <input
+              type="text"
+              placeholder="Write a reply..."
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              className={styles.nestedReplyInput}
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={styles.nestedReplySubmit}
+            >
+              {isSubmitting ? "..." : "Reply"}
+            </button>
+          </form>
+          {error && <div className={styles.nestedReplyError}>{error}</div>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+

@@ -69,11 +69,23 @@
 }
 
 .uploadBox {
+  box-sizing: border-box;
+  min-height: 170px;
   margin-top: 13px;
   padding: 14px;
   border: 1px dashed var(--border-hover);
   border-radius: 10px;
   background: var(--surface-container-low);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.uploadBoxDragging {
+  border-color: var(--primary);
+  background: var(--surface-highlight);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .uploadBox > p,
@@ -83,6 +95,10 @@
   color: var(--text-secondary);
   font-size: 11px;
   line-height: 1.45;
+}
+
+.uploadBox > .dropHint {
+  margin-top: 8px;
 }
 
 .uploadBox > small {
@@ -131,6 +147,11 @@
 .fileButton:hover {
   border-color: var(--border-hover);
   background: var(--surface-highlight);
+}
+
+.fileButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
 }
 
 .uploadButton,
@@ -676,4 +697,107 @@
     height: 320px;
     min-height: 260px;
   }
+}
+
+/* ---------- Summarize tab ---------- */
+
+.presetRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.presetRow button {
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: var(--surface);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.presetRow button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.summaryResult {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-container-low);
+}
+
+.summaryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.summaryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  background: var(--surface);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.downloadButton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.answer .downloadButton {
+  margin-top: 12px;
+}
+
+.summaryNote {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  background: var(--surface);
+  font-size: 12px;
+}
+
+.summaryBody {
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.summaryBody > :first-child {
+  margin-top: 0;
+}
+
+.summaryBody > :last-child {
+  margin-bottom: 0;
+}
+
+.summaryBody ul,
+.summaryBody ol {
+  padding-left: 20px;
 }

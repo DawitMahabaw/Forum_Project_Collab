@@ -2,6 +2,8 @@ import {
   registerUser,
   loginUser,
   getCurrentUser,
+  forgotPassword,
+  resetPasswordConfirm,
   getUserProfile,
   updateUserProfile,
   updateUserAvatar,
@@ -207,6 +209,71 @@ const getMe = async (req, res, next) => {
 };
 
 // ============================================================
+// INITIATE PASSWORD RESET CONTROLLER
+// ============================================================
+const initiatePasswordReset = async (req, res, next) => {
+  try {
+     const { email } = req.body;
+    const emailError = validateTextField(email, "Email");
+    if (emailError) {
+      return res.status(400).json({
+        success: false,
+        message: emailError,
+      });
+    }
+   
+
+    // Directly call and await the authService layer with the email
+    await forgotPassword(email.trim().toLowerCase());
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "If that email matches an account in our system, a password reset link has been processed.",
+    });
+  } catch (error) {
+      console.error("🚨 CRITICAL CONTROLLER ERROR DETECTED:", error);
+    next(error);
+  }
+};
+// ============================================================
+//  ADDED: CONFIRM PASSWORD RESET CONTROLLER
+// ============================================================
+const handlePasswordResetConfirm = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const tokenError = validateTextField(token, "Token");
+    if (tokenError) {
+      return res.status(400).json({ success: false, message: tokenError });
+    }
+
+    const passwordError = validatePasswordField(newPassword);
+    if (passwordError) {
+      return res.status(400).json({ success: false, message: passwordError });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least 8 characters.",
+      });
+    }
+
+    // Pass information over to service layer
+    await resetPasswordConfirm(token, newPassword);
+
+    return res.status(200).json({
+      success: true,
+      message: "Your password has been successfully updated.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// ============================================================
 // PROFILE CONTROLLERS
 // ============================================================
 
@@ -230,6 +297,7 @@ const updateProfile = async (req, res, next) => {
       bio = "",
       location = "",
       githubUrl = "",
+      portfolioUrl = "",
     } = req.body || {};
 
     const sanitizedData = {
@@ -240,6 +308,8 @@ const updateProfile = async (req, res, next) => {
         typeof location === "string" ? location.trim().slice(0, 100) : "",
       githubUrl:
         typeof githubUrl === "string" ? githubUrl.trim().slice(0, 255) : "",
+      portfolioUrl:
+        typeof portfolioUrl === "string" ? portfolioUrl.trim().slice(0, 255) : "",
     };
 
     const updatedProfile = await updateUserProfile(
@@ -389,4 +459,6 @@ export {
   uploadAvatar,
   updateAccount,
   changePassword,
+  initiatePasswordReset,
+  handlePasswordResetConfirm,
 };
