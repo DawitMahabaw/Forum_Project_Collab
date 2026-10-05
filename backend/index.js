@@ -15,6 +15,8 @@ import env from "./src/config/env.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 import pool from "./src/config/db.js";
+import adminRoutes from "./src/routes/adminRoutes.js";
+
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -40,12 +42,12 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/questions", questionRoutes);
-
 app.use("/api/auth", authRoutes);
 app.use("/api/questions", createQuestionRoutes);
 app.use("/api/answers", answerRoutes);
 app.use("/api/rag/documents", documentRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/admin", adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 const testDatabaseConnection = async () => {
