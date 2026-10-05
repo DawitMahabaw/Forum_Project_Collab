@@ -1,8 +1,16 @@
 import User from "../models/User.js";
+import nodemailer from "nodemailer"; 
+import env from "../config/env.js";
 
 import { hashPassword, comparePassword } from "../utils/password.js";
 
-import { generateToken } from "../utils/jwt.js";
+
+import {
+  generateToken,
+  generateResetToken,
+  verifyToken,
+} from "../utils/jwt.js";
+import { getPasswordResetHTML } from "../utils/emailTemplates.js";
 
 // ============================================================
 // REGISTER USER
@@ -120,6 +128,102 @@ const getCurrentUser = async (userId) => {
     headline: user.headline || null,
   };
 };
+
+
+// ============================================================
+// FORGOT PASSWORD
+// ============================================================
+const forgotPassword = async (email) => {
+  // 1. Verify if the user exists in the database
+  const user = await User.findByEmail(email);
+
+  if (!user) {
+    const error = new Error("No account found with this email address.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // 2. Generate a secure, short-lived reset token (15 mins) using your JWT utility
+  const resetToken = generateResetToken(user.user_id);
+
+  // 3. Construct the password reset URL for your Vite frontend application
+  const resetUrl = `${env.frontendUrl}/reset-password/${resetToken}`;
+
+  // 4. Generate the HTML template (passing only the resetUrl argument)
+  const emailHtml = getPasswordResetHTML(resetUrl);
+
+  // 5. Configure Nodemailer Transporter using the simplified Gmail service setting
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: env.emailUser, // Loaded from process.env.EMAIL_USER
+      pass: env.emailPass, // Loaded from process.env.EMAIL_PASS (16-character App Password)
+    },
+  });
+
+  // 6. Transmit the email to the user
+  await transporter.sendMail({
+    from: `"Evangadi Forum Support" <${env.emailUser}>`,
+    to: user.email,
+    subject: "Password Reset Request",
+    html: emailHtml,
+  });
+
+  return { message: "Reset token sent successfully." };
+};
+
+// ============================================================
+// RESET PASSWORD CONFIRM
+// ============================================================
+const resetPasswordConfirm = async (token, newPassword) => {
+  let decoded;
+
+  // 1. Verify the validity and expiration of the JWT reset token
+  try {
+    decoded = verifyToken(token);
+  } catch (err) {
+    const error = new Error("The reset link is invalid or has expired.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // 2. Validate the dedicated token purpose flag for strict safety
+  if (decoded.purpose !== "password_reset") {
+    const error = new Error("Invalid token authorization category.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // 3. Extract the userId from the valid token payload
+  const userId = decoded.userId; 
+  if (!userId) {
+    const error = new Error("Invalid token payload configuration.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // 4. Enforce the standard 8-character password length rule
+  if (newPassword.length < 8) {
+    const error = new Error("New password must contain at least 8 characters.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // 5. Securely hash the incoming new password
+  const newPasswordHash = await hashPassword(newPassword);
+
+  // 6. Update the database record reusing your teammate's model function
+  const updateSuccess = await User.updatePassword(userId, newPasswordHash);
+
+  if (!updateSuccess) {
+    const error = new Error("Password reset operation failed. Account not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return { message: "Password updated successfully." };
+};
+
 
 // ============================================================
 // GET USER PROFILE (WITH COMPUTED STATS)
@@ -270,6 +374,8 @@ export {
   registerUser,
   loginUser,
   getCurrentUser,
+  forgotPassword,
+  resetPasswordConfirm,
   getUserProfile,
   updateUserProfile,
   updateUserAvatar,

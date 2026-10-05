@@ -18,6 +18,10 @@ const env = {
     name: process.env.DB_NAME,
   },
   jwtSecret: process.env.JWT_SECRET,
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+
+  emailUser: process.env.EMAIL_USER,
+  emailPass: process.env.EMAIL_PASS,
 
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
   geminiModel: process.env.GEMINI_MODEL?.trim(),
@@ -48,14 +52,8 @@ const env = {
       process.env.RAG_MAX_FILE_SIZE_BYTES,
       10 * 1024 * 1024,
     ),
-    evidenceThreshold: numberFromEnv(
-      process.env.RAG_EVIDENCE_THRESHOLD,
-      0.55,
-    ),
-    searchThreshold: numberFromEnv(
-      process.env.RAG_SEARCH_THRESHOLD,
-      0.6,
-    ),
+    evidenceThreshold: numberFromEnv(process.env.RAG_EVIDENCE_THRESHOLD, 0.55),
+    searchThreshold: numberFromEnv(process.env.RAG_SEARCH_THRESHOLD, 0.6),
   },
 };
 
