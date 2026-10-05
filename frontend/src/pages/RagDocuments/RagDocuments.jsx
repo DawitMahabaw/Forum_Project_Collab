@@ -2,9 +2,9 @@
 // KNOWLEDGE BASE / RAG DOCUMENTS PAGE
 // ============================================================
 //
-// Mirrors the supplied Knowledge Base design: a compact private
-// document library on the left and a persistent PDF reader with
-// Semantic search and Ask with AI sections on the right.
+// Private document library with semantic search,
+// Ask with AI, and PDF preview.
+//
 
 import {
   CheckCircle2,
@@ -24,21 +24,27 @@ import {
   getDocumentFile,
   listDocuments,
   searchDocument,
-  uploadPdf,
+  uploadDocument,
 } from "../../services/ragService.js";
+
 import styles from "./RagDocuments.module.css";
 
-const getSelectedPdf = (candidate) => {
+const getSelectedDocument = (candidate) => {
   if (!candidate) return null;
 
-  return candidate.type === "application/pdf" || /\.pdf$/i.test(candidate.name)
-    ? candidate
-    : null;
+  const isPdf =
+    candidate.type === "application/pdf" || /\.pdf$/i.test(candidate.name);
+
+  const isText =
+    candidate.type === "text/plain" || /\.txt$/i.test(candidate.name);
+
+  return isPdf || isText ? candidate : null;
 };
 
 const RagDocuments = () => {
   // A ref lets the visible "Choose file" button open the hidden native input.
   const fileInput = useRef(null);
+
   const [documents, setDocuments] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [activeTab, setActiveTab] = useState("ask");
@@ -48,7 +54,11 @@ const RagDocuments = () => {
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [answer, setAnswer] = useState(null);
-  const [preview, setPreview] = useState({ documentId: null, url: "" });
+  const [preview, setPreview] = useState({
+    documentId: null,
+    url: "",
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [workingAction, setWorkingAction] = useState("");
@@ -62,8 +72,10 @@ const RagDocuments = () => {
       documents.find((document) => document.documentId === activeId) || null,
     [activeId, documents],
   );
+
   const activeDocumentId = activeDocument?.documentId;
   const activeDocumentStatus = activeDocument?.status;
+
   const hasProcessingDocuments = documents.some(
     (document) => document.status === "processing",
   );
@@ -72,12 +84,15 @@ const RagDocuments = () => {
   const loadDocuments = useCallback(async ({ quiet = false } = {}) => {
     try {
       const nextDocuments = await listDocuments();
+
       setDocuments(nextDocuments);
+
       setActiveId((currentId) =>
         nextDocuments.some((document) => document.documentId === currentId)
           ? currentId
           : nextDocuments[0]?.documentId || null,
       );
+
       setError("");
     } catch (requestError) {
       setError(
@@ -85,7 +100,9 @@ const RagDocuments = () => {
           "Could not load your document library.",
       );
     } finally {
-      if (!quiet) setIsLoading(false);
+      if (!quiet) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -94,7 +111,7 @@ const RagDocuments = () => {
     loadDocuments();
   }, [loadDocuments]);
 
-  // Keep every in-progress upload current, even after the user selects another PDF.
+  // Keep every in-progress upload current.
   useEffect(() => {
     if (!hasProcessingDocuments) return undefined;
 
@@ -111,10 +128,12 @@ const RagDocuments = () => {
     let isCurrent = true;
     let objectUrl = "";
 
+    // TXT documents do not use the PDF preview.
     if (
       !activeDocumentId ||
       activeDocumentStatus !== "ready" ||
-      activeTab !== "preview"
+      activeTab !== "preview" ||
+      activeDocument?.mimeType !== "application/pdf"
     ) {
       return undefined;
     }
@@ -127,25 +146,38 @@ const RagDocuments = () => {
         }
 
         objectUrl = url;
-        setPreview({ documentId: activeDocumentId, url });
+
+        setPreview({
+          documentId: activeDocumentId,
+          url,
+        });
       })
       .catch(() => setError("Could not load the PDF preview."));
 
     return () => {
       isCurrent = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
     };
-  }, [activeDocumentId, activeDocumentStatus, activeTab]);
+  }, [
+    activeDocumentId,
+    activeDocumentStatus,
+    activeTab,
+    activeDocument?.mimeType,
+  ]);
 
   // Toasts announce completed actions without interrupting the page.
   useEffect(() => {
     if (!toast) return undefined;
 
     const timer = window.setTimeout(() => setToast(""), 3800);
+
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  // Upload the selected PDF and immediately focus it in the right workspace.
+  // Upload the selected document and immediately focus it in the workspace.
   const handleUpload = async () => {
     if (!file) return;
 
@@ -153,21 +185,28 @@ const RagDocuments = () => {
     setError("");
 
     try {
-      const document = await uploadPdf(file);
+      const document = await uploadDocument(file);
+
       setDocuments((current) => [document, ...current]);
       setActiveId(document.documentId);
       setActiveTab("ask");
+
       setFile(null);
       setResults([]);
       setHasSearched(false);
       setAnswer(null);
       setSearchQuery("");
       setAskQuery("");
-      setToast("PDF uploaded. It will be ready after indexing finishes.");
-      if (fileInput.current) fileInput.current.value = "";
+
+      setToast("Document uploaded. It will be ready after indexing finishes.");
+
+      if (fileInput.current) {
+        fileInput.current.value = "";
+      }
     } catch (requestError) {
       setError(
-        requestError.response?.data?.message || "Could not upload this PDF.",
+        requestError.response?.data?.message ||
+          "Could not upload this document.",
       );
     } finally {
       setIsUploading(false);
@@ -176,20 +215,20 @@ const RagDocuments = () => {
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files?.[0] || null;
-    const pdf = getSelectedPdf(selectedFile);
+    const document = getSelectedDocument(selectedFile);
 
-    if (selectedFile && !pdf) {
+    if (selectedFile && !document) {
       setFile(null);
-      setError("Please choose a PDF file.");
+      setError("Please choose a PDF or TXT file.");
       event.target.value = "";
       return;
     }
 
-    setFile(pdf);
+    setFile(document);
     setError("");
   };
 
-  // Switching documents clears outputs that belong to the previous PDF.
+  // Switching documents clears outputs that belong to the previous document.
   const handleSelect = (documentId) => {
     setActiveId(documentId);
     setActiveTab("ask");
@@ -204,6 +243,7 @@ const RagDocuments = () => {
   // Run semantic retrieval independently from the grounded-answer form.
   const handleSemanticSearch = async (event) => {
     event.preventDefault();
+
     if (!activeDocument || !searchQuery.trim()) return;
 
     setWorkingAction("search");
@@ -216,6 +256,7 @@ const RagDocuments = () => {
         activeDocument.documentId,
         searchQuery.trim(),
       );
+
       setResults(data.results || []);
     } catch (requestError) {
       setError(
@@ -227,10 +268,13 @@ const RagDocuments = () => {
     }
   };
 
-  // Ask the server for a PDF-grounded answer with passage citations.
+  // Ask the server for a document-grounded answer with passage citations.
   const handleAsk = async (event) => {
     event.preventDefault();
-    if (!activeDocument || !askQuery.trim() || workingAction === "ask") return;
+
+    if (!activeDocument || !askQuery.trim() || workingAction === "ask") {
+      return;
+    }
 
     setWorkingAction("ask");
     setError("");
@@ -256,22 +300,29 @@ const RagDocuments = () => {
 
     try {
       await deleteDocument(pendingDeleteDoc.documentId);
+
       setDocuments((current) =>
         current.filter(
           (document) => document.documentId !== pendingDeleteDoc.documentId,
         ),
       );
+
       if (activeId === pendingDeleteDoc.documentId) {
         setActiveId(null);
         setResults([]);
         setAnswer(null);
-        setPreview({ documentId: null, url: "" });
+        setPreview({
+          documentId: null,
+          url: "",
+        });
       }
+
       setPendingDeleteDoc(null);
       setToast("Document deleted from your private library.");
     } catch (requestError) {
       setError(
-        requestError.response?.data?.message || "Could not delete this PDF.",
+        requestError.response?.data?.message ||
+          "Could not delete this document.",
       );
     } finally {
       setWorkingAction("");
@@ -282,19 +333,23 @@ const RagDocuments = () => {
     <section className={styles.page}>
       <header className={styles.hero}>
         <span>Knowledge base</span>
-        <h1>Private PDF library</h1>
+
+        <h1>Private document library</h1>
+
         <p>
-          Upload study or reference PDFs to your own workspace. Each file is
-          indexed for semantic search and optional AI answers use passages from
-          that document only. File size limits apply on the server; other users
-          never see your uploads.
+          Upload study or reference PDFs or TXT files to your own workspace.
+          Each file is indexed for semantic search, and optional AI answers use
+          passages from that document only. File size limits apply on the
+          server; other users never see your uploads.
         </p>
       </header>
 
       {toast && (
         <div className={styles.toast} role="status">
           <CheckCircle2 size={17} />
+
           {toast}
+
           <button
             aria-label="Dismiss notification"
             onClick={() => setToast("")}
@@ -312,21 +367,24 @@ const RagDocuments = () => {
       )}
 
       <div className={styles.workspace}>
-        <aside className={styles.library} aria-label="Private PDF library">
+        <aside className={styles.library} aria-label="Private document library">
           <header className={styles.libraryHeader}>
             <h2>Library</h2>
+
             <p>
-              Add PDFs here. Processing starts automatically after each upload.
+              Add PDF or TXT documents here. Processing starts automatically
+              after each upload.
             </p>
           </header>
 
           <div className={styles.uploadBox}>
             <p>
-              Accepted format: PDF. Maximum file size is enforced by the server.
+              Accepted formats: PDF and TXT. Maximum file size is enforced by
+              the server.
             </p>
 
             <input
-              accept="application/pdf"
+              accept=".pdf,.txt"
               onChange={handleFileChange}
               ref={fileInput}
               type="file"
@@ -353,17 +411,20 @@ const RagDocuments = () => {
                 ) : (
                   <Upload size={16} />
                 )}
+
                 {isUploading ? "Uploading..." : "Upload"}
               </button>
             </div>
+
             <small>{file?.name || "No file selected"}</small>
           </div>
 
           {isLoading && <p className={styles.muted}>Loading your library...</p>}
+
           {!isLoading && !documents.length && (
             <p className={styles.muted}>
-              Upload a PDF to make it available for private search and AI
-              answers.
+              Upload a PDF or TXT document to make it available for private
+              search and AI answers.
             </p>
           )}
 
@@ -380,9 +441,9 @@ const RagDocuments = () => {
                 }`}
                 key={document.documentId}
                 onClick={() => handleSelect(document.documentId)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
                     handleSelect(document.documentId);
                   }
                 }}
@@ -393,6 +454,7 @@ const RagDocuments = () => {
                   <b className={styles.documentTitle} title={document.title}>
                     {document.title}
                   </b>
+
                   <div className={styles.badgeWrapper}>
                     <span className={styles[`status${document.status}`]}>
                       {document.status}
@@ -403,11 +465,11 @@ const RagDocuments = () => {
                 <button
                   aria-label={`Delete ${document.title}`}
                   className={styles.deleteButton}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     setPendingDeleteDoc(document);
                   }}
-                  title="Delete PDF"
+                  title="Delete document"
                   type="button"
                 >
                   <Trash2 size={16} />
@@ -420,8 +482,8 @@ const RagDocuments = () => {
         <section className={styles.reader}>
           {!activeDocument && !isLoading && (
             <div className={styles.emptyReader}>
-              Choose an uploaded PDF to open it here. Semantic search and Ask
-              with AI will use only the selected document.
+              Choose an uploaded document to open it here. Semantic search and
+              Ask with AI will use only the selected document.
             </div>
           )}
 
@@ -430,6 +492,7 @@ const RagDocuments = () => {
               <div className={styles.readerTitle}>
                 <div>
                   <h2>{activeDocument.title}</h2>
+
                   <p>
                     Private document reader, semantic search, and
                     source-grounded answers.
@@ -440,15 +503,15 @@ const RagDocuments = () => {
               {activeDocument.status === "processing" && (
                 <div className={styles.pending}>
                   <LoaderCircle className={styles.spin} size={20} />
-                  Processing this PDF. The reader will become available
+                  Processing this document. The reader will become available
                   automatically.
                 </div>
               )}
 
               {activeDocument.status === "failed" && (
                 <div className={styles.failed}>
-                  {activeDocument.errorMessage || "This PDF could not be read."}{" "}
-                  Upload a text-based PDF and try again.
+                  {activeDocument.errorMessage ||
+                    "This document could not be processed."}
                 </div>
               )}
 
@@ -469,6 +532,7 @@ const RagDocuments = () => {
                     >
                       Ask AI
                     </button>
+
                     <button
                       aria-controls="semantic-search-panel"
                       aria-selected={activeTab === "search"}
@@ -479,37 +543,41 @@ const RagDocuments = () => {
                     >
                       Semantic Search
                     </button>
-                    <button
-                      aria-controls="pdf-preview-panel"
-                      aria-selected={activeTab === "preview"}
-                      className={
-                        activeTab === "preview" ? styles.activeTab : ""
-                      }
-                      onClick={() => setActiveTab("preview")}
-                      role="tab"
-                      type="button"
-                    >
-                      PDF Preview
-                    </button>
+
+                    {activeDocument.mimeType === "application/pdf" && (
+                      <button
+                        aria-controls="pdf-preview-panel"
+                        aria-selected={activeTab === "preview"}
+                        className={
+                          activeTab === "preview" ? styles.activeTab : ""
+                        }
+                        onClick={() => setActiveTab("preview")}
+                        role="tab"
+                        type="button"
+                      >
+                        PDF Preview
+                      </button>
+                    )}
                   </div>
 
-                  {activeTab === "preview" && (
-                    <section id="pdf-preview-panel" role="tabpanel">
-                      {preview.documentId === activeDocument.documentId &&
-                      preview.url ? (
-                        <iframe
-                          className={styles.preview}
-                          src={preview.url}
-                          title={`Preview of ${activeDocument.title}`}
-                        />
-                      ) : (
-                        <div className={styles.pending}>
-                          <LoaderCircle className={styles.spin} size={20} />
-                          Loading PDF preview...
-                        </div>
-                      )}
-                    </section>
-                  )}
+                  {activeTab === "preview" &&
+                    activeDocument.mimeType === "application/pdf" && (
+                      <section id="pdf-preview-panel" role="tabpanel">
+                        {preview.documentId === activeDocument.documentId &&
+                        preview.url ? (
+                          <iframe
+                            className={styles.preview}
+                            src={preview.url}
+                            title={`Preview of ${activeDocument.title}`}
+                          />
+                        ) : (
+                          <div className={styles.pending}>
+                            <LoaderCircle className={styles.spin} size={20} />
+                            Loading PDF preview...
+                          </div>
+                        )}
+                      </section>
+                    )}
 
                   {activeTab === "search" && (
                     <section
@@ -518,12 +586,15 @@ const RagDocuments = () => {
                       role="tabpanel"
                     >
                       <h2>Semantic search</h2>
+
                       <p>
                         Finds passages by meaning (embeddings), not only exact
                         keywords.
                       </p>
+
                       <form onSubmit={handleSemanticSearch}>
                         <label htmlFor="semantic-query">Search query</label>
+
                         <input
                           id="semantic-query"
                           onChange={(event) =>
@@ -532,6 +603,7 @@ const RagDocuments = () => {
                           placeholder="How does a function work?"
                           value={searchQuery}
                         />
+
                         <button
                           disabled={
                             workingAction === "search" || !searchQuery.trim()
@@ -543,6 +615,7 @@ const RagDocuments = () => {
                           ) : (
                             <Search size={16} />
                           )}
+
                           {workingAction === "search"
                             ? "Searching..."
                             : "Search"}
@@ -556,14 +629,16 @@ const RagDocuments = () => {
                               Chunk {result.chunkIndex + 1} - relevance{" "}
                               {result.score.toFixed(3)}
                             </b>
+
                             <p>{result.excerpt}</p>
                           </article>
                         ))}
+
                         {hasSearched && !results.length && (
                           <p className={styles.noResults}>
                             No relevant passages were found in this document.
                             Try a more specific question or a phrase used in the
-                            PDF.
+                            document.
                           </p>
                         )}
                       </div>
@@ -577,18 +652,22 @@ const RagDocuments = () => {
                       role="tabpanel"
                     >
                       <h2>Ask with AI</h2>
+
                       <p>
-                        Answers only use retrieved excerpts from this PDF and
-                        include source references when evidence exists.
+                        Answers only use retrieved excerpts from this document
+                        and include source references when evidence exists.
                       </p>
+
                       <form onSubmit={handleAsk}>
                         <label htmlFor="ask-query">Question</label>
+
                         <textarea
                           id="ask-query"
                           onChange={(event) => setAskQuery(event.target.value)}
                           onKeyDown={(event) => {
                             if (event.key === "Enter" && !event.shiftKey) {
                               event.preventDefault();
+
                               if (askQuery.trim() && workingAction !== "ask") {
                                 event.currentTarget.form?.requestSubmit();
                               }
@@ -597,6 +676,7 @@ const RagDocuments = () => {
                           placeholder="Ask a clear question about this document"
                           value={askQuery}
                         />
+
                         <button
                           disabled={workingAction === "ask" || !askQuery.trim()}
                           type="submit"
@@ -606,6 +686,7 @@ const RagDocuments = () => {
                           ) : (
                             <Sparkles size={16} />
                           )}
+
                           {workingAction === "ask" ? "Asking..." : "Ask"}
                         </button>
                       </form>
@@ -613,13 +694,17 @@ const RagDocuments = () => {
                       {answer && (
                         <div className={styles.answer} aria-live="polite">
                           <p>{answer.answer}</p>
+
                           {answer.citations?.length > 0 && (
                             <footer className={styles.sourceReferences}>
                               <span>Source references:</span>
+
                               <div>
                                 {answer.citations.map((citation) => (
                                   <span
-                                    aria-label={`Reference ${citation.ref}, chunk ${citation.chunkIndex + 1}`}
+                                    aria-label={`Reference ${citation.ref}, chunk ${
+                                      citation.chunkIndex + 1
+                                    }`}
                                     key={citation.ref}
                                   >
                                     [{citation.ref}] &rarr; chunk{" "}
@@ -649,10 +734,12 @@ const RagDocuments = () => {
             role="dialog"
           >
             <h2>Delete this document?</h2>
+
             <p id="delete-document-copy">
               “{pendingDeleteDoc.title}” and its private search index will be
               permanently removed.
             </p>
+
             <div>
               <button
                 disabled={workingAction === "delete"}
@@ -661,6 +748,7 @@ const RagDocuments = () => {
               >
                 Cancel
               </button>
+
               <button
                 disabled={workingAction === "delete"}
                 onClick={handleDelete}

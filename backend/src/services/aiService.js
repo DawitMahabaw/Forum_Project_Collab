@@ -1,7 +1,6 @@
 
 import { generateContent } from "../ai/gemini.js";
-import { generateJson } from "../ai/generateText.js";
-import { draftCoachSchema } from "../utils/draftCoachSchema.js"
+
 // ------------------------------------------------------------
 // PARSE JSON FROM AI RESPONSE
 // ------------------------------------------------------------
@@ -50,13 +49,7 @@ Respond with STRICT JSON ONLY, no markdown, no commentary,
 matching exactly this shape:
 
 {
-  "improvedTitle": "string",
-  "improvedContent": "string",
-  "suggestions": [
-    "string",
-    "string",
-    "string"
-  ]
+  "tips": ["short actionable tip", "short actionable tip"]
 }
 
 Rules:
@@ -69,10 +62,12 @@ Rules:
 
 `.trim();
 
-   const result = await generateJson(prompt);
-   const validatedResult = draftCoachSchema.parse(result);
+ const rawText = await generateContent(prompt);
+  const parsed = parseJsonResponse(rawText);
 
-   return validatedResult;
+  const tips = Array.isArray(parsed.tips) ? parsed.tips : [];
+
+  return { tips };
    
 };
 
