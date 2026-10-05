@@ -3,6 +3,8 @@ import {
   register,
   login,
   getMe,
+  initiatePasswordReset,
+  handlePasswordResetConfirm,
   getProfile,
   updateProfile,
   uploadAvatar,
@@ -32,6 +34,8 @@ router.post(
   uploadAvatar,
 );
 
+router.post("/forgot-password", initiatePasswordReset);
+router.post("/reset-password-confirm", handlePasswordResetConfirm);
 // Account & Password settings endpoints
 router.put("/account", authenticate, updateAccount);
 

@@ -113,3 +113,21 @@ CREATE TABLE IF NOT EXISTS document_chunk_vectors (
     UNIQUE KEY uq_document_chunk_vectors_chunk (chunk_id),
     INDEX idx_document_chunk_vectors_status (status)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ 
+-- ============================================================
+-- REPLIES TABLE (Threaded Comments on Answers)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS replies (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    answer_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_replies_answer FOREIGN KEY (answer_id) REFERENCES answers (id) ON DELETE CASCADE,
+    CONSTRAINT fk_replies_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    INDEX idx_replies_answer_id (answer_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
