@@ -24,11 +24,11 @@ The application provides three major areas of functionality:
    & Foundation         Assistance                / RAG
           |                   |                   |
           v                   v                   v
-       Users          Questions & Answers     PDF Documents
+       Users          Questions & Answers     PDF & TXT Docs
        JWT            Semantic Search         Chunking
        Protected      Related Questions      Embeddings
        Routes         Draft Coach             Retrieval
-                      Answer Fit              Grounded AI
+                      Answer Fit              Grounded AI & Summary
 ```
 
 ---
@@ -49,72 +49,83 @@ All three project milestones have been completed.
 
 ### Authentication & User Management
 
-* User registration
-* User login
+* User registration & secure login
 * Password hashing with bcrypt
-* JWT-based authentication
-* Protected API routes
-* Protected frontend routes
-* Current-user authentication
-* Global authentication state
-* Automatic handling of unauthorized API responses
-* Ownership-based authorization
+* JWT-based stateless authentication
+* Protected API routes with token verification
+* Protected frontend routes & session management
+* Global authentication context
+* User profile management (headline, bio, location, and social links)
+* Custom avatar upload with preview & static storage
+* Password update & account settings
+* Password reset workflow with secure tokens and email templates
+* Role-based access control (Admin and Member tiers)
+* Automatic handling of expired or unauthorized sessions
+* Ownership-based authorization on all resources
 
-### Forum
+### Forum & Community Discussions
 
-* Create questions
-* View questions
-* Update questions
-* Delete questions
-* View individual discussions
-* Create answers
-* Update answers
-* Delete answers
+* Create, view, update, and delete questions
+* View individual discussion threads with full answer listings
+* Create, update, and delete answers
+* Threaded replies on answers for granular discussions
 * Prevent users from answering their own questions
-* Author-only question management
-* Author-only answer management
-* Markdown-friendly question and answer content
-* Loading, empty, error, and ownership states
+* Author-only question and answer management
+* Dedicated "My Questions" personal dashboard
+* Markdown-friendly question and answer formatting
+* Polished loading, empty, error, and ownership states
 
 ### Search & Discovery
 
 * Keyword-based question search
-* Semantic question search
-* Related-question recommendations
-* Question embeddings
-* Cosine similarity
-* Meaning-based question discovery
-* Search result ranking
-* Configurable similarity thresholds
+* Real-time debounced keyword search suggestions dropdown
+* Semantic question search powered by AI vectors
+* Instant toggle between keyword and AI semantic search modes
+* Related-question recommendations on discussion pages
+* Vector embeddings generation for questions
+* Cosine similarity matching
+* Meaning-based discovery across diverse phrasing
+* Configurable similarity threshold and result limits
 
 ### AI Assistance
 
-* AI Draft Coach for questions
-* AI Answer Fit evaluation
+* AI Draft Coach for questions (with rate limiting protection)
+* AI Answer Fit evaluation before submission
 * Gemini-powered text generation
 * Gemini-powered embeddings
-* AI service error handling
-* AI request timeout and retry handling
-* AI output treated as assistance rather than authoritative information
+* Resilient AI service error handling, timeout, and retry logic
+* Human-in-the-loop AI assistance (reviewable suggestions)
 
 ### Knowledge Base / RAG
 
-* Authenticated document upload
-* PDF document support
-* Secure document storage
-* PDF text extraction
-* Text chunking
-* Chunk embeddings
-* Semantic document search
-* Relevant document excerpt retrieval
-* Grounded AI question answering
-* Document metadata
-* Document status tracking
-* PDF file streaming
-* PDF preview
-* User document listing
-* Document deletion
-* Associated vector cleanup
+* Authenticated PDF and plain text (.txt) document upload
+* Secure file storage and validation
+* In-browser PDF streaming and preview modal
+* Document text extraction and intelligent chunking
+* Chunk-level vector embeddings
+* Semantic document search across extracted excerpts
+* Grounded AI question answering based on uploaded context
+* AI document summarization with style presets (One page, Under 500w, Bullets, Executive)
+* Client-side summary export and download (.txt and .md)
+* Document metadata and processing status tracking
+* User document catalog management
+* Cascading deletion of documents, chunks, and vector embeddings
+
+### Admin & Moderation
+
+* Role-guarded administrative dashboard
+* Platform-wide user metrics and management
+* Moderation queue with question deletion controls
+* Administrative routing guards on frontend and backend
+
+### Modern UI & Experience
+
+* Dark / Light mode toggle with persistent preferences
+* Responsive navigation with collapsible sidebar drawer
+* Clean typography and interactive animations with Framer Motion and Lucide icons
+* Live search suggestions dropdown in navbar
+* Rich Markdown toolbar (Bold, Italic, Code, Link) with live preview
+* Consistent feedback toasts and state notifications
 
 ---
 
@@ -188,26 +199,31 @@ The frontend is responsible for:
 
 # Technology Stack
 
-| Area                | Technology              |
-| ------------------- | ----------------------- |
-| Frontend            | React 19                |
-| Build Tool          | Vite                    |
-| Routing             | React Router            |
-| HTTP Client         | Axios                   |
-| Styling             | CSS Modules             |
-| UI Icons            | Lucide                  |
-| Animation           | Framer Motion           |
-| Backend             | Node.js                 |
-| API Framework       | Express 5               |
-| Database            | MySQL 8+                |
-| Database Driver     | mysql2                  |
-| Authentication      | JSON Web Tokens         |
-| Password Security   | bcrypt                  |
-| AI                  | Google Gemini           |
-| Embeddings          | Gemini Embedding API    |
-| Code Quality        | Oxlint                  |
-| Document Processing | PDF processing pipeline |
-| Architecture        | MVC + Service Layer     |
+| Area                | Technology                  |
+| ------------------- | --------------------------- |
+| Frontend            | React 19                    |
+| Build Tool          | Vite                        |
+| Routing             | React Router 7              |
+| HTTP Client         | Axios                       |
+| Styling             | CSS Modules                 |
+| Markdown Rendering  | React Markdown              |
+| UI Icons            | Lucide React                |
+| Animation           | Framer Motion               |
+| Backend             | Node.js                     |
+| API Framework       | Express 5                   |
+| Database            | MySQL 8+                    |
+| Database Driver     | mysql2 (Promise-based)      |
+| Authentication      | JSON Web Tokens (JWT)       |
+| Password Security   | bcrypt                      |
+| Email Service       | Nodemailer (Gmail SMTP)     |
+| File Uploads        | Multer                      |
+| Rate Limiting       | express-rate-limit          |
+| Validation          | Custom / Native Validation  |
+| AI Model            | Google Gemini               |
+| Embeddings          | Gemini Embedding API        |
+| Document Parsing    | pdf-parse                   |
+| Code Quality        | Oxlint                      |
+| Architecture        | Layered MVC + Service Layer |
 
 ---
 
@@ -563,13 +579,15 @@ The frontend provides a dedicated knowledge-base experience.
 ```text
 Knowledge Base
       |
-      +---- Document Sidebar
+      +---- Document Sidebar (PDF & TXT Catalog)
       |
-      +---- Upload PDF
+      +---- Upload Document (.pdf, .txt)
       |
-      +---- Ask AI
+      +---- Ask AI (Grounded Q&A)
       |
-      +---- Semantic Search
+      +---- Semantic Search (Excerpt Search)
+      |
+      +---- Summarize (Presets & Export)
       |
       +---- PDF Preview
 ```
@@ -581,6 +599,10 @@ Allows users to ask questions about the selected document and receive a grounded
 ### Semantic Search
 
 Allows users to search the document and inspect relevant excerpts without necessarily generating an AI response.
+
+### Summarize
+
+Allows users to generate structured summaries using Gemini with customizable instructions or built-in presets (*One page*, *Under 500 words*, *Bullet points*, *Executive summary*) and export the result directly as a `.txt` or `.md` file.
 
 ### PDF Preview
 
@@ -619,13 +641,20 @@ Authorization: Bearer <token>
 | ------ | -------- | ---------------------- |
 | GET    | `/`      | Check API availability |
 
-## Authentication
+## Authentication & Account
 
-| Method | Endpoint             | Purpose              |
-| ------ | -------------------- | -------------------- |
-| POST   | `/api/auth/register` | Register a user      |
-| POST   | `/api/auth/login`    | Authenticate a user  |
-| GET    | `/api/auth/me`       | Get the current user |
+| Method | Endpoint                             | Purpose                              |
+| ------ | ------------------------------------ | ------------------------------------ |
+| POST   | `/api/auth/register`                 | Register a new user                  |
+| POST   | `/api/auth/login`                    | Authenticate user and issue JWT      |
+| GET    | `/api/auth/me`                       | Get current authenticated user       |
+| GET    | `/api/auth/profile`                  | Get user profile & biography details |
+| PUT    | `/api/auth/profile`                  | Update profile info & social links   |
+| POST   | `/api/auth/avatar`                   | Upload user profile picture          |
+| PUT    | `/api/auth/account`                  | Update account email/credentials     |
+| PUT    | `/api/auth/change-password`          | Change password                      |
+| POST   | `/api/auth/forgot-password`          | Initiate password reset workflow     |
+| POST   | `/api/auth/reset-password-confirm`   | Complete password reset with token   |
 
 ## Questions
 
@@ -641,25 +670,38 @@ Authorization: Bearer <token>
 | POST   | `/api/questions/draft-coach`              | AI question feedback     |
 | POST   | `/api/questions/:questionHash/answer-fit` | AI answer feedback       |
 
-## Answers
+## Answers & Discussion
 
-| Method | Endpoint                 | Purpose             |
-| ------ | ------------------------ | ------------------- |
-| POST   | `/api/answers`           | Create an answer    |
-| PUT    | `/api/answers/:answerId` | Update owned answer |
-| DELETE | `/api/answers/:answerId` | Delete owned answer |
+| Method | Endpoint                 | Purpose                            |
+| ------ | ------------------------ | ---------------------------------- |
+| POST   | `/api/answers`           | Create an answer                   |
+| PUT    | `/api/answers/:answerId` | Update owned answer                |
+| DELETE | `/api/answers/:answerId` | Delete owned answer                |
+| POST   | `/api/replies`           | Post a threaded reply to an answer |
+| GET    | `/api/replies/:answerId` | Get all replies for an answer      |
 
 ## Knowledge Base / RAG
 
-| Method | Endpoint                                | Purpose                      |
-| ------ | --------------------------------------- | ---------------------------- |
-| POST   | `/api/rag/documents`                    | Upload and process a PDF     |
-| GET    | `/api/rag/documents`                    | List user documents          |
-| GET    | `/api/rag/documents/:documentId`        | Get document metadata/status |
-| GET    | `/api/rag/documents/:documentId/file`   | Stream PDF file              |
-| GET    | `/api/rag/documents/:documentId/search` | Semantic document search     |
-| POST   | `/api/rag/documents/:documentId/query`  | Ask AI about a document      |
-| DELETE | `/api/rag/documents/:documentId`        | Delete document and vectors  |
+| Method | Endpoint                                   | Purpose                                        |
+| ------ | ------------------------------------------ | ---------------------------------------------- |
+| POST   | `/api/rag/documents`                       | Upload and process a PDF or TXT document       |
+| GET    | `/api/rag/documents`                       | List user documents                            |
+| GET    | `/api/rag/documents/:documentId`           | Get document metadata/status                   |
+| GET    | `/api/rag/documents/:documentId/file`      | Stream PDF file                                |
+| GET    | `/api/rag/documents/:documentId/search`    | Semantic document search                       |
+| POST   | `/api/rag/documents/:documentId/query`     | Ask AI about a document                        |
+| POST   | `/api/rag/documents/:documentId/summarize` | AI document summary with custom prompt/preset  |
+| DELETE | `/api/rag/documents/:documentId`           | Delete document and vectors                    |
+
+## Administration (Admin Only)
+
+| Method | Endpoint                             | Purpose                              |
+| ------ | ------------------------------------ | ------------------------------------ |
+| GET    | `/api/admin/dashboard`               | Platform metrics & overview stats    |
+| GET    | `/api/admin/users`                   | List all registered users            |
+| DELETE | `/api/admin/users/:userId`           | Remove user account                  |
+| GET    | `/api/admin/questions`               | Moderation queue of questions        |
+| DELETE | `/api/admin/questions/:questionId`   | Delete question as administrator     |
 
 ---
 
@@ -680,17 +722,24 @@ Authorization: Bearer <token>
 │   │   │
 │   │   ├── config/
 │   │   │   ├── db.js
-│   │   │   └── env.js
+│   │   │   ├── env.js
+│   │   │   └── initDb.js
 │   │   │
 │   │   ├── controllers/
+│   │   │   ├── adminController.js
 │   │   │   ├── answerController.js
 │   │   │   ├── authController.js
+│   │   │   ├── createQuestionController.js
 │   │   │   ├── documentController.js
-│   │   │   └── questionController.js
+│   │   │   ├── questionController.js
+│   │   │   └── replyController.js
 │   │   │
 │   │   ├── middleware/
+│   │   │   ├── adminMiddleware.js
 │   │   │   ├── authMiddleware.js
+│   │   │   ├── avatarUploadMiddleware.js
 │   │   │   ├── errorMiddleware.js
+│   │   │   ├── rateLimiter.js
 │   │   │   └── uploadMiddleware.js
 │   │   │
 │   │   ├── models/
@@ -698,52 +747,94 @@ Authorization: Bearer <token>
 │   │   │   ├── Document.js
 │   │   │   ├── Question.js
 │   │   │   ├── QuestionVector.js
+│   │   │   ├── Reply.js
 │   │   │   └── User.js
 │   │   │
+│   │   ├── rag/
+│   │   │   ├── chunking.js
+│   │   │   ├── documentProcessing.js
+│   │   │   ├── ragService.js
+│   │   │   └── retrieval.js
+│   │   │
 │   │   ├── routes/
+│   │   │   ├── adminRoutes.js
 │   │   │   ├── answerRoutes.js
 │   │   │   ├── authRoutes.js
+│   │   │   ├── createQuestionRoutes.js
 │   │   │   ├── documentRoutes.js
-│   │   │   └── questionRoutes.js
+│   │   │   ├── questionRoutes.js
+│   │   │   └── replyRoutes.js
 │   │   │
 │   │   ├── services/
 │   │   │   ├── aiService.js
 │   │   │   ├── answerService.js
 │   │   │   ├── authService.js
+│   │   │   ├── createQuestionService.js
+│   │   │   ├── documentService.js
 │   │   │   ├── questionService.js
-│   │   │   └── ragService.js
+│   │   │   └── replyService.js
 │   │   │
 │   │   └── utils/
-│   │       ├── gemini.js
-│   │       ├── generateText.js
+│   │       ├── emailTemplates.js
 │   │       ├── hash.js
 │   │       ├── jwt.js
 │   │       ├── password.js
-│   │       └── vectorMath.js
+│   │       ├── questionHash.js
+│   │       └── seed.js
 │   │
 │   ├── uploads/
+│   │   ├── avatars/
 │   │   └── rag-documents/
 │   │
-│   ├── .env
-│   ├── .env.example
 │   ├── .gitignore
 │   ├── index.js
 │   ├── package.json
 │   └── package-lock.json
 │
 ├── frontend/
-│   ├── public/
-│   │   ├── favicon.svg
-│   │   └── icons.svg
-│   │
 │   ├── src/
-│   │   ├── assets/
 │   │   ├── components/
+│   │   │   ├── AppFooter/
+│   │   │   ├── Layout/
+│   │   │   ├── Navbar/
+│   │   │   ├── QuestionCard/
+│   │   │   ├── Sidebar/
+│   │   │   ├── AdminRoute.jsx
+│   │   │   └── ProtectedRoute.jsx
+│   │   │
 │   │   ├── context/
+│   │   │   ├── AuthContext.jsx
+│   │   │   ├── SidebarContext.jsx
+│   │   │   └── ThemeContext.jsx
+│   │   │
 │   │   ├── pages/
+│   │   │   ├── Admin/
+│   │   │   ├── Auth/
+│   │   │   ├── Dashboard/
+│   │   │   ├── Landing/
+│   │   │   ├── MyQuestions/
+│   │   │   ├── PostQuestion/
+│   │   │   ├── Profile/
+│   │   │   ├── QuestionDetail/
+│   │   │   ├── RagDocuments/
+│   │   │   └── Settings/
+│   │   │
 │   │   ├── routes/
+│   │   │   └── AppRoutes.jsx
+│   │   │
 │   │   ├── services/
+│   │   │   ├── adminService.js
+│   │   │   ├── answerService.js
+│   │   │   ├── api.js
+│   │   │   ├── authService.js
+│   │   │   ├── questionService.js
+│   │   │   ├── ragService.js
+│   │   │   └── replyService.js
+│   │   │
 │   │   ├── utils/
+│   │   │   ├── auth.js
+│   │   │   └── avatar.js
+│   │   │
 │   │   ├── App.jsx
 │   │   ├── index.css
 │   │   └── main.jsx
@@ -835,34 +926,37 @@ The AI-related code handles:
 
 # Database
 
-The application uses MySQL for persistent storage.
+The application uses MySQL for persistent storage, with automatic schema and column initialization on startup (`backend/src/config/initDb.js`).
 
 The database stores information related to:
 
-* Users
-* Questions
-* Answers
-* Question vectors
-* Documents
-* Document chunks
-* Document embeddings
+* Users (credentials, profile bio, avatar URL, social links, role)
+* Questions (content, hash-based URLs, author)
+* Question vectors (Gemini-generated embeddings in JSON)
+* Answers (content, author, question association)
+* Replies (threaded discussions on specific answers)
+* Documents (uploaded PDFs, metadata, processing status)
+* Document chunks (segmented text content)
+* Document chunk vectors (vector embeddings for semantic retrieval)
 
 Conceptually:
 
 ```text
-User
+User (Profile, Avatar, Role)
  |
  +---- Questions
  |       |
- |       +---- Question Vector
+ |       +---- Question Vector (JSON Embedding)
  |       |
  |       +---- Answers
+ |               |
+ |               +---- Replies (Threaded Comments)
  |
  +---- Documents
          |
          +---- Document Chunks
                   |
-                  +---- Embeddings
+                  +---- Document Chunk Vectors (Embeddings)
 ```
 
 ---
@@ -924,6 +1018,7 @@ Example:
 
 ```dotenv
 PORT=4000
+FRONTEND_URL=http://localhost:5173
 
 DB_HOST=localhost
 DB_PORT=3306
@@ -933,15 +1028,28 @@ DB_NAME=evangadi_forum_collab
 
 JWT_SECRET=replace_with_a_long_random_secret
 
+# Password Reset Email Service
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_16_char_gmail_app_password
+
+# Google Gemini
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 GEMINI_FALLBACK_MODEL=
 
+# Semantic Search
 SEMANTIC_SEARCH_DEFAULT_K=10
 SEMANTIC_SEARCH_RECOMMEND_THRESHOLD=0.6
+RELATED_QUESTION_THRESHOLD=0.72
 SEMANTIC_SEARCH_MAX_K=20
 SEMANTIC_SEARCH_BACKFILL_LIMIT=10
+
+# RAG Documents
+RAG_UPLOAD_DIR=uploads/rag-documents
+RAG_MAX_FILE_SIZE_BYTES=10485760
+RAG_EVIDENCE_THRESHOLD=0.55
+RAG_SEARCH_THRESHOLD=0.60
 ```
 
 The frontend should contain:
@@ -982,12 +1090,12 @@ cd Evangadi_Forum_Collab
 Create the application database:
 
 ```sql
-CREATE DATABASE evangadi_forum_collab
+CREATE DATABASE IF NOT EXISTS evangadi_forum_collab
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 ```
 
-Use the provided database schema:
+The database structure and schema are initialized automatically on backend startup via `backend/src/config/initDb.js`. The raw schema definition is also available in:
 
 ```text
 backend/db/schema.sql
@@ -1083,15 +1191,12 @@ Run from `frontend/`:
 
 Run from `backend/`:
 
-```bash
-node index.js
-```
-
-For local development with nodemon:
-
-```bash
-npx nodemon index.js
-```
+| Command           | Purpose                                        |
+| ----------------- | ---------------------------------------------- |
+| `npm run dev`     | Start backend server (`node index.js`)         |
+| `npm start`       | Start backend server in production             |
+| `npm run nodemon` | Start backend server with hot-reloading        |
+| `npm run seed`    | Populate database with sample forum data       |
 
 ---
 
@@ -1488,10 +1593,3 @@ The project now provides a complete AI-powered forum experience combining:
 
 The result is a full-stack forum application that combines traditional community discussion with modern AI-powered search, writing assistance, and document-grounded knowledge retrieval.
 
----
-
-# License
-
-No license is currently declared for this repository.
-
-If the project is intended for public distribution or reuse, add an appropriate open-source license before redistribution.
