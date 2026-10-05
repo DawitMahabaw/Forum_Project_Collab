@@ -99,6 +99,45 @@ const getAnswerFit = async (questionHash, answerText) => {
   return response.data.data;
 };
 
+
+// ============================================================
+// SAVED QUESTIONS / BOOKMARKS
+// ============================================================
+
+// Save one question for the currently authenticated user.
+const saveQuestion = async (questionHash) => {
+  const response = await api.put(`/bookmarks/${questionHash}`);
+
+  return response.data.data;
+};
+
+// Remove one question from the currently authenticated user's saved list.
+const removeSavedQuestion = async (questionHash) => {
+  const response = await api.delete(`/bookmarks/${questionHash}`);
+
+  return response.data.data;
+};
+
+// Read whether the current user has saved a specific question.
+const getSavedQuestionStatus = async (questionHash) => {
+  const response = await api.get(`/bookmarks/${questionHash}`);
+
+  return response.data.data;
+};
+
+// Load all questions saved by the current authenticated user.
+const getSavedQuestions = async () => {
+  const response = await api.get("/bookmarks");
+
+  return {
+    questions: response.data.data || [],
+    meta: response.data.meta,
+  };
+};
+
+
+
+
 // ============================================================
 // EXPORT
 // ============================================================
@@ -112,4 +151,8 @@ export {
   listQuestions,
   searchQuestions,
   updateQuestion,
+  getSavedQuestionStatus,
+  getSavedQuestions,
+  removeSavedQuestion,
+  saveQuestion,
 };

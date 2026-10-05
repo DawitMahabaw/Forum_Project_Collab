@@ -114,6 +114,28 @@ CREATE TABLE IF NOT EXISTS document_chunk_vectors (
     INDEX idx_document_chunk_vectors_status (status)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
+
+
+-- ============================================================
+-- SAVED QUESTIONS / BOOKMARKS TABLE
+-- ============================================================
+-- One row means one authenticated user saved one question.
+-- The composite primary key prevents duplicate saves automatically.
+CREATE TABLE IF NOT EXISTS question_bookmarks (
+    user_id BIGINT UNSIGNED NOT NULL,
+    question_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (user_id, question_id),
+
+    CONSTRAINT fk_bookmarks_user
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_bookmarks_question
+        FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+
+    INDEX idx_bookmarks_user_created (user_id, created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
  
 -- ============================================================
 -- REPLIES TABLE (Threaded Comments on Answers)

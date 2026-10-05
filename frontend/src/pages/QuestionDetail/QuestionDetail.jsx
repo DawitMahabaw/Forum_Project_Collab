@@ -12,6 +12,7 @@ import {
   Sparkles,
   Trash2,
   X,
+  Bookmark,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -34,8 +35,12 @@ import {
   getQuestion,
   getSimilarQuestions,
   updateQuestion,
+  getSavedQuestionStatus,
+  removeSavedQuestion,
+  saveQuestion,
 } from "../../services/questionService.js";
 import styles from "./QuestionDetail.module.css";
+// import Bookmark from './../../../../backend/src/models/Bookmark';
 
 // Build initials for the lightweight author avatar.
 const getInitials = (author) =>
@@ -222,6 +227,10 @@ const QuestionDetail = () => {
   const questionEditTextareaRef = useRef(null);
   const answerEditTextareaRef = useRef(null);
 
+  // bookmark states
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSavingBookmark, setIsSavingBookmark] = useState(false);
+
   // Fetch the thread and its answers from the backend.
   const loadDiscussion = async () => {
     const data = await getQuestion(questionHash);
@@ -244,6 +253,15 @@ const QuestionDetail = () => {
           // Related topics are helpful, but must not block the discussion itself.
           setSimilarQuestions([]);
         }
+        // Bookmark status
+        try {
+  const bookmarkStatus = await getSavedQuestionStatus(questionHash);
+
+  setIsSaved(Boolean(bookmarkStatus.saved));
+} catch {
+  // Bookmark state is optional UI state and must not block the question.
+  setIsSaved(false);
+}
       } catch (requestError) {
         setError(requestError.response?.data?.message || "Question not found.");
       } finally {
@@ -312,6 +330,36 @@ const QuestionDetail = () => {
       setToast("Copy failed. Please select and copy manually.");
     }
   };
+
+  // Save or remove the current question for the authenticated user.
+const handleToggleSavedQuestion = async () => {
+  setIsSavingBookmark(true);
+
+  try {
+    if (isSaved) {
+      await removeSavedQuestion(questionHash);
+
+      setIsSaved(false);
+
+      setToast("Question removed from your saved list.");
+    } else {
+      await saveQuestion(questionHash);
+
+      setIsSaved(true);
+
+      setToast("Question saved for later.");
+    }
+  } catch (requestError) {
+    setError(
+      requestError.response?.data?.message ||
+        "Could not update your saved questions.",
+    );
+  } finally {
+    setIsSavingBookmark(false);
+  }
+};
+
+
 
   // Ask for optional feedback before an answer is posted.
   const handleCheckFit = async () => {
@@ -627,6 +675,36 @@ const QuestionDetail = () => {
                 <Share2 size={15} />
                 Share
               </button>
+
+              <button
+  aria-label={
+    isSaved
+      ? "Remove question from saved"
+      : "Save question for later"
+  }
+  className={`${styles.shareButton} ${
+    isSaved ? styles.savedButton : ""
+  }`}
+  disabled={isSavingBookmark}
+  onClick={handleToggleSavedQuestion}
+  title={
+    isSaved
+      ? "Remove from saved questions"
+      : "Save for later"
+  }
+  type="button"
+>
+  <Bookmark
+    fill={isSaved ? "currentColor" : "none"}
+    size={15}
+  />
+
+  {isSavingBookmark
+    ? "Saving..."
+    : isSaved
+      ? "Saved"
+      : "Save"}
+</button>
               <span>
                 <MessageSquare size={15} />
                 {answers.length} {answers.length === 1 ? "Answer" : "Answers"}
