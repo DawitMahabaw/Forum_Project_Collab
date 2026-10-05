@@ -212,6 +212,33 @@ export async function initializeDatabase() {
     `);
 
     console.log("Application and RAG tables initialized successfully.");
+
+// Create the saved-question table for the bookmark feature.
+// This is idempotent, so existing databases are upgraded automatically
+// without deleting or changing existing questions.
+await connection.query(`
+  CREATE TABLE IF NOT EXISTS question_bookmarks (
+    user_id BIGINT UNSIGNED NOT NULL,
+    question_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (user_id, question_id),
+
+    CONSTRAINT fk_bookmarks_user
+      FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_bookmarks_question
+      FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+
+    INDEX idx_bookmarks_user_created (user_id, created_at)
+  )
+  ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+`);
+
+console.log("Saved-question table initialized successfully.");
+
   } finally {
     await connection.end();
   }

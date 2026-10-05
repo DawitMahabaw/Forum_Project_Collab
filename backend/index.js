@@ -4,6 +4,10 @@ import questionRoutes from "./src/routes/questionRoutes.js";
 import { initializeDatabase } from "./src/config/initDb.js";
 await initializeDatabase();
 
+// for saved questions/bookmarks
+import bookmarkRoutes from "./src/routes/bookmarkRoutes.js";
+
+
 // Import CORS.
 import cors from "cors";
 
@@ -46,6 +50,7 @@ app.use("/api/questions", createQuestionRoutes);
 app.use("/api/answers", answerRoutes);
 app.use("/api/rag/documents", documentRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
 app.use(notFound);
 app.use(errorHandler);
 const testDatabaseConnection = async () => {
