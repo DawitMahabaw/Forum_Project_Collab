@@ -73,6 +73,11 @@ export async function initializeDatabase() {
         "ALTER TABLE users ADD COLUMN github_url VARCHAR(255) NULL",
       );
     }
+    if (!existingUserCols.has("portfolio_url")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN portfolio_url VARCHAR(255) NULL",
+      );
+    }
 
     if (!existingUserCols.has("role")) {
       await connection.query(

@@ -58,6 +58,7 @@ const User = {
         bio,
         location,
         github_url,
+        portfolio_url,
         created_at
       FROM users
       WHERE user_id = ?
@@ -102,6 +103,7 @@ const User = {
         u.bio,
         u.location,
         u.github_url,
+        u.portfolio_url,
         u.created_at,
         (SELECT COUNT(*) FROM questions WHERE user_id = u.user_id) AS questions_count,
         (SELECT COUNT(*) FROM answers WHERE user_id = u.user_id) AS answers_count
@@ -116,11 +118,11 @@ const User = {
   },
 
 
-  async updateProfile(userId, { headline, bio, location, githubUrl }) {
+  async updateProfile(userId, { headline, bio, location, githubUrl, portfolioUrl }) {
     await pool.execute(
       `
       UPDATE users
-      SET headline = ?, bio = ?, location = ?, github_url = ?
+      SET headline = ?, bio = ?, location = ?, github_url = ?, portfolio_url = ?
       WHERE user_id = ?
       `,
       [
@@ -128,6 +130,7 @@ const User = {
         bio || null,
         location || null,
         githubUrl || null,
+        portfolioUrl || null,
         userId,
       ],
     );

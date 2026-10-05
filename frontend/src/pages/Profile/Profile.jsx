@@ -24,6 +24,23 @@ import {
 import { getAvatarUrl } from "../../utils/avatar.js";
 import styles from "./Profile.module.css";
 
+const GitHubIcon = ({ size = 15, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+  </svg>
+);
+
 const Profile = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
@@ -51,6 +68,7 @@ const Profile = () => {
     bio: "",
     location: "",
     githubUrl: "",
+    portfolioUrl: "",
   });
 
   // Feedback notifications
@@ -90,6 +108,7 @@ const Profile = () => {
             bio: response.profile.bio || "",
             location: response.profile.location || "",
             githubUrl: response.profile.githubUrl || "",
+            portfolioUrl: response.profile.portfolioUrl || "",
           });
         }
       } catch (err) {
@@ -141,9 +160,23 @@ const Profile = () => {
   };
 
   const formatGithubHref = (url) => {
-    if (!url) return "https://github.com";
-    if (!/^https?:\/\//i.test(url)) return `https://${url}`;
-    return url;
+    if (!url || typeof url !== "string") return "";
+    const trimmed = url.trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    if (trimmed.startsWith("github.com/")) return `https://${trimmed}`;
+    if (!trimmed.includes("/") && !trimmed.includes(".")) {
+      return `https://github.com/${trimmed}`;
+    }
+    return `https://${trimmed}`;
+  };
+
+  const formatPortfolioHref = (url) => {
+    if (!url || typeof url !== "string") return "";
+    const trimmed = url.trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
   };
 
   // Handle avatar file selection and upload
@@ -234,6 +267,7 @@ const Profile = () => {
         bio: profile.bio || "",
         location: profile.location || "",
         githubUrl: profile.githubUrl || "",
+        portfolioUrl: profile.portfolioUrl || "",
       });
     }
     setIsDirty(false);
@@ -256,8 +290,8 @@ const Profile = () => {
   const email = profile?.email || user?.email || "";
   const headline = profile?.headline || "Full Stack Developer";
   const location = profile?.location || "Addis Ababa, Ethiopia";
-  const rawGithub = profile?.githubUrl || "https://github.com";
-  const githubHref = formatGithubHref(rawGithub);
+  const githubHref = formatGithubHref(profile?.githubUrl);
+  const portfolioHref = formatPortfolioHref(profile?.portfolioUrl);
   const bio =
     profile?.bio ||
     "I'm a full stack developer with a strong interest in modern web technologies. I enjoy solving problems, learning new skills, and building projects that make a difference. This forum is a great place for me to share knowledge and grow with the community.";
@@ -287,21 +321,38 @@ const Profile = () => {
                   <span>{email}</span>
                 </div>
               )}
-              <div className={styles.bannerMetaItem}>
-                <MapPin size={15} />
-                <span>{location}</span>
-              </div>
-              <div className={styles.bannerMetaItem}>
-                <Globe size={15} />
-                <a
-                  href={githubHref}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className={styles.bannerGithubLink}
-                >
-                  GitHub / Portfolio
-                </a>
-              </div>
+              {location && (
+                <div className={styles.bannerMetaItem}>
+                  <MapPin size={15} />
+                  <span>{location}</span>
+                </div>
+              )}
+              {githubHref && (
+                <div className={styles.bannerMetaItem}>
+                  <GitHubIcon size={15} />
+                  <a
+                    href={githubHref}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className={styles.bannerGithubLink}
+                  >
+                    GitHub
+                  </a>
+                </div>
+              )}
+              {portfolioHref && (
+                <div className={styles.bannerMetaItem}>
+                  <Globe size={15} />
+                  <a
+                    href={portfolioHref}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className={styles.bannerGithubLink}
+                  >
+                    Portfolio
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
@@ -407,22 +458,40 @@ const Profile = () => {
               </div>
             )}
 
-            <div className={styles.leftMetaItem}>
-              <MapPin size={16} className={styles.metaIcon} />
-              <span>{location}</span>
-            </div>
+            {location && (
+              <div className={styles.leftMetaItem}>
+                <MapPin size={16} className={styles.metaIcon} />
+                <span>{location}</span>
+              </div>
+            )}
 
-            <div className={styles.leftMetaItem}>
-              <Globe size={16} className={styles.metaIcon} />
-              <a
-                href={githubHref}
-                target="_blank"
-                rel="noreferrer noopener"
-                className={styles.leftGithubLink}
-              >
-                GitHub / Portfolio
-              </a>
-            </div>
+            {githubHref && (
+              <div className={styles.leftMetaItem}>
+                <GitHubIcon size={16} className={styles.metaIcon} />
+                <a
+                  href={githubHref}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className={styles.leftGithubLink}
+                >
+                  GitHub
+                </a>
+              </div>
+            )}
+
+            {portfolioHref && (
+              <div className={styles.leftMetaItem}>
+                <Globe size={16} className={styles.metaIcon} />
+                <a
+                  href={portfolioHref}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className={styles.leftGithubLink}
+                >
+                  Portfolio
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Bio Quote */}
@@ -446,21 +515,21 @@ const Profile = () => {
               </div>
 
               <form onSubmit={handleSubmitProfile} className={styles.editForm}>
-                <div className={styles.field}>
-                  <label htmlFor="headline">Headline / Role</label>
-                  <input
-                    id="headline"
-                    type="text"
-                    maxLength={150}
-                    value={formData.headline}
-                    onChange={(e) =>
-                      handleFieldChange("headline", e.target.value)
-                    }
-                    placeholder="e.g. Full Stack Developer"
-                  />
-                </div>
-
                 <div className={styles.formRow}>
+                  <div className={styles.field}>
+                    <label htmlFor="headline">Headline / Role</label>
+                    <input
+                      id="headline"
+                      type="text"
+                      maxLength={150}
+                      value={formData.headline}
+                      onChange={(e) =>
+                        handleFieldChange("headline", e.target.value)
+                      }
+                      placeholder="e.g. Full Stack Developer"
+                    />
+                  </div>
+
                   <div className={styles.field}>
                     <label htmlFor="location">Location</label>
                     <input
@@ -474,9 +543,11 @@ const Profile = () => {
                       placeholder="e.g. Addis Ababa, Ethiopia"
                     />
                   </div>
+                </div>
 
+                <div className={styles.formRow}>
                   <div className={styles.field}>
-                    <label htmlFor="githubUrl">GitHub / Portfolio URL</label>
+                    <label htmlFor="githubUrl">GitHub Profile URL</label>
                     <input
                       id="githubUrl"
                       type="text"
@@ -485,7 +556,21 @@ const Profile = () => {
                       onChange={(e) =>
                         handleFieldChange("githubUrl", e.target.value)
                       }
-                      placeholder="e.g. https://github.com/username or your portfolio link"
+                      placeholder="e.g. https://github.com/username"
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="portfolioUrl">Portfolio / Website URL</label>
+                    <input
+                      id="portfolioUrl"
+                      type="text"
+                      maxLength={255}
+                      value={formData.portfolioUrl}
+                      onChange={(e) =>
+                        handleFieldChange("portfolioUrl", e.target.value)
+                      }
+                      placeholder="e.g. https://yourportfolio.com"
                     />
                   </div>
                 </div>
@@ -610,19 +695,44 @@ const Profile = () => {
                   </div>
 
                   <div className={styles.detailItem}>
+                    <GitHubIcon size={16} className={styles.detailIcon} />
+                    <div className={styles.detailContent}>
+                      <span className={styles.detailLabel}>GitHub</span>
+                      {githubHref ? (
+                        <a
+                          href={githubHref}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className={styles.detailGithubLink}
+                        >
+                          {profile?.githubUrl}
+                        </a>
+                      ) : (
+                        <span className={styles.detailValue}>
+                          Not specified
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={styles.detailItem}>
                     <Globe size={16} className={styles.detailIcon} />
                     <div className={styles.detailContent}>
-                      <span className={styles.detailLabel}>
-                        GitHub / Portfolio
-                      </span>
-                      <a
-                        href={githubHref}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className={styles.detailGithubLink}
-                      >
-                        GitHub / Portfolio
-                      </a>
+                      <span className={styles.detailLabel}>Portfolio</span>
+                      {portfolioHref ? (
+                        <a
+                          href={portfolioHref}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className={styles.detailGithubLink}
+                        >
+                          {profile?.portfolioUrl}
+                        </a>
+                      ) : (
+                        <span className={styles.detailValue}>
+                          Not specified
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

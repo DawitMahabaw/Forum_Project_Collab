@@ -145,6 +145,7 @@ const getUserProfile = async (userId) => {
     bio: profile.bio || "",
     location: profile.location || "",
     githubUrl: profile.github_url || "",
+    portfolioUrl: profile.portfolio_url || "",
     createdAt: profile.created_at,
     questionsCount: Number(profile.questions_count) || 0,
     answersCount: Number(profile.answers_count) || 0,
@@ -155,8 +156,8 @@ const getUserProfile = async (userId) => {
 // UPDATE USER PROFILE
 // ============================================================
 
-const updateUserProfile = async (userId, { headline, bio, location, githubUrl }) => {
-  const profile = await User.updateProfile(userId, { headline, bio, location, githubUrl });
+const updateUserProfile = async (userId, { headline, bio, location, githubUrl, portfolioUrl }) => {
+  const profile = await User.updateProfile(userId, { headline, bio, location, githubUrl, portfolioUrl });
 
   if (!profile) {
     const error = new Error("User not found.");
@@ -174,6 +175,7 @@ const updateUserProfile = async (userId, { headline, bio, location, githubUrl })
     bio: profile.bio || "",
     location: profile.location || "",
     githubUrl: profile.github_url || "",
+    portfolioUrl: profile.portfolio_url || "",
     createdAt: profile.created_at,
     questionsCount: Number(profile.questions_count) || 0,
     answersCount: Number(profile.answers_count) || 0,
