@@ -12,6 +12,8 @@ import MyQuestions from "../pages/MyQuestions/MyQuestions.jsx";
 import RagDocuments from "../pages/RagDocuments/RagDocuments.jsx";
 import Profile from "../pages/Profile/Profile.jsx";
 import Settings from "../pages/Settings/Settings.jsx";
+import SavedQuestions from "../pages/SavedQuestions/SavedQuestions.jsx";
+
 
 const AppRoutes = () => {
   return (
@@ -34,6 +36,8 @@ const AppRoutes = () => {
             <Route path="/rag-documents" element={<RagDocuments />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/saved-questions" element={<SavedQuestions />}
+/>
           </Route>
         </Route>
 

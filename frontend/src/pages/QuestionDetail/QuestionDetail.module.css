@@ -126,7 +126,8 @@
 
 .questionCard footer {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 10 16px;
   margin-top: 30px;
   padding-top: 25px;
   border-top: 1px solid #dbe3ee;
@@ -153,6 +154,17 @@
 .shareButton:hover {
   border-color: #fb923c;
   color: #ea580c;
+  background: #fff7ed;
+}
+
+.shareButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.savedButton {
+  border-color: #ea580c;
+  color: #c2410c;
   background: #fff7ed;
 }
 
