@@ -3,7 +3,7 @@
 // ============================================================
 //
 // Private document library with semantic search,
-// Ask with AI, and PDF preview.
+// Ask with AI, and document preview.
 //
 
 import {
@@ -99,6 +99,7 @@ const RagDocuments = () => {
   const [preview, setPreview] = useState({ documentId: null, url: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [workingAction, setWorkingAction] = useState("");
   const [pendingDeleteDoc, setPendingDeleteDoc] = useState(null);
   const [error, setError] = useState("");
@@ -161,17 +162,16 @@ const RagDocuments = () => {
     return () => window.clearInterval(timer);
   }, [hasProcessingDocuments, loadDocuments]);
 
-  // The built-in PDF viewer supplies the reader controls shown in the design.
+  // The browser renders PDF and plain-text files in the document preview.
   useEffect(() => {
     let isCurrent = true;
     let objectUrl = "";
 
-    // TXT documents do not use the PDF preview.
     if (
       !activeDocumentId ||
       activeDocumentStatus !== "ready" ||
       activeTab !== "preview" ||
-      activeDocument?.mimeType !== "application/pdf"
+      !["application/pdf", "text/plain"].includes(activeDocument?.mimeType)
     ) {
       return undefined;
     }
@@ -190,7 +190,7 @@ const RagDocuments = () => {
           url,
         });
       })
-      .catch(() => setError("Could not load the PDF preview."));
+      .catch(() => setError("Could not load the document preview."));
 
     return () => {
       isCurrent = false;
@@ -253,19 +253,52 @@ const RagDocuments = () => {
     }
   };
 
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files?.[0] || null;
-    const document = getSelectedDocument(selectedFile);
+  const handleFileSelection = (selectedFile) => {
+    const document = getSelectedPdf(selectedFile);
 
     if (selectedFile && !document) {
       setFile(null);
       setError("Please choose a PDF or TXT file.");
-      event.target.value = "";
+      if (fileInput.current) {
+        fileInput.current.value = "";
+      }
       return;
     }
 
     setFile(document);
     setError("");
+  };
+
+  const handleFileChange = (event) => {
+    handleFileSelection(event.target.files?.[0] || null);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "copy";
+    }
+    if (!isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragging(false);
+
+    if (isUploading) return;
+
+    const droppedFile = event.dataTransfer.files?.[0] || null;
+    if (droppedFile) {
+      handleFileSelection(droppedFile);
+    }
   };
 
   // Switching documents clears outputs that belong to the previous document.
@@ -451,19 +484,29 @@ const RagDocuments = () => {
             <h2>Library</h2>
 
             <p>
-              Add PDF or TXT documents here. Processing starts automatically
-              after each upload.
+              Add PDF or TXT documents to your library. Files are processed
+              automatically after upload. Maximum file size: 10 MB.
             </p>
           </header>
 
-          <div className={styles.uploadBox}>
-            <p>
-              Accepted formats: PDF and TXT. Maximum file size is enforced by
-              the server.
+          <div
+            aria-label="Drop a PDF or TXT file here, or choose a file"
+            className={`${styles.uploadBox} ${
+              isDragging ? styles.uploadBoxDragging : ""
+            }`}
+            onDragEnter={handleDragOver}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            role="region"
+          >
+            <p className={styles.dropHint}>
+              Drag and drop a PDF or TXT file here, or choose one below.
             </p>
 
             <input
               accept=".pdf,.txt"
+              disabled={isUploading}
               onChange={handleFileChange}
               ref={fileInput}
               type="file"
@@ -472,6 +515,7 @@ const RagDocuments = () => {
             <div className={styles.uploadActions}>
               <button
                 className={styles.fileButton}
+                disabled={isUploading}
                 onClick={() => fileInput.current?.click()}
                 type="button"
               >
@@ -513,10 +557,11 @@ const RagDocuments = () => {
                 aria-current={
                   activeId === document.documentId ? "true" : undefined
                 }
-                className={`${styles.documentCard} ${activeId === document.documentId
-                  ? styles.documentCardActive
-                  : ""
-                  }`}
+                className={`${styles.documentCard} ${
+                  activeId === document.documentId
+                    ? styles.documentCardActive
+                    : ""
+                }`}
                 key={document.documentId}
                 onClick={() => handleSelect(document.documentId)}
                 onKeyDown={(event) => {
@@ -634,7 +679,7 @@ const RagDocuments = () => {
                       Summarize
                     </button>
                     <button
-                      aria-controls="pdf-preview-panel"
+                      aria-controls="document-preview-panel"
                       aria-selected={activeTab === "preview"}
                       className={
                         activeTab === "preview" ? styles.activeTab : ""
@@ -643,14 +688,14 @@ const RagDocuments = () => {
                       role="tab"
                       type="button"
                     >
-                      PDF Preview
+                      Preview
                     </button>
                   </div>
 
                   {activeTab === "preview" && (
-                    <section id="pdf-preview-panel" role="tabpanel">
+                    <section id="document-preview-panel" role="tabpanel">
                       {preview.documentId === activeDocument.documentId &&
-                        preview.url ? (
+                      preview.url ? (
                         <iframe
                           className={styles.preview}
                           src={preview.url}
@@ -659,7 +704,7 @@ const RagDocuments = () => {
                       ) : (
                         <div className={styles.pending}>
                           <LoaderCircle className={styles.spin} size={20} />
-                          Loading PDF preview...
+                          Loading document preview...
                         </div>
                       )}
                     </section>
@@ -674,7 +719,7 @@ const RagDocuments = () => {
                       <h2>Semantic search</h2>
 
                       <p>
-                        Finds passages by meaning (embeddings), not only exact
+                        Finds passages by meaning, not only exact
                         keywords.
                       </p>
 
@@ -790,11 +835,12 @@ const RagDocuments = () => {
                       </form>
 
                       {summary && (
-                        <div className={styles.summaryResult} aria-live="polite">
+                        <div
+                          className={styles.summaryResult}
+                          aria-live="polite"
+                        >
                           <div className={styles.summaryHeader}>
-                            <b>
-                              Summary &middot; {summary.wordCount} words
-                            </b>
+                            <b>Summary &middot; {summary.wordCount} words</b>
                             <div className={styles.summaryActions}>
                               <button
                                 className={styles.downloadButton}
@@ -895,8 +941,9 @@ const RagDocuments = () => {
                               <div>
                                 {answer.citations.map((citation) => (
                                   <span
-                                    aria-label={`Reference ${citation.ref}, chunk ${citation.chunkIndex + 1
-                                      }`}
+                                    aria-label={`Reference ${citation.ref}, chunk ${
+                                      citation.chunkIndex + 1
+                                    }`}
                                     key={citation.ref}
                                   >
                                     [{citation.ref}] &rarr; chunk{" "}

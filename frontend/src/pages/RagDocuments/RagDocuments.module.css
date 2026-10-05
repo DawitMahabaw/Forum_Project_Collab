@@ -69,11 +69,23 @@
 }
 
 .uploadBox {
+  box-sizing: border-box;
+  min-height: 170px;
   margin-top: 13px;
   padding: 14px;
   border: 1px dashed var(--border-hover);
   border-radius: 10px;
   background: var(--surface-container-low);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.uploadBoxDragging {
+  border-color: var(--primary);
+  background: var(--surface-highlight);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .uploadBox > p,
@@ -83,6 +95,10 @@
   color: var(--text-secondary);
   font-size: 11px;
   line-height: 1.45;
+}
+
+.uploadBox > .dropHint {
+  margin-top: 8px;
 }
 
 .uploadBox > small {
@@ -131,6 +147,11 @@
 .fileButton:hover {
   border-color: var(--border-hover);
   background: var(--surface-highlight);
+}
+
+.fileButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
 }
 
 .uploadButton,
