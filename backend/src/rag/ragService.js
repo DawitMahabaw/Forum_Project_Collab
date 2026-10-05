@@ -24,7 +24,22 @@ const getResultLimit = (requestedK) => {
   return Math.min(parsed, env.semanticSearch.maxK);
 };
 
+const assertDocumentReady = (document) => {
+  if (document.status === "failed") {
+    throw createHttpError(
+      document.errorMessage || "This document could not be processed.",
+      409,
+    );
+  }
+
+  if (document.status !== "ready") {
+    throw createHttpError("This document is still processing.", 409);
+  }
+};
+
 const rankDocumentChunks = async (document, query, requestedK) => {
+  assertDocumentReady(document);
+
   if (document.status === "failed") {
     throw createHttpError(
       document.errorMessage || "This document could not be processed.",
@@ -191,11 +206,56 @@ const parseGroundedAnswer = (rawText) => {
   }
 };
 
-const queryDocument = async (document, query) => {
-  const results = await rankDocumentChunks(document, query);
-  const evidence = results.filter(
-    (result) => result.score >= env.rag.evidenceThreshold,
+// Broad questions ("What is this document about?") do not resemble any single
+// passage, so similarity search finds nothing. Answer them from passages
+// spread across the whole document instead.
+const OVERVIEW_PATTERNS = [
+  /\bwhat(?:'s|\s+is|\s+are)?\s+(?:this|the)\s+(?:document|doc|pdf|file|paper|report|text|article)\b/i,
+  /\babout\s+(?:this|the)\s+(?:document|doc|pdf|file|paper|report|text|article)\b/i,
+  /\bwhat(?:'s|\s+is|\s+are)\s+(?:this|the)\s+(?:main\s+)?(?:topic|subject|theme|purpose)s?\b/i,
+  /\b(?:summari[sz]e|summary|overview|tl;?dr|gist)\b/i,
+  /\b(?:main|key)\s+(?:points?|ideas?|topics?|themes?|takeaways?)\b/i,
+];
+const OVERVIEW_CHUNK_LIMIT = 8;
+
+const isOverviewQuery = (query) =>
+  OVERVIEW_PATTERNS.some((pattern) => pattern.test(query));
+
+// Always keep the opening passage, then sample evenly through the rest.
+const sampleChunksAcrossDocument = (chunks, limit) => {
+  if (chunks.length <= limit) return chunks;
+
+  const picked = new Set([0]);
+  for (let slot = 1; slot < limit; slot += 1) {
+    picked.add(Math.round((slot * (chunks.length - 1)) / (limit - 1)));
+  }
+
+  return [...picked].sort((first, second) => first - second).map(
+    (index) => chunks[index],
   );
+};
+
+const getOverviewEvidence = async (document) => {
+  assertDocumentReady(document);
+
+  const chunks = await Document.findReadyChunks(document.documentId);
+
+  return sampleChunksAcrossDocument(chunks, OVERVIEW_CHUNK_LIMIT).map(
+    ({ chunkId, chunkIndex, content }) => ({
+      chunkId,
+      chunkIndex,
+      score: 1,
+      excerpt: content,
+    }),
+  );
+};
+
+const queryDocument = async (document, query) => {
+  const evidence = isOverviewQuery(query)
+    ? await getOverviewEvidence(document)
+    : (await rankDocumentChunks(document, query)).filter(
+      (result) => result.score >= env.rag.evidenceThreshold,
+    );
 
   if (!evidence.length) {
     return {
@@ -235,7 +295,9 @@ Retrieved PDF excerpts:
 ${context}`;
 
   try {
-    const generated = parseGroundedAnswer(await ai.generateContent(prompt));
+    const generated = parseGroundedAnswer(
+      await ai.generateContent(prompt, { json: true, maxOutputTokens: 2048 })
+    );
 
     if (!generated.supported || !generated.answer) {
       return {
