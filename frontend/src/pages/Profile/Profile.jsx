@@ -35,6 +35,7 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
@@ -156,7 +157,10 @@ const Profile = () => {
     }
 
     if (!file.type.startsWith("image/")) {
-      showAlert("error", "Please select a valid image file (.png, .jpg, .webp).");
+      showAlert(
+        "error",
+        "Please select a valid image file (.png, .jpg, .webp).",
+      );
       return;
     }
 
@@ -197,6 +201,7 @@ const Profile = () => {
       if (response?.profile) {
         setProfile(response.profile);
         updateUser({ headline: response.profile.headline });
+        setIsDirty(false);
         setIsEditing(false);
         showAlert("success", "Profile updated successfully!");
       }
@@ -210,6 +215,18 @@ const Profile = () => {
     }
   };
 
+  // Helper to open edit mode with a clean state
+  const handleStartEdit = () => {
+    setIsDirty(false);
+    setIsEditing(true);
+  };
+
+  // Updates form values and marks form as modified
+  const handleFieldChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+  };
+
   const handleCancelEdit = () => {
     if (profile) {
       setFormData({
@@ -219,6 +236,7 @@ const Profile = () => {
         githubUrl: profile.githubUrl || "",
       });
     }
+    setIsDirty(false);
     setIsEditing(false);
   };
 
@@ -291,7 +309,7 @@ const Profile = () => {
             <button
               type="button"
               className={styles.editProfileButton}
-              onClick={() => setIsEditing(true)}
+              onClick={handleStartEdit}
             >
               <Pencil size={15} />
               Edit Profile
@@ -436,7 +454,7 @@ const Profile = () => {
                     maxLength={150}
                     value={formData.headline}
                     onChange={(e) =>
-                      setFormData({ ...formData, headline: e.target.value })
+                      handleFieldChange("headline", e.target.value)
                     }
                     placeholder="e.g. Full Stack Developer"
                   />
@@ -451,7 +469,7 @@ const Profile = () => {
                       maxLength={100}
                       value={formData.location}
                       onChange={(e) =>
-                        setFormData({ ...formData, location: e.target.value })
+                        handleFieldChange("location", e.target.value)
                       }
                       placeholder="e.g. Addis Ababa, Ethiopia"
                     />
@@ -465,7 +483,7 @@ const Profile = () => {
                       maxLength={255}
                       value={formData.githubUrl}
                       onChange={(e) =>
-                        setFormData({ ...formData, githubUrl: e.target.value })
+                        handleFieldChange("githubUrl", e.target.value)
                       }
                       placeholder="e.g. https://github.com/username or your portfolio link"
                     />
@@ -479,9 +497,7 @@ const Profile = () => {
                     rows={5}
                     maxLength={1000}
                     value={formData.bio}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bio: e.target.value })
-                    }
+                    onChange={(e) => handleFieldChange("bio", e.target.value)}
                     placeholder="Tell the community about yourself, your background, and learning journey..."
                   />
                   <small className={styles.hint}>
@@ -501,7 +517,7 @@ const Profile = () => {
                   <button
                     type="submit"
                     className={styles.saveButton}
-                    disabled={isSaving}
+                    disabled={isSaving || !isDirty}
                   >
                     {isSaving ? "Saving..." : "Save Changes"}
                   </button>
@@ -534,7 +550,7 @@ const Profile = () => {
                   <button
                     type="button"
                     className={styles.cardActionEdit}
-                    onClick={() => setIsEditing(true)}
+                    onClick={handleStartEdit}
                     title="Edit Profile Details"
                     aria-label="Edit Profile Details"
                   >
@@ -563,7 +579,9 @@ const Profile = () => {
                     <Mail size={16} className={styles.detailIcon} />
                     <div className={styles.detailContent}>
                       <span className={styles.detailLabel}>Email Address</span>
-                      <span className={styles.detailValue}>{email || "Not specified"}</span>
+                      <span className={styles.detailValue}>
+                        {email || "Not specified"}
+                      </span>
                     </div>
                   </div>
 
@@ -594,7 +612,9 @@ const Profile = () => {
                   <div className={styles.detailItem}>
                     <Globe size={16} className={styles.detailIcon} />
                     <div className={styles.detailContent}>
-                      <span className={styles.detailLabel}>GitHub / Portfolio</span>
+                      <span className={styles.detailLabel}>
+                        GitHub / Portfolio
+                      </span>
                       <a
                         href={githubHref}
                         target="_blank"
@@ -636,7 +656,10 @@ const Profile = () => {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={18} className={styles.activityChevron} />
+                    <ChevronRight
+                      size={18}
+                      className={styles.activityChevron}
+                    />
                   </button>
 
                   <div className={styles.activityBox}>
@@ -653,7 +676,10 @@ const Profile = () => {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={18} className={styles.activityChevron} />
+                    <ChevronRight
+                      size={18}
+                      className={styles.activityChevron}
+                    />
                   </div>
                 </div>
               </div>
