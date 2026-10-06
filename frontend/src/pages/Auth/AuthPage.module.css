@@ -409,3 +409,31 @@
   color: #fecaca;
   background: #450a0a;
 }
+
+/* ============================================================
+   ✨ FIXED INTEGRATION: FORGOT PASSWORD INTERFACE CONTROLS
+   ============================================================ */
+
+.forgotLinkRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+  margin-bottom: 14px;
+}
+
+.forgotTextButton {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.15s ease;
+}
+
+.forgotTextButton:hover {
+  color: var(--primary-container);
+  text-decoration: underline;
+}

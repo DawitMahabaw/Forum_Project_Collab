@@ -105,7 +105,9 @@ const LandingPage = () => {
                 <button
                   type="button"
                   className={styles.btnPrimary}
-                  onClick={() => navigate("/auth")}
+                  onClick={() =>
+                    navigate("/auth", { state: { register: true } })
+                  }
                 >
                   Create account
                 </button>
@@ -275,7 +277,7 @@ const LandingPage = () => {
             </p>
           </div>
         </section>
-        
+
         {!isAuthenticated && (
           <>
             <section className={styles.capabilities}>

@@ -12,6 +12,7 @@ import {
   Sparkles,
   Trash2,
   X,
+  Bookmark,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -25,13 +26,21 @@ import {
   updateAnswer,
 } from "../../services/answerService.js";
 import {
+  createReply,
+  getRepliesByAnswer,
+} from "../../services/replyService.js";
+import {
   deleteQuestion,
   getAnswerFit,
   getQuestion,
   getSimilarQuestions,
   updateQuestion,
+  getSavedQuestionStatus,
+  removeSavedQuestion,
+  saveQuestion,
 } from "../../services/questionService.js";
 import styles from "./QuestionDetail.module.css";
+// import Bookmark from './../../../../backend/src/models/Bookmark';
 
 // Build initials for the lightweight author avatar.
 const getInitials = (author) =>
@@ -161,6 +170,37 @@ const MarkdownEditor = ({
   );
 };
 
+const ExpandableAnswerContent = ({ content }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isLongText = content.length > 220;
+  let displayedContent = content;
+  if (isLongText && !isExpanded) {
+    const cutoff = content.lastIndexOf(" ", 220);
+    displayedContent =
+      cutoff > 0
+        ? `${content.substring(0, cutoff)}...`
+        : `${content.substring(0, 220)}...`;
+  }
+    
+  return (
+    <div>
+      <MarkdownContent content={displayedContent} />
+      {isLongText && (
+        <button
+          type="button"
+          className={styles.readMoreButton}
+          onClick={() => setIsExpanded(!isExpanded)}
+          style={{ marginTop: "4px" }}
+        >
+          {isExpanded ? "Show Less" : "Read More"}
+        </button>
+      )}
+    </div>
+  );
+};
+
+
 const QuestionDetail = () => {
   const { questionHash } = useParams();
   const navigate = useNavigate();
@@ -187,6 +227,10 @@ const QuestionDetail = () => {
   const questionEditTextareaRef = useRef(null);
   const answerEditTextareaRef = useRef(null);
 
+  // bookmark states
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSavingBookmark, setIsSavingBookmark] = useState(false);
+
   // Fetch the thread and its answers from the backend.
   const loadDiscussion = async () => {
     const data = await getQuestion(questionHash);
@@ -209,6 +253,15 @@ const QuestionDetail = () => {
           // Related topics are helpful, but must not block the discussion itself.
           setSimilarQuestions([]);
         }
+        // Bookmark status
+        try {
+  const bookmarkStatus = await getSavedQuestionStatus(questionHash);
+
+  setIsSaved(Boolean(bookmarkStatus.saved));
+} catch {
+  // Bookmark state is optional UI state and must not block the question.
+  setIsSaved(false);
+}
       } catch (requestError) {
         setError(requestError.response?.data?.message || "Question not found.");
       } finally {
@@ -277,6 +330,36 @@ const QuestionDetail = () => {
       setToast("Copy failed. Please select and copy manually.");
     }
   };
+
+  // Save or remove the current question for the authenticated user.
+const handleToggleSavedQuestion = async () => {
+  setIsSavingBookmark(true);
+
+  try {
+    if (isSaved) {
+      await removeSavedQuestion(questionHash);
+
+      setIsSaved(false);
+
+      setToast("Question removed from your saved list.");
+    } else {
+      await saveQuestion(questionHash);
+
+      setIsSaved(true);
+
+      setToast("Question saved for later.");
+    }
+  } catch (requestError) {
+    setError(
+      requestError.response?.data?.message ||
+        "Could not update your saved questions.",
+    );
+  } finally {
+    setIsSavingBookmark(false);
+  }
+};
+
+
 
   // Ask for optional feedback before an answer is posted.
   const handleCheckFit = async () => {
@@ -592,6 +675,36 @@ const QuestionDetail = () => {
                 <Share2 size={15} />
                 Share
               </button>
+
+              <button
+  aria-label={
+    isSaved
+      ? "Remove question from saved"
+      : "Save question for later"
+  }
+  className={`${styles.shareButton} ${
+    isSaved ? styles.savedButton : ""
+  }`}
+  disabled={isSavingBookmark}
+  onClick={handleToggleSavedQuestion}
+  title={
+    isSaved
+      ? "Remove from saved questions"
+      : "Save for later"
+  }
+  type="button"
+>
+  <Bookmark
+    fill={isSaved ? "currentColor" : "none"}
+    size={15}
+  />
+
+  {isSavingBookmark
+    ? "Saving..."
+    : isSaved
+      ? "Saved"
+      : "Save"}
+</button>
               <span>
                 <MessageSquare size={15} />
                 {answers.length} {answers.length === 1 ? "Answer" : "Answers"}
@@ -668,7 +781,10 @@ const QuestionDetail = () => {
                     )}
                   </>
                 ) : (
-                  <MarkdownContent content={answer.content} />
+                  <>
+                    <ExpandableAnswerContent content={answer.content} />
+                    <AnswerReplies answerId={answer.id} />
+                  </>
                 )}
 
                 {isOwnAnswer && !isEditing && (
@@ -805,3 +921,151 @@ const QuestionDetail = () => {
 };
 
 export default QuestionDetail;
+ 
+
+
+
+// ============================================================
+// NESTED REPLIES COMPONENT
+// ============================================================
+
+const ExpandableReplyItem = ({ reply }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isLongText = reply.content.length > 120;
+  const displayedContent =
+    isLongText && !isExpanded
+      ? `${reply.content.substring(0, 120)}...`
+      : reply.content;
+
+  return (
+    <div className={styles.nestedReplyItem}>
+      <div className={styles.nestedReplyHeader}>
+        <span className={styles.nestedReplyUser}>
+          {reply.author?.firstName} {reply.author?.lastName}
+        </span>
+        <span className={styles.nestedReplyDate}>
+          {formatDate(reply.createdAt)}
+        </span>
+      </div>
+
+      <p className={styles.nestedReplyBody}>
+        {displayedContent}
+        {isLongText && (
+          <button
+            type="button"
+            className={styles.readMoreButton}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? "Show Less" : "Read More"}
+          </button>
+        )}
+      </p>
+    </div>
+  );
+};
+const AnswerReplies = ({ answerId }) => {
+  const [replies, setReplies] = useState([]);
+  const [showReplies, setShowReplies] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  // 1. Reference for the scrollable container
+  const scrollAreaRef = useRef(null);
+
+  useEffect(() => {
+
+    const fetchReplies = async () => {
+      try {
+        const data = await getRepliesByAnswer(answerId);
+        setReplies(data || []);
+      } catch (err) {
+        console.error("Failed to load replies", err);
+      }
+    };
+    fetchReplies();
+  }, [answerId]);
+
+  // 2. Automatically slide down smoothly when a new reply arrives
+  useEffect(() => {
+    if (showReplies && scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [replies, showReplies]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (replyText.trim().length < 2) {
+      setError("Reply must contain at least 2 characters.");
+      return;
+    }
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const newReply = await createReply({
+        answerId,
+        content: replyText.trim(),
+      });
+      setReplies((prev) => [...prev, newReply]);
+      setReplyText("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not post reply.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className={styles.repliesWrapper}>
+      <button
+        onClick={() => setShowReplies(!showReplies)}
+        type="button"
+        className={styles.replyActionButton}
+      >
+        <MessageSquare size={15} />
+        <span>
+          {showReplies ? "Hide Replies" : `${replies.length} Replies`}
+        </span>
+      </button>
+
+      {showReplies && (
+        <div className={styles.repliesDropdownContent}>
+          {/* 3. Added ref here to hook into the scrolling element */}
+          <div ref={scrollAreaRef} className={styles.repliesScrollArea}>
+            {replies.length === 0 ? (
+              <p className={styles.noRepliesText}>No replies yet.</p>
+            ) : (
+              replies.map((reply) => (
+                <ExpandableReplyItem key={reply.id} reply={reply} />
+              ))
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className={styles.nestedReplyForm}>
+            <input
+              type="text"
+              placeholder="Write a reply..."
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              className={styles.nestedReplyInput}
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={styles.nestedReplySubmit}
+            >
+              {isSubmitting ? "..." : "Reply"}
+            </button>
+          </form>
+          {error && <div className={styles.nestedReplyError}>{error}</div>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+

@@ -59,9 +59,7 @@ export async function initializeDatabase() {
       );
     }
     if (!existingUserCols.has("bio")) {
-      await connection.query(
-        "ALTER TABLE users ADD COLUMN bio TEXT NULL",
-      );
+      await connection.query("ALTER TABLE users ADD COLUMN bio TEXT NULL");
     }
     if (!existingUserCols.has("location")) {
       await connection.query(
@@ -84,7 +82,6 @@ export async function initializeDatabase() {
         "ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'",
       );
     }
-
 
     // Create the questions table if it does not already exist
     await connection.query(`
@@ -260,8 +257,54 @@ export async function initializeDatabase() {
       COLLATE=utf8mb4_unicode_ci
     `);
 
-    console.log("Application and RAG tables initialized successfully.");
+    console.log("Document chat messages table initialized successfully.");
   } finally {
     await connection.end();
   }
 }
+
+// Create the replies table if it does not already exist
+await connection.query(`
+      CREATE TABLE IF NOT EXISTS replies (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        answer_id BIGINT UNSIGNED NOT NULL,
+        user_id BIGINT UNSIGNED NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_replies_answer
+          FOREIGN KEY (answer_id) REFERENCES answers(id) ON DELETE CASCADE,
+        CONSTRAINT fk_replies_user
+          FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+        INDEX idx_replies_answer_id (answer_id)
+      )
+      ENGINE=InnoDB
+      DEFAULT CHARSET=utf8mb4
+      COLLATE=utf8mb4_unicode_ci
+    `);
+
+console.log("Application and RAG tables initialized successfully.");
+
+// Create the saved-question table for the bookmark feature.
+// This is idempotent, so existing databases are upgraded automatically
+// without deleting or changing existing questions.
+await connection.query(`
+  CREATE TABLE IF NOT EXISTS question_bookmarks (
+    user_id BIGINT UNSIGNED NOT NULL,
+    question_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (user_id, question_id),
+
+    CONSTRAINT fk_bookmarks_user
+      FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_bookmarks_question
+      FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+
+    INDEX idx_bookmarks_user_created (user_id, created_at)
+  )
+  ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+`);

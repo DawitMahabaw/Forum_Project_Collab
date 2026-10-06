@@ -12,6 +12,8 @@ import MyQuestions from "../pages/MyQuestions/MyQuestions.jsx";
 import RagDocuments from "../pages/RagDocuments/RagDocuments.jsx";
 import Profile from "../pages/Profile/Profile.jsx";
 import Settings from "../pages/Settings/Settings.jsx";
+import SavedQuestions from "../pages/SavedQuestions/SavedQuestions.jsx";
+
 
 import AdminRoute from "../components/AdminRoute.jsx";
 import Admin from "../pages/Admin/Admin.jsx";
@@ -24,7 +26,10 @@ const AppRoutes = () => {
         {/* Public pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
-
+        <Route
+          path="/reset-password/:token"
+          element={<AuthPage view="reset-password" />}
+        />
         {/* Protected application pages */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
@@ -38,12 +43,13 @@ const AppRoutes = () => {
             <Route path="/rag-documents" element={<RagDocuments />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/saved-questions" element={<SavedQuestions />}
+/>
 
-               {/* Admin only route */}
+            {/* Admin only route */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<Admin />} />
             </Route>
-            
           </Route>
         </Route>
 
