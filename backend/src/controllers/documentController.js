@@ -20,6 +20,18 @@ const getDocumentId = (rawDocumentId) => {
   return documentId;
 };
 
+const getMessageId = (rawMessageId) => {
+  const messageId = Number(rawMessageId);
+
+  if (!Number.isSafeInteger(messageId) || messageId < 1) {
+    const error = new Error("Message identifier must be a positive integer.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return messageId;
+};
+
 const findOwnedDocument = async (rawDocumentId, userId, options = {}) => {
   const document = await Document.findByIdForUser(
     getDocumentId(rawDocumentId),
@@ -187,12 +199,113 @@ const ask = async (req, res, next) => {
       req.params.documentId,
       req.user.userId,
     );
-    const data = await queryDocument(document, requireQuery(req.body?.query));
+    const query = requireQuery(req.body?.query);
+    const messageId =
+      req.body?.messageId === undefined
+        ? null
+        : getMessageId(req.body.messageId);
+    let history = await Document.listChatMessages(document.documentId);
+
+    if (messageId) {
+      const editedMessage = await Document.getChatMessage(
+        document.documentId,
+        messageId,
+      );
+      if (!editedMessage || editedMessage.role !== "user") {
+        const error = new Error("The chat question could not be found.");
+        error.statusCode = 404;
+        throw error;
+      }
+      history = history.filter((message) => message.messageId < messageId);
+    }
+
+    const data = await queryDocument(
+      document,
+      query,
+      history.slice(-20).map(({ role, content }) => ({ role, content })),
+    );
+
+    if (messageId) {
+      await Document.updateChatTurn(
+        document.documentId,
+        messageId,
+        query,
+        data,
+      );
+    } else {
+      await Document.createChatTurn(document.documentId, query, data);
+    }
 
     return res.status(200).json({
       success: true,
       message: "Answer generated from document sources.",
-      data,
+      data: {
+        ...data,
+        messages: await Document.listChatMessages(document.documentId),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const listChatMessages = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Chat history fetched successfully.",
+      data: await Document.listChatMessages(document.documentId),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteChatMessage = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+    const messageId = getMessageId(req.params.messageId);
+    const deleted = await Document.deleteChatMessage(
+      document.documentId,
+      messageId,
+    );
+
+    if (!deleted) {
+      const error = new Error("Chat message not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Chat message deleted successfully.",
+      data: await Document.listChatMessages(document.documentId),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const clearChatMessages = async (req, res, next) => {
+  try {
+    const document = await findOwnedDocument(
+      req.params.documentId,
+      req.user.userId,
+    );
+    await Document.clearChatMessages(document.documentId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Chat history cleared successfully.",
+      data: [],
     });
   } catch (error) {
     return next(error);
@@ -274,7 +387,10 @@ const remove = async (req, res, next) => {
 
 export {
   ask,
+  clearChatMessages,
+  deleteChatMessage,
   getDocument,
+  listChatMessages,
   listDocuments,
   remove,
   search,

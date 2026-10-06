@@ -196,6 +196,7 @@ export async function initializeDatabase() {
         document_id BIGINT UNSIGNED NOT NULL,
         chunk_index INT UNSIGNED NOT NULL,
         content MEDIUMTEXT NOT NULL,
+        page_numbers JSON NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_document_chunks_document
           FOREIGN KEY (document_id) REFERENCES documents(document_id) ON DELETE CASCADE,
@@ -206,6 +207,18 @@ export async function initializeDatabase() {
       DEFAULT CHARSET=utf8mb4
       COLLATE=utf8mb4_unicode_ci
     `);
+
+    const [chunkColumns] = await connection.query(`
+      SELECT COLUMN_NAME
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'document_chunks'
+    `);
+    if (!chunkColumns.some((column) => column.COLUMN_NAME === "page_numbers")) {
+      await connection.query(
+        "ALTER TABLE document_chunks ADD COLUMN page_numbers JSON NULL AFTER content",
+      );
+    }
 
     await connection.query(`
       CREATE TABLE IF NOT EXISTS document_chunk_vectors (
@@ -219,6 +232,28 @@ export async function initializeDatabase() {
           FOREIGN KEY (chunk_id) REFERENCES document_chunks(chunk_id) ON DELETE CASCADE,
         UNIQUE KEY uq_document_chunk_vectors_chunk (chunk_id),
         INDEX idx_document_chunk_vectors_status (status)
+      )
+      ENGINE=InnoDB
+      DEFAULT CHARSET=utf8mb4
+      COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS document_chat_messages (
+        message_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        document_id BIGINT UNSIGNED NOT NULL,
+        reply_to_message_id BIGINT UNSIGNED NULL,
+        role ENUM('user', 'assistant') NOT NULL,
+        content MEDIUMTEXT NOT NULL,
+        citations JSON NULL,
+        is_grounded BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_document_chat_document
+          FOREIGN KEY (document_id) REFERENCES documents(document_id) ON DELETE CASCADE,
+        CONSTRAINT fk_document_chat_reply
+          FOREIGN KEY (reply_to_message_id) REFERENCES document_chat_messages(message_id)
+          ON DELETE CASCADE,
+        INDEX idx_document_chat_document (document_id, message_id)
       )
       ENGINE=InnoDB
       DEFAULT CHARSET=utf8mb4
