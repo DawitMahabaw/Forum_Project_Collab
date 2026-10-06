@@ -136,7 +136,7 @@ const Sidebar = () => {
 
           return (
             <Fragment key={item.path}>
-              {index === 3 && <div className={styles.navDivider} />}
+              {index === 4 && <div className={styles.navDivider} />}
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
