@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   SquarePen,
   User,
+  Bookmark,
 } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -28,6 +29,13 @@ const NAV_ITEMS = [
     label: "Your Topics",
     path: "/my-questions",
   },
+
+  {
+  icon: Bookmark,
+  label: "Saved Questions",
+  path: "/saved-questions",
+},
+
   {
     icon: FileText,
     label: "Knowledge Base",
