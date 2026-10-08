@@ -18,8 +18,26 @@ const searchDocument = async (documentId, query) =>
     })
   ).data.data;
 
-const askDocument = async (documentId, query) =>
-  (await api.post(`/rag/documents/${documentId}/query`, { query })).data.data;
+const askDocument = async (documentId, query, messageId = null) =>
+  (
+    await api.post(`/rag/documents/${documentId}/query`, {
+      query,
+      ...(messageId ? { messageId } : {}),
+    })
+  ).data.data;
+
+const listChatMessages = async (documentId) =>
+  (await api.get(`/rag/documents/${documentId}/messages`)).data.data || [];
+
+const deleteChatMessage = async (documentId, messageId) =>
+  (
+    await api.delete(
+      `/rag/documents/${documentId}/messages/${messageId}`,
+    )
+  ).data.data;
+
+const clearChatMessages = async (documentId) =>
+  (await api.delete(`/rag/documents/${documentId}/messages`)).data.data;
 
 // Summaries read the whole PDF, so allow more time than a normal request.
 const summarizeDocument = async (documentId, prompt) =>
@@ -44,8 +62,11 @@ const getDocumentFile = async (documentId) => {
 
 export {
   askDocument,
+  clearChatMessages,
   deleteDocument,
+  deleteChatMessage,
   getDocumentFile,
+  listChatMessages,
   listDocuments,
   searchDocument,
   summarizeDocument,

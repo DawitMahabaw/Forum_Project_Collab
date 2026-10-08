@@ -280,23 +280,21 @@
   height: 32px;
   flex: 0 0 auto;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-radius: 8px;
-  color: #ef4444;
-  background: #ffffff;
+  color: var(--text-tertiary);
+  background: transparent;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition:
+    color var(--transition-fast),
     background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    transform var(--transition-fast);
+    border-color var(--transition-fast);
 }
 
 .deleteButton:hover {
   color: #dc2626;
   background: #fee2e2;
   border-color: #fca5a5;
-  transform: scale(1.05);
 }
 
 .reader {
@@ -380,6 +378,572 @@
 
 .toolSection {
   max-width: 780px;
+}
+
+.chatSection {
+  display: grid;
+  height: min(72vh, 760px);
+  min-height: 460px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.chatHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.chatHeader h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+}
+
+.chatHeader p {
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.newChatButton,
+.messageActions button,
+.editMessageForm button,
+.composerFooter button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  background: var(--surface);
+  font: inherit;
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.newChatButton:hover:not(:disabled),
+.messageActions button:hover,
+.editMessageForm button:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  background: var(--surface-highlight);
+}
+
+.newChatButton:disabled,
+.messageActions button:disabled,
+.editMessageForm button:disabled,
+.composerFooter button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.chatHistory {
+  display: flex;
+  width: min(100%, 840px);
+  overflow-y: auto;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+  justify-self: center;
+  padding: 8px 2px;
+  padding-inline-end: 30px;
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+  scrollbar-gutter: stable;
+}
+
+.chatWelcome,
+.chatNotice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: auto;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.chatWelcome {
+  max-width: 340px;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.chatWelcome svg {
+  color: var(--primary);
+}
+
+.chatWelcome b {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.chatWelcome span {
+  line-height: 1.55;
+}
+
+.chatMessage {
+  width: min(100%, 680px);
+  padding: 10px 12px;
+  color: var(--text-primary);
+}
+
+.userMessage {
+  align-self: flex-end;
+  width: fit-content;
+  max-width: min(82%, 560px);
+  margin-inline-end: 12px;
+  border: 0;
+  border-radius: 14px 14px 3px 14px;
+  background: color-mix(in srgb, var(--primary) 11%, var(--surface));
+}
+
+.assistantMessage {
+  align-self: flex-start;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-container-low) 70%, transparent);
+}
+
+.messageHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.messageAvatar {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.userMessage .messageHeading {
+  color: var(--primary);
+}
+
+.userMessage .messageAvatar {
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+}
+
+.assistantMessage .messageHeading {
+  color: var(--text-secondary);
+}
+
+.assistantMessage .messageAvatar {
+  color: var(--primary);
+  background: var(--surface-highlight);
+}
+
+.markdownBody,
+.userMessageBody {
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.userMessageBody {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.markdownBody > :first-child {
+  margin-top: 0;
+}
+
+.markdownBody > :last-child {
+  margin-bottom: 0;
+}
+
+.markdownBody h1,
+.markdownBody h2,
+.markdownBody h3,
+.markdownBody h4 {
+  margin: 1.1em 0 0.45em;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.markdownBody h1 {
+  font-size: 1.45em;
+}
+
+.markdownBody h2 {
+  font-size: 1.25em;
+}
+
+.markdownBody h3,
+.markdownBody h4 {
+  font-size: 1.08em;
+}
+
+.markdownBody ul,
+.markdownBody ol {
+  padding-left: 1.5em;
+}
+
+.markdownBody li + li {
+  margin-top: 4px;
+}
+
+.markdownBody .codeBlock {
+  position: relative;
+  margin: 10px 0;
+}
+
+.markdownBody pre {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0;
+  padding: 38px 11px 11px;
+  border-radius: 7px;
+  color: #e6edf3;
+  background: #0d1117;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.copyCodeButton {
+  position: absolute;
+  z-index: 1;
+  top: 7px;
+  right: 7px;
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid #39414b;
+  border-radius: 5px;
+  color: #e6edf3;
+  background: #212830;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.copyCodeButton:hover {
+  border-color: #697586;
+  background: #303a46;
+}
+
+.markdownBody code {
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: var(--surface-container-low);
+  font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-size: 0.92em;
+}
+
+.markdownBody pre code {
+  padding: 0;
+  background: transparent;
+  font-family: inherit;
+}
+
+.markdownBody table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.markdownBody th,
+.markdownBody td {
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.markdownBody blockquote {
+  margin: 10px 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--border-hover);
+  color: var(--text-secondary);
+}
+
+.messageActions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.userMessage .messageActions {
+  margin-top: 10px;
+}
+
+.messageActions > button,
+.messageMenu > summary {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  background: var(--surface);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.messageActions > button:hover,
+.messageMenu > summary:hover {
+  color: var(--text-primary);
+  background: var(--surface-highlight);
+}
+
+.messageMenu {
+  position: relative;
+}
+
+.messageMenu > summary {
+  list-style: none;
+}
+
+.messageMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.messageMenu > div {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 5px);
+  left: 0;
+  display: grid;
+  min-width: 150px;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.messageMenu > div button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 5px;
+  color: var(--text-primary);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.messageMenu > div button:hover {
+  background: var(--surface-highlight);
+}
+
+.sourceDetails {
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.sourceDetails > summary {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.sourceDetails > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sourceDetails > summary svg {
+  transition: transform var(--transition-fast);
+}
+
+.sourceDetails[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.sourceDetails ol {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.sourceDetails li {
+  padding-left: 3px;
+  line-height: 1.5;
+}
+
+.sourceDetails li p {
+  margin: 0;
+}
+
+.sourceDetails li > strong {
+  display: block;
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+}
+
+.sourceDetails .sourceExcerpt {
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.editMessageForm {
+  display: grid;
+  gap: 8px;
+}
+
+.editMessageForm textarea,
+.chatComposer textarea {
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.editMessageForm > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.editMessageForm button:first-child,
+.composerFooter button {
+  border-color: var(--primary);
+  color: var(--text-inverse);
+  background: var(--primary);
+}
+
+.editMessageForm button:first-child:hover:not(:disabled),
+.composerFooter button:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
+.chatComposer {
+  display: grid;
+  gap: 5px;
+}
+
+.composerInput {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 9px 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.composerInput:focus-within {
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.composerInput textarea {
+  display: block;
+  min-height: 26px;
+  max-height: 180px;
+  padding: 4px 0;
+  overflow-y: hidden;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+}
+
+.composerInput textarea:focus {
+  border: 0;
+  outline: 0;
+}
+
+.composerInput > button {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9px;
+  color: var(--text-inverse);
+  background: var(--primary);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.composerInput > button svg {
+  display: block;
+  flex: 0 0 auto;
+  stroke-width: 2.5;
+}
+
+.composerInput > button:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.composerInput > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.editMessageForm textarea:focus {
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.composerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.composerFooter span {
+  color: var(--text-tertiary);
+  font-size: 10px;
 }
 
 .toolSection form {
@@ -480,34 +1044,6 @@
   background: var(--surface);
   font-size: 12px;
   line-height: 1.5;
-}
-
-.sourceReferences {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 8px;
-  margin-top: 13px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-  color: var(--text-tertiary);
-  font-size: 10px;
-  line-height: 1.45;
-}
-
-.sourceReferences > span {
-  font-weight: var(--font-semibold);
-}
-
-.sourceReferences div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 6px;
-}
-
-.sourceReferences div span:not(:last-child)::after {
-  margin-left: 6px;
-  color: var(--text-tertiary);
-  content: "\00b7";
 }
 
 .error {
@@ -621,13 +1157,6 @@
 :global(:root[data-theme="dark"]) .documentCardActive {
   border-color: var(--primary);
   background: var(--surface-highlight);
-}
-
-:global(:root[data-theme="dark"]) .deleteButton {
-  background: var(--surface);
-  border-color: var(--border);
-  color: #f87171;
-  box-shadow: none;
 }
 
 :global(:root[data-theme="dark"]) .deleteButton:hover {

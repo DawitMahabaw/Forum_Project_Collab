@@ -7,23 +7,38 @@
 //
 
 import {
+  ArrowUp,
   CheckCircle2,
+  ChevronDown,
+  Copy,
   Download,
   FileText,
   LoaderCircle,
+  MessageSquarePlus,
+  MoreHorizontal,
+  Pencil,
   Search,
+  Share2,
+  Send,
   Sparkles,
   Trash2,
   Upload,
+  UserRound,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 
 import {
   askDocument,
+  clearChatMessages,
+  deleteChatMessage,
   deleteDocument,
   getDocumentFile,
+  listChatMessages,
   listDocuments,
   searchDocument,
   summarizeDocument,
@@ -81,9 +96,54 @@ const getSelectedPdf = (candidate) => {
   return isPdf || isText ? candidate : null;
 };
 
+const resizeChatInput = (textarea) => {
+  textarea.style.height = "auto";
+  textarea.style.height = `${Math.min(textarea.scrollHeight, 180)}px`;
+  textarea.style.overflowY = textarea.scrollHeight > 180 ? "auto" : "hidden";
+};
+
+const formatSourcePages = (pageNumbers = []) => {
+  const pages = [...new Set(pageNumbers)]
+    .filter((page) => Number.isSafeInteger(page) && page > 0)
+    .sort((first, second) => first - second);
+
+  if (!pages.length) return "";
+
+  const ranges = [];
+  let rangeStart = pages[0];
+  let rangeEnd = pages[0];
+
+  for (const page of pages.slice(1)) {
+    if (page === rangeEnd + 1) {
+      rangeEnd = page;
+      continue;
+    }
+
+    ranges.push(
+      rangeStart === rangeEnd
+        ? `${rangeStart}`
+        : `${rangeStart}–${rangeEnd}`,
+    );
+    rangeStart = page;
+    rangeEnd = page;
+  }
+
+  ranges.push(
+    rangeStart === rangeEnd
+      ? `${rangeStart}`
+      : `${rangeStart}–${rangeEnd}`,
+  );
+
+  return `${pages.length === 1 ? "Page" : "Pages"} ${ranges.join(", ")}`;
+};
+
 const RagDocuments = () => {
   // A ref lets the visible "Choose file" button open the hidden native input.
   const fileInput = useRef(null);
+  const chatInput = useRef(null);
+  const chatHistory = useRef(null);
+  const shouldFollowChat = useRef(true);
+  const activeIdRef = useRef(null);
 
   const [documents, setDocuments] = useState([]);
   const [activeId, setActiveId] = useState(null);
@@ -93,7 +153,10 @@ const RagDocuments = () => {
   const [askQuery, setAskQuery] = useState("");
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [answer, setAnswer] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [loadedChatDocumentId, setLoadedChatDocumentId] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingDraft, setEditingDraft] = useState("");
   const [summaryPrompt, setSummaryPrompt] = useState("");
   const [summary, setSummary] = useState(null);
   const [preview, setPreview] = useState({ documentId: null, url: "" });
@@ -114,6 +177,52 @@ const RagDocuments = () => {
 
   const activeDocumentId = activeDocument?.documentId;
   const activeDocumentStatus = activeDocument?.status;
+  const isLoadingChat = Boolean(
+    activeDocumentId && loadedChatDocumentId !== activeDocumentId,
+  );
+  const currentChatMessages = useMemo(
+    () => (isLoadingChat ? [] : chatMessages),
+    [isLoadingChat, chatMessages],
+  );
+  const isAsking = workingAction === "ask";
+
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+
+  useEffect(() => {
+    if (chatInput.current) resizeChatInput(chatInput.current);
+  }, [askQuery]);
+
+  useEffect(() => {
+    const closeMessageMenus = (event) => {
+      window.document
+        .querySelectorAll(`.${styles.messageMenu}[open]`)
+        .forEach((menu) => {
+          if (!menu.contains(event.target)) menu.open = false;
+        });
+    };
+
+    window.document.addEventListener("pointerdown", closeMessageMenus);
+    return () =>
+      window.document.removeEventListener("pointerdown", closeMessageMenus);
+  }, []);
+
+  useEffect(() => {
+    shouldFollowChat.current = true;
+  }, [activeDocumentId]);
+
+  useEffect(() => {
+    const history = chatHistory.current;
+    if (!history || !shouldFollowChat.current) return;
+
+    history.scrollTo({ top: history.scrollHeight, behavior: "smooth" });
+  }, [currentChatMessages, isLoadingChat, isAsking]);
+
+  const handleChatHistoryScroll = (event) => {
+    const { clientHeight, scrollHeight, scrollTop } = event.currentTarget;
+    shouldFollowChat.current = scrollHeight - scrollTop - clientHeight <= 48;
+  };
 
   const hasProcessingDocuments = documents.some(
     (document) => document.status === "processing",
@@ -149,6 +258,34 @@ const RagDocuments = () => {
   useEffect(() => {
     loadDocuments();
   }, [loadDocuments]);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    if (!activeDocumentId) return undefined;
+
+    listChatMessages(activeDocumentId)
+      .then((messages) => {
+        if (isCurrent) {
+          setChatMessages(messages);
+          setLoadedChatDocumentId(activeDocumentId);
+        }
+      })
+      .catch((requestError) => {
+        if (isCurrent) {
+          setChatMessages([]);
+          setLoadedChatDocumentId(activeDocumentId);
+          setError(
+            requestError.response?.data?.message ||
+              "Could not load this document's chat history.",
+          );
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [activeDocumentId]);
 
   // Keep every in-progress upload current.
   useEffect(() => {
@@ -226,17 +363,19 @@ const RagDocuments = () => {
       const document = await uploadDocument(file);
 
       setDocuments((current) => [document, ...current]);
+      activeIdRef.current = document.documentId;
       setActiveId(document.documentId);
       setActiveTab("ask");
 
       setFile(null);
       setResults([]);
       setHasSearched(false);
-      setAnswer(null);
       setSummary(null);
       setSummaryPrompt("");
       setSearchQuery("");
       setAskQuery("");
+      setEditingMessageId(null);
+      setEditingDraft("");
 
       setToast("Document uploaded. It will be ready after indexing finishes.");
 
@@ -303,15 +442,17 @@ const RagDocuments = () => {
 
   // Switching documents clears outputs that belong to the previous document.
   const handleSelect = (documentId) => {
+    activeIdRef.current = documentId;
     setActiveId(documentId);
     setActiveTab("ask");
     setSearchQuery("");
     setAskQuery("");
     setResults([]);
     setHasSearched(false);
-    setAnswer(null);
     setSummary(null);
     setSummaryPrompt("");
+    setEditingMessageId(null);
+    setEditingDraft("");
     setError("");
   };
 
@@ -344,23 +485,40 @@ const RagDocuments = () => {
   };
 
   // Ask the server for a document-grounded answer with passage citations.
-  const handleAsk = async (event) => {
+  const handleAsk = async (
+    event,
+    submittedQuery = askQuery,
+    messageId = null,
+  ) => {
     event.preventDefault();
 
-    if (!activeDocument || !askQuery.trim() || workingAction === "ask") {
+    if (!activeDocument || !submittedQuery.trim() || workingAction === "ask") {
       return;
     }
 
     setWorkingAction("ask");
     setError("");
+    const documentId = activeDocument.documentId;
 
     try {
-      setAnswer(await askDocument(activeDocument.documentId, askQuery.trim()));
-    } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-        "Could not answer from this document right now.",
+      const response = await askDocument(
+        documentId,
+        submittedQuery.trim(),
+        messageId,
       );
+      if (activeIdRef.current === documentId) {
+        setChatMessages(response.messages || []);
+        setAskQuery("");
+        setEditingMessageId(null);
+        setEditingDraft("");
+      }
+    } catch (requestError) {
+      if (activeIdRef.current === documentId) {
+        setError(
+          requestError.response?.data?.message ||
+            "Could not answer from this document right now.",
+        );
+      }
     } finally {
       setWorkingAction("");
     }
@@ -389,12 +547,92 @@ const RagDocuments = () => {
     }
   };
 
-  // Download the Ask AI answer as a text file.
-  const handleDownloadAnswer = () => {
-    if (!answer?.answer) return;
+  const handleCopyMessage = async (message) => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setToast("Message copied.");
+    } catch {
+      setError("Could not copy this message to the clipboard.");
+    }
+  };
 
-    downloadTextFile(answer.answer, activeDocument?.title, "txt");
-    setToast("Answer downloaded.");
+  const handleCopyCodeBlock = async (event) => {
+    const code = event.currentTarget.parentElement?.querySelector(
+      "pre code",
+    )?.textContent;
+    if (code == null) return;
+
+    try {
+      await navigator.clipboard.writeText(code);
+      setToast("Code copied.");
+    } catch {
+      setError("Could not copy this code block to the clipboard.");
+    }
+  };
+
+  const handleShareMessage = async (message) => {
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({
+          title: activeDocument?.title || "AI answer",
+          text: message.content,
+        });
+        setToast("Answer shared.");
+      } else {
+        await navigator.clipboard.writeText(message.content);
+        setToast("Answer copied. Sharing is not available in this browser.");
+      }
+    } catch (requestError) {
+      if (requestError.name !== "AbortError") {
+        setError("Could not share this answer.");
+      }
+    }
+  };
+
+  const handleDeleteChatMessage = async (message) => {
+    if (!activeDocument) return;
+    const documentId = activeDocument.documentId;
+
+    try {
+      const messages = await deleteChatMessage(
+        documentId,
+        message.messageId,
+      );
+      if (activeIdRef.current === documentId) {
+        setChatMessages(messages);
+        setToast("Message deleted.");
+      }
+    } catch (requestError) {
+      if (activeIdRef.current === documentId) {
+        setError(
+          requestError.response?.data?.message ||
+            "Could not delete this message.",
+        );
+      }
+    }
+  };
+
+  const handleNewChat = async () => {
+    if (!activeDocument || workingAction === "ask") return;
+    const documentId = activeDocument.documentId;
+
+    setError("");
+    try {
+      const messages = await clearChatMessages(documentId);
+      if (activeIdRef.current === documentId) {
+        setChatMessages(messages);
+        setAskQuery("");
+        setEditingMessageId(null);
+        setEditingDraft("");
+        setToast("Chat cleared. Start a new conversation.");
+      }
+    } catch (requestError) {
+      if (activeIdRef.current === documentId) {
+        setError(
+          requestError.response?.data?.message || "Could not clear this chat.",
+        );
+      }
+    }
   };
 
   // Download the generated summary as .txt or .md.
@@ -422,9 +660,10 @@ const RagDocuments = () => {
       );
 
       if (activeId === pendingDeleteDoc.documentId) {
+        activeIdRef.current = null;
         setActiveId(null);
         setResults([]);
-        setAnswer(null);
+        setChatMessages([]);
         setSummary(null);
         setPreview({ documentId: null, url: "" });
       }
@@ -876,85 +1115,340 @@ const RagDocuments = () => {
 
                   {activeTab === "ask" && (
                     <section
-                      className={styles.toolSection}
+                      className={styles.chatSection}
                       id="ask-ai-panel"
                       role="tabpanel"
                     >
-                      <h2>Ask with AI</h2>
-
-                      <p>
-                        Answers only use retrieved excerpts from this document
-                        and include source references when evidence exists.
-                      </p>
-
-                      <form onSubmit={handleAsk}>
-                        <label htmlFor="ask-query">Question</label>
-
-                        <textarea
-                          id="ask-query"
-                          onChange={(event) => setAskQuery(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" && !event.shiftKey) {
-                              event.preventDefault();
-
-                              if (askQuery.trim() && workingAction !== "ask") {
-                                event.currentTarget.form?.requestSubmit();
-                              }
-                            }
-                          }}
-                          placeholder="Ask a clear question about this document"
-                          value={askQuery}
-                        />
-
-                        <button
-                          disabled={workingAction === "ask" || !askQuery.trim()}
-                          type="submit"
-                        >
-                          {workingAction === "ask" ? (
-                            <LoaderCircle className={styles.spin} size={16} />
-                          ) : (
-                            <Sparkles size={16} />
-                          )}
-
-                          {workingAction === "ask" ? "Asking..." : "Ask"}
-                        </button>
-                      </form>
-
-                      {answer && (
-                        <div className={styles.answer} aria-live="polite">
-                          <p>{answer.answer}</p>
-                          {answer.isGrounded && (
-                            <button
-                              aria-label="Download this answer as a text file"
-                              className={styles.downloadButton}
-                              onClick={handleDownloadAnswer}
-                              type="button"
-                            >
-                              <Download size={14} />
-                              Download
-                            </button>
-                          )}
-                          {answer.citations?.length > 0 && (
-                            <footer className={styles.sourceReferences}>
-                              <span>Source references:</span>
-
-                              <div>
-                                {answer.citations.map((citation) => (
-                                  <span
-                                    aria-label={`Reference ${citation.ref}, chunk ${
-                                      citation.chunkIndex + 1
-                                    }`}
-                                    key={citation.ref}
-                                  >
-                                    [{citation.ref}] &rarr; chunk{" "}
-                                    {citation.chunkIndex + 1}
-                                  </span>
-                                ))}
-                              </div>
-                            </footer>
-                          )}
+                      <header className={styles.chatHeader}>
+                        <div>
+                          <h2>Ask with AI</h2>
+                          <p>
+                            Chat with answers grounded in this document.
+                            Conversation history is saved to your account.
+                          </p>
                         </div>
-                      )}
+                        <button
+                          className={styles.newChatButton}
+                          disabled={
+                            !currentChatMessages.length ||
+                            isLoadingChat ||
+                            workingAction === "ask"
+                          }
+                          onClick={handleNewChat}
+                          type="button"
+                        >
+                          <MessageSquarePlus size={16} />
+                          New Chat
+                        </button>
+                      </header>
+
+                      <div
+                        aria-live="polite"
+                        className={styles.chatHistory}
+                        onScroll={handleChatHistoryScroll}
+                        ref={chatHistory}
+                        role="log"
+                      >
+                        {isLoadingChat && (
+                          <div className={styles.chatNotice}>
+                            <LoaderCircle
+                              className={styles.spin}
+                              size={17}
+                            />
+                            Loading saved conversation...
+                          </div>
+                        )}
+
+                        {!isLoadingChat && !currentChatMessages.length && (
+                          <div className={styles.chatWelcome}>
+                            <Sparkles size={20} />
+                            <b>Start a conversation</b>
+                            <span>
+                              Ask a question about this document. You can
+                              follow up, and your chat will be here next time.
+                            </span>
+                          </div>
+                        )}
+
+                        {currentChatMessages.map((message) => (
+                          <article
+                            className={`${styles.chatMessage} ${
+                              message.role === "user"
+                                ? styles.userMessage
+                                : styles.assistantMessage
+                            }`}
+                            key={message.messageId}
+                          >
+                            <div className={styles.messageHeading}>
+                              <span
+                                aria-label={
+                                  message.role === "user" ? "You" : "Ask with AI"
+                                }
+                                className={styles.messageAvatar}
+                                role="img"
+                              >
+                                {message.role === "user" ? (
+                                  <UserRound aria-hidden="true" size={15} />
+                                ) : (
+                                  <Sparkles aria-hidden="true" size={15} />
+                                )}
+                              </span>
+                            </div>
+
+                            {editingMessageId === message.messageId ? (
+                              <form
+                                className={styles.editMessageForm}
+                                onSubmit={(event) =>
+                                  handleAsk(
+                                    event,
+                                    editingDraft,
+                                    message.messageId,
+                                  )
+                                }
+                              >
+                                <textarea
+                                  aria-label="Edit your question"
+                                  maxLength={2000}
+                                  onChange={(event) =>
+                                    setEditingDraft(event.target.value)
+                                  }
+                                  value={editingDraft}
+                                />
+                                <div>
+                                  <button
+                                    disabled={
+                                      workingAction === "ask" ||
+                                      !editingDraft.trim()
+                                    }
+                                    type="submit"
+                                  >
+                                    {workingAction === "ask" ? (
+                                      <LoaderCircle
+                                        className={styles.spin}
+                                        size={15}
+                                      />
+                                    ) : (
+                                      <Send size={15} />
+                                    )}
+                                    Update and regenerate
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingMessageId(null);
+                                      setEditingDraft("");
+                                    }}
+                                    type="button"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </form>
+                            ) : message.role === "assistant" ? (
+                              <div className={styles.markdownBody}>
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  rehypePlugins={[
+                                    [rehypeHighlight, { detect: true }],
+                                  ]}
+                                  components={{
+                                    pre: ({ children }) => (
+                                      <div className={styles.codeBlock}>
+                                        <button
+                                          aria-label="Copy code block"
+                                          className={styles.copyCodeButton}
+                                          onClick={handleCopyCodeBlock}
+                                          title="Copy code"
+                                          type="button"
+                                        >
+                                          <Copy aria-hidden="true" size={13} />
+                                          <span>Copy</span>
+                                        </button>
+                                        <pre>{children}</pre>
+                                      </div>
+                                    ),
+                                  }}
+                                >
+                                  {message.content}
+                                </ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p className={styles.userMessageBody}>
+                                {message.content}
+                              </p>
+                            )}
+
+                            {editingMessageId !== message.messageId && (
+                              <div className={styles.messageActions}>
+                                <button
+                                  aria-label="Copy message"
+                                  onClick={() => handleCopyMessage(message)}
+                                  title="Copy message"
+                                  type="button"
+                                >
+                                  <Copy size={14} />
+                                </button>
+                                <details className={styles.messageMenu}>
+                                  <summary aria-label="More message actions">
+                                    <MoreHorizontal size={17} />
+                                  </summary>
+                                  <div>
+                                    {message.role === "user" && (
+                                      <button
+                                        onClick={(event) => {
+                                          event.currentTarget.closest(
+                                            "details",
+                                          ).open = false;
+                                          setEditingMessageId(
+                                            message.messageId,
+                                          );
+                                          setEditingDraft(message.content);
+                                        }}
+                                        type="button"
+                                      >
+                                        <Pencil size={14} />
+                                        Edit
+                                      </button>
+                                    )}
+                                    {message.role === "assistant" && (
+                                      <button
+                                        onClick={(event) => {
+                                          event.currentTarget.closest(
+                                            "details",
+                                          ).open = false;
+                                          handleShareMessage(message);
+                                        }}
+                                        type="button"
+                                      >
+                                        <Share2 size={14} />
+                                        Share
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={(event) => {
+                                        event.currentTarget.closest(
+                                          "details",
+                                        ).open = false;
+                                        handleDeleteChatMessage(message);
+                                      }}
+                                      type="button"
+                                    >
+                                      <Trash2 size={14} />
+                                      Delete
+                                    </button>
+                                  </div>
+                                </details>
+                              </div>
+                            )}
+
+                            {message.role === "assistant" &&
+                              message.citations?.length > 0 && (
+                                <details className={styles.sourceDetails}>
+                                  <summary>
+                                    Sources ({message.citations.length})
+                                    <ChevronDown size={14} />
+                                  </summary>
+                                  <ol>
+                                    {message.citations.map((citation) => {
+                                      const sourcePages = formatSourcePages(
+                                        citation.pageNumbers,
+                                      );
+
+                                      return (
+                                        <li key={citation.ref}>
+                                          <strong>
+                                            {citation.sourceTitle ||
+                                              activeDocument.title}
+                                          </strong>
+                                          <p className={styles.sourceExcerpt}>
+                                            {sourcePages && (
+                                              <>
+                                                <strong>{sourcePages}</strong>
+                                                <span aria-hidden="true">
+                                                  {" · "}
+                                                </span>
+                                              </>
+                                            )}
+                                            {citation.excerpt ||
+                                              "Relevant passage unavailable."}
+                                          </p>
+                                        </li>
+                                      );
+                                    })}
+                                  </ol>
+                                </details>
+                              )}
+                          </article>
+                        ))}
+
+                        {isAsking && (
+                          <div className={styles.chatNotice}>
+                            <LoaderCircle
+                              className={styles.spin}
+                              size={17}
+                            />
+                            Thinking...
+                          </div>
+                        )}
+                      </div>
+
+                      <form
+                        className={styles.chatComposer}
+                        onSubmit={handleAsk}
+                      >
+                        <div className={styles.composerInput}>
+                          <textarea
+                            id="ask-query"
+                            aria-label="Message"
+                            maxLength={2000}
+                            ref={chatInput}
+                            onChange={(event) => {
+                              setAskQuery(event.target.value);
+                              resizeChatInput(event.currentTarget);
+                            }}
+                            onKeyDown={(event) => {
+                              if (
+                                event.key === "Enter" &&
+                                !event.shiftKey &&
+                                !event.nativeEvent.isComposing
+                              ) {
+                                event.preventDefault();
+                                if (
+                                  askQuery.trim() &&
+                                  workingAction !== "ask"
+                                ) {
+                                  event.currentTarget.form?.requestSubmit();
+                                }
+                              }
+                            }}
+                            placeholder="Ask a question or follow up..."
+                            value={askQuery}
+                          />
+                          <button
+                            aria-label="Send message"
+                            title={
+                              workingAction === "ask" ? "Thinking..." : "Send"
+                            }
+                            disabled={
+                              workingAction === "ask" ||
+                              isLoadingChat ||
+                              !askQuery.trim()
+                            }
+                            type="submit"
+                          >
+                            {workingAction === "ask" ? (
+                              <LoaderCircle
+                                className={styles.spin}
+                                size={16}
+                              />
+                            ) : (
+                              <ArrowUp size={17} />
+                            )}
+                          </button>
+                        </div>
+                        <div className={styles.composerFooter}>
+                          <span>Enter to send · Shift+Enter for a new line</span>
+                        </div>
+                      </form>
                     </section>
                   )}
                 </>

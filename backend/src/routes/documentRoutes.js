@@ -2,7 +2,10 @@ import express from "express";
 import authenticate from "../middleware/authMiddleware.js";
 import {
   ask,
+  clearChatMessages,
+  deleteChatMessage,
   getDocument,
+  listChatMessages,
   listDocuments,
   remove,
   search,
@@ -19,6 +22,9 @@ router.use(authenticate);
 
 router.get("/", listDocuments);
 router.post("/", uploadPdf.single("file"), uploadDocument);
+router.get("/:documentId/messages", listChatMessages);
+router.delete("/:documentId/messages", clearChatMessages);
+router.delete("/:documentId/messages/:messageId", deleteChatMessage);
 router.get("/:documentId/search", search);
 router.post("/:documentId/query", ask);
 router.post("/:documentId/summarize", draftCoachLimiter, summarize);
