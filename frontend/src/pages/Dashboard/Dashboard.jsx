@@ -24,32 +24,87 @@ const Dashboard = () => {
   const keyword = searchParams.get("keyword")?.trim() || "";
   const mode = searchParams.get("mode") || "keyword";
   const [questions, setQuestions] = useState([]);
+  const [meta, setMeta] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
-
+  const [loadMoreError, setLoadMoreError] = useState("");
   useEffect(() => {
+    let isCurrent = true;
+
     const loadQuestions = async () => {
       setIsLoading(true);
       setError("");
+      setLoadMoreError("");
+      setQuestions([]);
+      setMeta(null);
 
       try {
-        const data =
-          keyword && mode === "semantic"
-            ? await searchQuestions(keyword)
-            : await listQuestions({ search: keyword });
+        const isSemanticSearch = Boolean(keyword) && mode === "semantic";
+
+        const data = isSemanticSearch
+          ? await searchQuestions(keyword)
+          : await listQuestions({
+              search: keyword,
+              page: 1,
+              limit: 10,
+            });
+
+        if (!isCurrent) return;
+
         setQuestions(data.results || data.questions || []);
+        setMeta(isSemanticSearch ? null : data.meta || null);
       } catch (requestError) {
+        if (!isCurrent) return;
+
         setError(
           requestError.response?.data?.message ||
-          "Could not load the discussion feed.",
+            "Could not load the discussion feed.",
         );
       } finally {
-        setIsLoading(false);
+        if (isCurrent) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadQuestions();
+
+    return () => {
+      isCurrent = false;
+    };
   }, [keyword, mode]);
+
+  const handleLoadMore = async () => {
+    if (isLoadingMore || !meta?.hasMore) return;
+
+    setIsLoadingMore(true);
+    setLoadMoreError("");
+
+    try {
+      const nextPage = meta.page + 1;
+
+      const data = await listQuestions({
+        search: keyword,
+        page: nextPage,
+        limit: meta.limit,
+      });
+
+      setQuestions((currentQuestions) => [
+        ...currentQuestions,
+        ...(data.questions || []),
+      ]);
+
+      setMeta(data.meta || null);
+    } catch (requestError) {
+      setLoadMoreError(
+        requestError.response?.data?.message ||
+          "Could not load more discussions. Please try again.",
+      );
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const metrics = useMemo(
     () => ({
@@ -184,6 +239,45 @@ const Dashboard = () => {
               variant="feed"
             />
           ))}
+
+          {/* Pagination controls */}
+          {mode !== "semantic" && meta && (
+            <div className={styles.pagination}>
+              <p className={styles.paginationInfo}>
+                Showing {questions.length} of {meta.total} questions
+              </p>
+
+              {meta.hasMore && (
+                <button
+                  className={styles.loadMoreButton}
+                  type="button"
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore ? "Loading more..." : "Load more questions"}
+                </button>
+              )}
+
+              {loadMoreError && (
+                <div className={styles.loadMoreError} role="alert">
+                  <p>{loadMoreError}</p>
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    disabled={isLoadingMore}
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+
+              {!meta.hasMore && meta.total > 0 && (
+                <p className={styles.endOfFeed}>
+                  You've reached the end of the discussion feed.
+                </p>
+              )}
+            </div>
+          )}
         </section>
       )}
     </section>
