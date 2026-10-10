@@ -82,26 +82,40 @@ const createQuestionWithVectorService = async ({ userId, title, content }) => {
 // GET QUESTIONS SERVICE (T-10)
 // ============================================================
 
-const getQuestionsService = async ({ search, onlyMine, userId }) => {
-    const questions = await Question.findMany({
+const getQuestionsService = async ({
+    search,
+    onlyMine,
+    userId,
+    page = 1,
+    limit = 10,
+}) => {
+    const offset = (page - 1) * limit;
+
+    const { questions, total } = await Question.findMany({
         search: search || null,
         userId: onlyMine ? userId : null,
+        limit,
+        offset,
     });
+
+    const totalPages = Math.ceil(total / limit);
 
     return {
         questions,
         meta: {
-            limit: 100,
-            total: questions.length,
+            page,
+            limit,
+            total,
+            totalPages,
+            hasMore: page < totalPages,
             sortBy: "newest",
             sortOrder: "desc",
         },
     };
 };
 
-
 // ============================================================
-// SINGLE QUESTION DETAILS SERVICE 
+// SINGLE QUESTION DETAILS SERVICE
 // ============================================================
 const getSingleQuestionService = async (questionHash) => {
     // Retrieve the requested question by public hash
