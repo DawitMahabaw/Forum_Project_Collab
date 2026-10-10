@@ -34,12 +34,25 @@ const deleteQuestion = async (questionHash) => {
 // ============================================================
 // LIST QUESTIONS
 // ============================================================
-const listQuestions = async ({ search = "", mine = false } = {}) => {
+const listQuestions = async ({
+  search = "",
+  mine = false,
+  page = 1,
+  limit = 10,
+} = {}) => {
   const response = await api.get("/questions", {
-    params: { search: search || undefined, mine: mine ? "true" : undefined },
+    params: {
+      search: search || undefined,
+      mine: mine ? "true" : undefined,
+      page,
+      limit,
+    },
   });
 
-  return { questions: response.data.data || [], meta: response.data.meta };
+  return {
+    questions: response.data.data || [],
+    meta: response.data.meta,
+  };
 };
 
 // ============================================================
@@ -89,16 +102,12 @@ const getDraftCoach = async ({ title, content }) => {
 
 // Ask the backend to evaluate an answer against a question.
 const getAnswerFit = async (questionHash, answerText) => {
-  const response = await api.post(
-    `/questions/${questionHash}/answer-fit`,
-    {
-      answerText,
-    },
-  );
+  const response = await api.post(`/questions/${questionHash}/answer-fit`, {
+    answerText,
+  });
 
   return response.data.data;
 };
-
 
 // ============================================================
 // SAVED QUESTIONS / BOOKMARKS
@@ -134,9 +143,6 @@ const getSavedQuestions = async () => {
     meta: response.data.meta,
   };
 };
-
-
-
 
 // ============================================================
 // EXPORT
