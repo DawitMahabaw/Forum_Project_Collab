@@ -10,6 +10,16 @@ const pool = mysql.createPool({
   password: env.database.password,
   database: env.database.name,
 
+  // Enable verified SSL for cloud databases such as Aiven.
+  ...(process.env.DB_SSL_CA
+    ? {
+        ssl: {
+          ca: process.env.DB_SSL_CA,
+          rejectUnauthorized: true,
+        },
+      }
+    : {}),
+
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
