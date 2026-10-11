@@ -19,6 +19,7 @@ const env = {
   },
   jwtSecret: process.env.JWT_SECRET,
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+  googleClientId: process.env.GOOGLE_CLIENT_ID?.trim(),
 
   emailUser: process.env.EMAIL_USER,
   emailPass: process.env.EMAIL_PASS,
