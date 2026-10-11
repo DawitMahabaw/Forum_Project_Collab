@@ -149,6 +149,15 @@ const processDocument = async (documentId, filePath) => {
 
     await Document.updateStatus(documentId, "ready");
   } catch (error) {
+    try {
+      await Document.deleteChunksForDocument(documentId);
+    } catch (cleanupError) {
+      console.error(
+        `Could not clean up chunks for RAG document ${documentId}:`,
+        cleanupError.message,
+      );
+    }
+
     await markProcessingFailed(documentId, error);
   }
 };
@@ -230,9 +239,9 @@ const sampleChunksAcrossDocument = (chunks, limit) => {
     picked.add(Math.round((slot * (chunks.length - 1)) / (limit - 1)));
   }
 
-  return [...picked].sort((first, second) => first - second).map(
-    (index) => chunks[index],
-  );
+  return [...picked]
+    .sort((first, second) => first - second)
+    .map((index) => chunks[index]);
 };
 
 const getOverviewEvidence = async (document) => {
@@ -254,8 +263,8 @@ const queryDocument = async (document, query) => {
   const evidence = isOverviewQuery(query)
     ? await getOverviewEvidence(document)
     : (await rankDocumentChunks(document, query)).filter(
-      (result) => result.score >= env.rag.evidenceThreshold,
-    );
+        (result) => result.score >= env.rag.evidenceThreshold,
+      );
 
   if (!evidence.length) {
     return {
@@ -296,7 +305,7 @@ ${context}`;
 
   try {
     const generated = parseGroundedAnswer(
-      await ai.generateContent(prompt, { json: true, maxOutputTokens: 2048 })
+      await ai.generateContent(prompt, { json: true, maxOutputTokens: 2048 }),
     );
 
     if (!generated.supported || !generated.answer) {
@@ -395,7 +404,10 @@ const summarizeDocument = async (document, userPrompt) => {
     rawText = await extractText(document.storagePath);
   } catch (error) {
     if (error.code === "ENOENT") {
-      throw createHttpError("The uploaded PDF file is no longer available.", 404);
+      throw createHttpError(
+        "The uploaded PDF file is no longer available.",
+        404,
+      );
     }
     throw error;
   }
