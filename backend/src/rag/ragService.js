@@ -1,3 +1,4 @@
+import { handleProcessingFailure } from "./processingFailure.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PDFParse } from "pdf-parse";
@@ -104,21 +105,6 @@ const extractText = async (filePath) => {
   }
 };
 
-const markProcessingFailed = async (documentId, error) => {
-  try {
-    await Document.updateStatus(
-      documentId,
-      "failed",
-      error.message || "Document processing failed.",
-    );
-  } catch (statusError) {
-    console.error(
-      `Could not mark RAG document ${documentId} as failed:`,
-      statusError.message,
-    );
-  }
-};
-
 const processDocument = async (documentId, filePath) => {
   try {
     const rawText = await extractText(filePath);
@@ -149,16 +135,13 @@ const processDocument = async (documentId, filePath) => {
 
     await Document.updateStatus(documentId, "ready");
   } catch (error) {
-    try {
-      await Document.deleteChunksForDocument(documentId);
-    } catch (cleanupError) {
-      console.error(
-        `Could not clean up chunks for RAG document ${documentId}:`,
-        cleanupError.message,
-      );
-    }
-
-    await markProcessingFailed(documentId, error);
+    await handleProcessingFailure({
+      documentId,
+      error,
+      deleteChunks: (id) => Document.deleteChunksForDocument(id),
+      updateStatus: (id, status, message) =>
+        Document.updateStatus(id, status, message),
+    });
   }
 };
 
