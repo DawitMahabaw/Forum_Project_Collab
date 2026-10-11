@@ -10,21 +10,39 @@ export const splitText = (text, chunkSize = 1000, chunkOverlap = 120) => {
     return [];
   }
 
+  if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
+    throw new RangeError("chunkSize must be a positive integer.");
+  }
+
+  if (
+    !Number.isInteger(chunkOverlap) ||
+    chunkOverlap < 0 ||
+    chunkOverlap >= chunkSize
+  ) {
+    throw new RangeError(
+      "chunkOverlap must be a non-negative integer smaller than chunkSize.",
+    );
+  }
+
   const normalized = text.replace(/\s+/g, " ").trim();
 
   if (!normalized) {
     return [];
   }
 
-  const step = Math.max(1, chunkSize - chunkOverlap);
+  const step = chunkSize - chunkOverlap;
   const chunks = [];
 
   for (let start = 0; start < normalized.length; start += step) {
     const chunk = normalized.slice(start, start + chunkSize).trim();
 
-    if (chunk) chunks.push(chunk);
+    if (chunk) {
+      chunks.push(chunk);
+    }
 
-    if (start + chunkSize >= normalized.length) break;
+    if (start + chunkSize >= normalized.length) {
+      break;
+    }
   }
 
   return chunks;
