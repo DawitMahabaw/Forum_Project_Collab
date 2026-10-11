@@ -29,6 +29,7 @@ const User = {
         first_name,
         last_name,
         email,
+        google_id,
         password_hash,
         role,
         avatar_url,
@@ -44,6 +45,83 @@ const User = {
     return rows[0] || null;
   },
 
+  async findByGoogleId(googleId) {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        user_id,
+        first_name,
+        last_name,
+        email,
+        google_id,
+        password_hash,
+        role,
+        avatar_url,
+        headline,
+        created_at
+      FROM users
+      WHERE google_id = ?
+      LIMIT 1
+      `,
+      [googleId],
+    );
+
+    return rows[0] || null;
+  },
+
+  async createGoogleUser({
+    firstName,
+    lastName,
+    email,
+    googleId,
+    avatarUrl = null,
+    role = "user",
+  }) {
+    const [result] = await pool.execute(
+      `
+      INSERT INTO users
+        (first_name, last_name, email, google_id, password_hash, avatar_url, role)
+      VALUES
+        (?, ?, ?, ?, NULL, ?, ?)
+      `,
+      [firstName, lastName, email, googleId, avatarUrl, role],
+    );
+
+    return {
+      userId: result.insertId,
+      firstName,
+      lastName,
+      email,
+      role,
+      avatarUrl,
+    };
+  },
+
+  async linkGoogleAccount(userId, googleId, avatarUrl = null) {
+    if (avatarUrl) {
+      await pool.execute(
+        `
+        UPDATE users
+        SET google_id = ?,
+            avatar_url = COALESCE(avatar_url, ?)
+        WHERE user_id = ?
+        `,
+        [googleId, avatarUrl, userId],
+      );
+    } else {
+      await pool.execute(
+        `
+        UPDATE users
+        SET google_id = ?
+        WHERE user_id = ?
+        `,
+        [googleId, userId],
+      );
+    }
+
+    return this.findById(userId);
+  },
+
   async findById(userId) {
     const [rows] = await pool.execute(
       `
@@ -52,6 +130,7 @@ const User = {
         first_name,
         last_name,
         email,
+        google_id,
         role,
         avatar_url,
         headline,
