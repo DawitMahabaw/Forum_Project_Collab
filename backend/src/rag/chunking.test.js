@@ -43,3 +43,20 @@ test("rejects invalid chunk overlap", () => {
   assert.throws(() => splitText("hello", 5, 5), RangeError);
   assert.throws(() => splitText("hello", 5, 1.5), RangeError);
 });
+
+test("preserves text across chunk boundaries with overlap", () => {
+  const text = "abcdefghijkl";
+  const chunks = splitText(text, 5, 2);
+
+  assert.deepEqual(chunks, ["abcde", "defgh", "ghijk", "jkl"]);
+
+  // Removing the configured overlap should reconstruct the original text.
+  const reconstructed =
+    chunks[0] +
+    chunks
+      .slice(1)
+      .map((chunk) => chunk.slice(2))
+      .join("");
+
+  assert.equal(reconstructed, text);
+});
