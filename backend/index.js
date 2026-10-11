@@ -34,7 +34,49 @@ const __dirname = path.dirname(__filename);
 // ============================================================
 
 const app = express();
-app.use(cors());
+const allowedOrigins = new Set(
+  [env.frontendUrl, "http://127.0.0.1:5173"]
+    .flatMap((origins) => origins.split(","))
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
+const isLocalViteOrigin = (origin) => {
+  if (process.env.NODE_ENV === "production") return false;
+
+  try {
+    const url = new URL(origin);
+    const port = Number(url.port);
+
+    // Vite starts at 5173 and selects the next free port when that port is
+    // already in use. Restrict this convenience to loopback development URLs.
+    return (
+      url.protocol === "http:" &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
+      Number.isInteger(port) &&
+      port >= 5173 &&
+      port <= 5199
+    );
+  } catch {
+    return false;
+  }
+};
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Requests without an Origin header (for example, local health checks)
+      // are not browser CORS requests. Browser clients must be explicitly
+      // configured through FRONTEND_URL.
+      callback(
+        null,
+        !origin || allowedOrigins.has(origin) || isLocalViteOrigin(origin),
+      );
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json({ limit: "100kb" }));
 
 // Serve uploaded assets (avatars, documents)

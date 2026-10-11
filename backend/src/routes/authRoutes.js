@@ -2,6 +2,8 @@ import express from "express";
 import {
   register,
   login,
+  googleLogin,
+  linkGoogle,
   getMe,
   initiatePasswordReset,
   handlePasswordResetConfirm,
@@ -19,6 +21,10 @@ const router = express.Router();
 router.post("/register", register);
 
 router.post("/login", login);
+
+router.post("/google", googleLogin);
+
+router.post("/google/link", authenticate, linkGoogle);
 
 router.get("/me", authenticate, getMe);
 

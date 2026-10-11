@@ -22,7 +22,9 @@ export async function initializeDatabase() {
 
         email VARCHAR(255) NOT NULL UNIQUE,
 
-        password_hash VARCHAR(255) NOT NULL,
+        google_id VARCHAR(255) NULL UNIQUE,
+
+        password_hash VARCHAR(255) NULL,
 
         role VARCHAR(20) NOT NULL DEFAULT 'user',
 
@@ -42,12 +44,28 @@ export async function initializeDatabase() {
 
     // Ensure profile columns exist on users table for new features
     const [userColumns] = await connection.query(`
-      SELECT COLUMN_NAME
+      SELECT COLUMN_NAME, IS_NULLABLE
       FROM information_schema.COLUMNS
       WHERE TABLE_SCHEMA = DATABASE()
         AND TABLE_NAME = 'users'
     `);
-    const existingUserCols = new Set(userColumns.map((c) => c.COLUMN_NAME));
+    const existingUserCols = new Map(
+      userColumns.map((column) => [column.COLUMN_NAME, column]),
+    );
+    if (!existingUserCols.has("google_id")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN google_id VARCHAR(255) NULL UNIQUE AFTER email",
+      );
+    }
+
+    // Existing password hashes are preserved. Only legacy schemas with a
+    // NOT NULL constraint need this additive change for Google-only users.
+    if (existingUserCols.get("password_hash")?.IS_NULLABLE === "NO") {
+      await connection.query(
+        "ALTER TABLE users MODIFY COLUMN password_hash VARCHAR(255) NULL",
+      );
+    }
+
     if (!existingUserCols.has("avatar_url")) {
       await connection.query(
         "ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) NULL AFTER email",

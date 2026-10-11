@@ -3,7 +3,6 @@ import {
   useLocation,
   useNavigate,
   Navigate,
-  useSearchParams,
   useParams,
 } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
@@ -17,66 +16,30 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
+import { GoogleLogin } from "@react-oauth/google";
+import { isGoogleAuthConfigured } from "../../config/googleAuth.js";
 import {
   forgotPassword,
   resetPasswordConfirm,
 } from "../../services/authService.js";
-
 
 import styles from "./AuthPage.module.css";
 
 
 
 const AuthPage = () => {
-  const { isAuthenticated } = useAuth();
-   const { token } = useParams();
+  const { isAuthenticated, login, register, loginWithGoogle } = useAuth();
+  const { theme } = useTheme();
+  const { token } = useParams();
 
-  if (isAuthenticated && !token) {
-    return <Navigate to="/dashboard" replace />;
-  }
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register } = useAuth();
-  const [searchParams] = useSearchParams();
   const [isResetPasswordMode, setIsResetPasswordMode] = useState(!!token);
   const [resetToken, setResetToken] = useState(token || "");
   const [isRegistering, setIsRegistering] = useState(false);
   const [isForgotMode, setIsForgotMode] = useState(false);
-  // ============================================================
-  // 💡 FIXED PARAMETER SCRAPER: Catch token before router clears it
-  // ============================================================
-  // 💡 3. This fixed useEffect guarantees the states don't flicker back to login
- useEffect(() => {
-   if (token) {
-     setIsResetPasswordMode(true);
-     setIsForgotMode(false);
-     setIsRegistering(false);
-     setResetToken(token);
-   }
- }, [token]);
-
-   useEffect(() => {
-     if (location.state?.register) {
-       setIsRegistering(true);
-       setIsForgotMode(false);
-       setIsResetPasswordMode(false);
-     }
-   }, [location.state]);
-
-  const toggleForgotMode = () => {
-    setIsForgotMode((prev) => !prev);
-    setIsRegistering(false);
-    setIsResetPasswordMode(false);
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
-    setError("");
-    setSuccess("");
-  };
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -90,6 +53,104 @@ const AuthPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // ============================================================
+  // 💡 FIXED PARAMETER SCRAPER: Catch token before router clears it
+  // ============================================================
+  // 💡 3. This fixed useEffect guarantees the states don't flicker back to login
+  useEffect(() => {
+    if (token) {
+      setIsResetPasswordMode(true);
+      setIsForgotMode(false);
+      setIsRegistering(false);
+      setResetToken(token);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (location.state?.register) {
+      setIsRegistering(true);
+      setIsForgotMode(false);
+      setIsResetPasswordMode(false);
+    }
+  }, [location.state]);
+
+  if (isAuthenticated && !token) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const toggleForgotMode = () => {
+    setIsForgotMode((prev) => !prev);
+    setIsRegistering(false);
+    setIsResetPasswordMode(false);
+    setIsGoogleLoading(false);
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setError("");
+    setSuccess("");
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      setError("No authentication credential returned by Google.");
+      return;
+    }
+
+    setIsGoogleLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await loginWithGoogle(credentialResponse.credential);
+      const destination = location.state?.from?.pathname || "/dashboard";
+      navigate(destination, { replace: true });
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Google authentication failed. Please try again or use your password.",
+      );
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Google sign-in was cancelled or encountered an issue. Please try again.");
+  };
+
+  const renderGoogleButton = (textType = "continue_with") => {
+    if (!isGoogleAuthConfigured) {
+      return (
+        <div className={styles.googleConfigNotice} role="alert">
+          Google Sign-In is disabled: <code>VITE_GOOGLE_CLIENT_ID</code> is not configured.
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={`${styles.googleButtonWrapper} ${
+          isLoading || isGoogleLoading ? styles.googleDisabled : ""
+        }`}
+      >
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          theme={theme === "dark" ? "filled_black" : "outline"}
+          text={textType}
+          shape="rectangular"
+          size="large"
+          width="320"
+        />
+      </div>
+    );
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -305,7 +366,8 @@ const AuthPage = () => {
 
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);
- setIsForgotMode(false);
+    setIsForgotMode(false);
+    setIsGoogleLoading(false);
     setFormData({
       firstName: "",
       lastName: "",
@@ -443,6 +505,12 @@ const AuthPage = () => {
                )}
 
                <form className={styles.form} onSubmit={handleSubmit}>
+                 {isGoogleLoading && (
+                   <div className={styles.googleLoadingIndicator} role="status">
+                     <span className={styles.spinner} aria-hidden />
+                     <span>Verifying with Google...</span>
+                   </div>
+                 )}
                  {/* 📍 If a link token is present, we show ONLY the two new password fields */}
                  {isResetPasswordMode ? (
                    <>
@@ -515,6 +583,14 @@ const AuthPage = () => {
                  ) : (
                    /* 📍 Otherwise, show the normal Login / Register / Forgot layout views */
                    <>
+                     {isRegistering && (
+                       <>
+                         {renderGoogleButton("signup_with")}
+                         <div className={styles.orDivider} aria-hidden>
+                           <span>or</span>
+                         </div>
+                       </>
+                     )}
                      {isRegistering && (
                        <div className={styles.field}>
                          <label htmlFor="firstName">First Name</label>
@@ -651,7 +727,7 @@ const AuthPage = () => {
                  <button
                    type="submit"
                    className={styles.submitButton}
-                   disabled={isLoading}
+                   disabled={isLoading || isGoogleLoading}
                  >
                    {isLoading
                      ? "Please wait..."
@@ -664,6 +740,15 @@ const AuthPage = () => {
                            : "Sign In"}
                    {!isLoading && <ArrowRight size={16} aria-hidden />}
                  </button>
+
+                 {!isRegistering && !isForgotMode && !isResetPasswordMode && (
+                   <>
+                     <div className={styles.orDivider} aria-hidden>
+                       <span>or</span>
+                     </div>
+                     {renderGoogleButton("continue_with")}
+                   </>
+                 )}
                </form>
 
                <div className={styles.divider} aria-hidden>

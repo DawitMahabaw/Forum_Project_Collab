@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    google_id VARCHAR(255) NULL UNIQUE,
+    password_hash VARCHAR(255) NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    avatar_url VARCHAR(500) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (email = LOWER(email))

@@ -7,6 +7,7 @@ import {
   loginUser,
   registerUser,
   getCurrentUser,
+  googleAuth,
 } from "../services/authService.js";
 
 import { getToken, removeToken, saveToken } from "../utils/auth.js";
@@ -75,6 +76,17 @@ const AuthProvider = ({ children }) => {
     return response;
   };
 
+  // Authenticate user with Google and save the application JWT.
+  const loginWithGoogle = async (idToken) => {
+    const response = await googleAuth(idToken);
+
+    setUser(response.user);
+    setToken(response.token);
+    saveToken(response.token);
+
+    return response;
+  };
+
   // Clear authentication state and stored token.
   const logout = () => {
     setUser(null);
@@ -94,6 +106,7 @@ const AuthProvider = ({ children }) => {
     isAuthenticated: Boolean(user),
     register,
     login,
+    loginWithGoogle,
     logout,
     updateUser,
   };
