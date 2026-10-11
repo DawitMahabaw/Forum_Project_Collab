@@ -7,7 +7,6 @@ await initializeDatabase();
 // for saved questions/bookmarks
 import bookmarkRoutes from "./src/routes/bookmarkRoutes.js";
 
-
 // Import CORS.
 import cors from "cors";
 
@@ -22,7 +21,6 @@ import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 import pool from "./src/config/db.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 
-
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -34,7 +32,13 @@ const __dirname = path.dirname(__filename);
 // ============================================================
 
 const app = express();
+
+// Trust the single proxy hop in front of the Render service.
+// This lets express-rate-limit identify the client IP correctly.
+app.set("trust proxy", 1);
+
 app.use(cors());
+
 app.use(express.json({ limit: "100kb" }));
 
 // Serve uploaded assets (avatars, documents)
