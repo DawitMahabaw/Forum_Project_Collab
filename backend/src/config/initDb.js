@@ -9,6 +9,7 @@ export async function initializeDatabase() {
     user: env.database.user,
     password: env.database.password,
     database: env.database.name,
+    connectTimeout: 10000,
   });
 
   try {
