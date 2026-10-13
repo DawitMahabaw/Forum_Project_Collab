@@ -1,8 +1,7 @@
 import express from "express";
 import questionRoutes from "./src/routes/questionRoutes.js";
-// Importing and initializing the  automatic database initialization for authentication schema
+// Importing and initializing the automatic database initialization for authentication schema
 import { initializeDatabase } from "./src/config/initDb.js";
-await initializeDatabase();
 
 // for saved questions/bookmarks
 import bookmarkRoutes from "./src/routes/bookmarkRoutes.js";
@@ -111,4 +110,9 @@ const testDatabaseConnection = async () => {
 app.listen(env.port, async () => {
   console.log(`AI Powered Evangadi Forum API is running on port ${env.port}.`);
   await testDatabaseConnection();
+  try {
+    await initializeDatabase();
+  } catch (error) {
+    console.error("Database initialization failed:", error.message);
+  }
 });
