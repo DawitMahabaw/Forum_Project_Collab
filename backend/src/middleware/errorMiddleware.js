@@ -5,6 +5,8 @@ const notFound = (req, res, next) => {
 };
 
 const errorHandler = (error, req, res, next) => {
+  console.error(`[${req.method} ${req.originalUrl}] Error:`, error);
+
   if (res.headersSent) {
     return next(error);
   }
