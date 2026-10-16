@@ -56,6 +56,14 @@ const env = {
     evidenceThreshold: numberFromEnv(process.env.RAG_EVIDENCE_THRESHOLD, 0.55),
     searchThreshold: numberFromEnv(process.env.RAG_SEARCH_THRESHOLD, 0.6),
   },
+  unverifiedCleanup: {
+    retentionDays: numberFromEnv(process.env.UNVERIFIED_USER_RETENTION_DAYS, 7),
+    intervalHours: numberFromEnv(
+      process.env.UNVERIFIED_CLEANUP_INTERVAL_HOURS,
+      24,
+    ),
+    enabled: process.env.UNVERIFIED_CLEANUP_ENABLED !== "false",
+  },
 };
 
 export default env;

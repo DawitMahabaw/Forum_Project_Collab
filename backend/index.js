@@ -20,6 +20,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 import pool from "./src/config/db.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
+import { startUnverifiedAccountsCleanupScheduler } from "./src/utils/cleanupUnverifiedAccounts.js";
 
 
 import path from "path";
@@ -112,6 +113,12 @@ app.listen(env.port, async () => {
   await testDatabaseConnection();
   try {
     await initializeDatabase();
+    if (env.unverifiedCleanup?.enabled) {
+      startUnverifiedAccountsCleanupScheduler({
+        retentionDays: env.unverifiedCleanup.retentionDays,
+        intervalHours: env.unverifiedCleanup.intervalHours,
+      });
+    }
   } catch (error) {
     console.error("Database initialization failed:", error.message);
   }
