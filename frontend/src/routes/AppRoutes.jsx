@@ -17,7 +17,7 @@ import SavedQuestions from "../pages/SavedQuestions/SavedQuestions.jsx";
 
 import AdminRoute from "../components/AdminRoute.jsx";
 import Admin from "../pages/Admin/Admin.jsx";
-
+import VerifyEmail from "../pages/VerifyEmail/VerifyEmail.jsx";
 
 const AppRoutes = () => {
   return (
@@ -26,6 +26,7 @@ const AppRoutes = () => {
         {/* Public pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route
           path="/reset-password/:token"
           element={<AuthPage view="reset-password" />}

@@ -58,8 +58,11 @@ api.interceptors.response.use(
     const requestPath = String(error.config?.url || "").replace(/\/+$/, "");
     const isAuthAttempt = [
       "/auth/login",
+      "/auth/register",
       "/auth/google",
       "/auth/google/link",
+      "/auth/verify-email",
+      "/auth/resend-verification",
     ].includes(requestPath);
 
     // A rejected Google credential while linking does not mean the existing
