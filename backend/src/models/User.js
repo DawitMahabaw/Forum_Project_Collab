@@ -1,15 +1,33 @@
 import pool from "../config/db.js";
 
 const User = {
-   async create({ firstName, lastName, email, passwordHash, role = "user" }) {
+   async create({
+    firstName,
+    lastName,
+    email,
+    passwordHash,
+    role = "user",
+    isVerified = false,
+    verificationToken = null,
+    verificationExpires = null,
+  }) {
     const [result] = await pool.execute(
       `
       INSERT INTO users
-        (first_name, last_name, email, password_hash, role)
+        (first_name, last_name, email, password_hash, role, is_verified, verification_token, verification_expires)
       VALUES
-        (?, ?, ?, ?, ?)
+        (?, ?, ?, ?, ?, ?, ?, ?)
       `,
-      [firstName, lastName, email, passwordHash, role],
+      [
+        firstName,
+        lastName,
+        email,
+        passwordHash,
+        role,
+        isVerified ? 1 : 0,
+        verificationToken,
+        verificationExpires,
+      ],
     );
 
     return {
@@ -18,6 +36,7 @@ const User = {
       lastName,
       email,
       role,
+      isVerified,
     };
   },
 
@@ -34,6 +53,9 @@ const User = {
         role,
         avatar_url,
         headline,
+        is_verified,
+        verification_token,
+        verification_expires,
         created_at
       FROM users
       WHERE email = ?
@@ -58,6 +80,7 @@ const User = {
         role,
         avatar_url,
         headline,
+        is_verified,
         created_at
       FROM users
       WHERE google_id = ?
@@ -80,9 +103,9 @@ const User = {
     const [result] = await pool.execute(
       `
       INSERT INTO users
-        (first_name, last_name, email, google_id, password_hash, avatar_url, role)
+        (first_name, last_name, email, google_id, password_hash, avatar_url, role, is_verified)
       VALUES
-        (?, ?, ?, ?, NULL, ?, ?)
+        (?, ?, ?, ?, NULL, ?, ?, TRUE)
       `,
       [firstName, lastName, email, googleId, avatarUrl, role],
     );
@@ -94,7 +117,91 @@ const User = {
       email,
       role,
       avatarUrl,
+      isVerified: true,
     };
+  },
+
+  async setVerificationTokenHash(userId, tokenHash, expiresAt) {
+    await pool.execute(
+      `
+      UPDATE users
+      SET verification_token = ?, verification_expires = ?
+      WHERE user_id = ?
+      `,
+      [tokenHash, expiresAt, userId],
+    );
+  },
+
+  async findByVerificationTokenHash(tokenHash) {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        user_id,
+        first_name,
+        last_name,
+        email,
+        google_id,
+        is_verified,
+        verification_token,
+        verification_expires
+      FROM users
+      WHERE verification_token = ?
+      LIMIT 1
+      `,
+      [tokenHash],
+    );
+    return rows[0] || null;
+  },
+
+  async markAsVerified(userId) {
+    const [result] = await pool.execute(
+      `
+      UPDATE users
+      SET
+        is_verified = TRUE,
+        verification_token = NULL,
+        verification_expires = NULL
+      WHERE user_id = ?
+      `,
+      [userId],
+    );
+    return result.affectedRows > 0;
+  },
+
+  async updateUnverifiedRegistration(userId, { firstName, lastName, passwordHash, tokenHash, expiresAt }) {
+    await pool.execute(
+      `
+      UPDATE users
+      SET
+        first_name = ?,
+        last_name = ?,
+        password_hash = ?,
+        verification_token = ?,
+        verification_expires = ?,
+        is_verified = FALSE
+      WHERE user_id = ?
+      `,
+      [firstName, lastName, passwordHash, tokenHash, expiresAt, userId],
+    );
+    return this.findById(userId);
+  },
+
+  async claimUnverifiedAccountWithGoogle(userId, { googleId, avatarUrl = null }) {
+    await pool.execute(
+      `
+      UPDATE users
+      SET
+        google_id = ?,
+        password_hash = NULL,
+        verification_token = NULL,
+        verification_expires = NULL,
+        is_verified = TRUE,
+        avatar_url = COALESCE(avatar_url, ?)
+      WHERE user_id = ?
+      `,
+      [googleId, avatarUrl, userId],
+    );
+    return this.findById(userId);
   },
 
   async linkGoogleAccount(userId, googleId, avatarUrl = null) {
