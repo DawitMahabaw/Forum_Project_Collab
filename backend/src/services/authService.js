@@ -20,6 +20,7 @@ import {
 import {
   isDisposableEmail,
   normalizeEmail,
+  validateEmailForRegistration,
   DISPOSABLE_EMAIL_ERROR_MESSAGE,
 } from "../utils/emailValidation.js";
 
@@ -55,14 +56,8 @@ const sendAccountVerificationEmail = async (email, firstName, rawToken) => {
 // ============================================================
 
 const registerUser = async ({ firstName, lastName, email, password }) => {
-  const normalizedEmail = normalizeEmail(email);
-
-  // 1. Block disposable / temporary email domains
-  if (isDisposableEmail(normalizedEmail)) {
-    const error = new Error(DISPOSABLE_EMAIL_ERROR_MESSAGE);
-    error.statusCode = 400;
-    throw error;
-  }
+  // 1. Validate email syntax, disposable blocklist, and MX records
+  const { normalizedEmail } = await validateEmailForRegistration(email);
 
   // 2. Validate password length
   if (password.length < 8) {
@@ -550,19 +545,8 @@ const verifyEmail = async (rawToken) => {
 // ============================================================
 
 const resendVerification = async (email) => {
-  const normalizedEmail = normalizeEmail(email);
-
-  if (!normalizedEmail || !emailPattern.test(normalizedEmail)) {
-    const error = new Error("Please provide a valid email address.");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  if (isDisposableEmail(normalizedEmail)) {
-    const error = new Error(DISPOSABLE_EMAIL_ERROR_MESSAGE);
-    error.statusCode = 400;
-    throw error;
-  }
+  // Validate email syntax, disposable blocklist, and MX records in order
+  const { normalizedEmail } = await validateEmailForRegistration(email);
 
   const user = await User.findByEmail(normalizedEmail);
 
