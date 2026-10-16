@@ -12,15 +12,32 @@ import {
   uploadAvatar,
   updateAccount,
   changePassword,
+  verifyEmailController,
+  resendVerificationController,
 } from "../controllers/authController.js";
 import authenticate from "../middleware/authMiddleware.js";
 import avatarUpload from "../middleware/avatarUploadMiddleware.js";
+import {
+  registerLimiter,
+  resendVerificationLimiter,
+} from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
-router.post("/register", register);
+router.post("/register", registerLimiter, register);
 
 router.post("/login", login);
+
+// Two-step scanner-safe email verification
+router.post("/verify-email", verifyEmailController);
+
+// Resend verification link
+router.post(
+  "/resend-verification",
+  resendVerificationLimiter,
+  resendVerificationController,
+);
+
 
 router.post("/google", googleLogin);
 

@@ -53,4 +53,33 @@ const draftCoachLimiter = rateLimit({
   },
 });
 
-export { draftCoachLimiter };
+const resendVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 requests per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    return res.status(429).json({
+      success: false,
+      message:
+        "Too many verification requests. Please wait a few minutes before trying again.",
+    });
+  },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // max 15 requests per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    return res.status(429).json({
+      success: false,
+      message:
+        "Too many registration attempts. Please wait a few minutes before trying again.",
+    });
+  },
+});
+
+export { draftCoachLimiter, resendVerificationLimiter, registerLimiter };
+

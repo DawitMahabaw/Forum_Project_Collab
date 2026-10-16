@@ -1,5 +1,6 @@
+import crypto from "node:crypto";
 import User from "../models/User.js";
-import nodemailer from "nodemailer"; 
+import nodemailer from "nodemailer";
 import env from "../config/env.js";
 import { OAuth2Client } from "google-auth-library";
 
@@ -7,60 +8,145 @@ const googleAuthClient = new OAuth2Client();
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 import { hashPassword, comparePassword } from "../utils/password.js";
-
-
 import {
   generateToken,
   generateResetToken,
   verifyToken,
 } from "../utils/jwt.js";
-import { getPasswordResetHTML } from "../utils/emailTemplates.js";
+import {
+  getPasswordResetHTML,
+  getEmailVerificationHTML,
+} from "../utils/emailTemplates.js";
+import {
+  isDisposableEmail,
+  normalizeEmail,
+  DISPOSABLE_EMAIL_ERROR_MESSAGE,
+} from "../utils/emailValidation.js";
+
+const hashVerificationToken = (rawToken) =>
+  crypto.createHash("sha256").update(rawToken).digest("hex");
+
+const sendAccountVerificationEmail = async (email, firstName, rawToken) => {
+  const verifyUrl = `${env.frontendUrl}/verify-email?token=${rawToken}`;
+  const emailHtml = getEmailVerificationHTML({
+    firstName,
+    verifyLink: verifyUrl,
+    expiresHours: 24,
+  });
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: env.emailUser,
+      pass: env.emailPass,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `"Evangadi Forum Support" <${env.emailUser}>`,
+    to: email,
+    subject: "Verify your email address - Evangadi Forum",
+    html: emailHtml,
+  });
+};
 
 // ============================================================
 // REGISTER USER
 // ============================================================
 
 const registerUser = async ({ firstName, lastName, email, password }) => {
-  // Check whether an account already exists with this email.
+  const normalizedEmail = normalizeEmail(email);
 
-  const existingUser = await User.findByEmail(email);
-
-  if (existingUser) {
-    const error = new Error("An account with this email already exists.");
-
-    error.statusCode = 409;
-
+  // 1. Block disposable / temporary email domains
+  if (isDisposableEmail(normalizedEmail)) {
+    const error = new Error(DISPOSABLE_EMAIL_ERROR_MESSAGE);
+    error.statusCode = 400;
     throw error;
   }
 
-  // Validate password length after checking for an existing
-  // account.
-
+  // 2. Validate password length
   if (password.length < 8) {
     const error = new Error("Password must contain at least 8 characters.");
-
     error.statusCode = 400;
-
     throw error;
   }
 
-  // Hash the password before storing it in the database.
-  const passwordHash = await hashPassword(password);
+  // 3. Check whether an account already exists with this email
+  const existingUser = await User.findByEmail(normalizedEmail);
 
-  // Create the user account.
-  const user = await User.create({
+  if (existingUser) {
+    // If the account was already verified, disallow duplicate registration
+    if (existingUser.is_verified) {
+      const error = new Error("An account with this email already exists.");
+      error.statusCode = 409;
+      throw error;
+    }
+
+    // Unverified account handling:
+    // If user previously registered with an unverified email, refresh password and token, and resend
+    const passwordHash = await hashPassword(password);
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = hashVerificationToken(rawToken);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await User.updateUnverifiedRegistration(existingUser.user_id, {
+      firstName,
+      lastName,
+      passwordHash,
+      tokenHash,
+      expiresAt,
+    });
+
+    try {
+      await sendAccountVerificationEmail(normalizedEmail, firstName, rawToken);
+    } catch (emailErr) {
+      console.error("[Registration Email Error]:", emailErr.message);
+      return {
+        message:
+          "Account updated, but the verification email could not be sent. Please use the 'Resend verification' option.",
+        unverified: true,
+      };
+    }
+
+    return {
+      message:
+        "Account created! Please check your email to activate your account.",
+      unverified: true,
+    };
+  }
+
+  // Hash the password before storing it in the database
+  const passwordHash = await hashPassword(password);
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashVerificationToken(rawToken);
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  // Create unverified account
+  await User.create({
     firstName,
     lastName,
-    email,
+    email: normalizedEmail,
     passwordHash,
+    isVerified: false,
+    verificationToken: tokenHash,
+    verificationExpires: expiresAt,
   });
 
-  // Generate a JWT for the newly created user.
-  const token = generateToken(user.userId);
+  try {
+    await sendAccountVerificationEmail(normalizedEmail, firstName, rawToken);
+  } catch (emailErr) {
+    console.error("[Registration Email Error]:", emailErr.message);
+    return {
+      message:
+        "Account created, but the verification email could not be sent. Please use 'Resend verification'.",
+      unverified: true,
+    };
+  }
 
   return {
-    user,
-    token,
+    message:
+      "Account created! Please check your email to activate your account.",
+    unverified: true,
   };
 };
 
@@ -69,45 +155,43 @@ const registerUser = async ({ firstName, lastName, email, password }) => {
 // ============================================================
 
 const loginUser = async ({ email, password }) => {
-  const user = await User.findByEmail(email);
+  const normalizedEmail = normalizeEmail(email);
+  const user = await User.findByEmail(normalizedEmail);
 
-  if (!user) {
+  if (!user || !user.password_hash) {
     const error = new Error("Incorrect email or password.");
     error.statusCode = 401;
     throw error;
   }
 
-  if (!user.password_hash) {
-   const error = new Error("Incorrect email or password.");
-    error.statusCode = 401;
-    throw error;
-  }
-
-  // Compare the supplied password with the stored password hash.
+  // 1. Password must be checked first before revealing unverified status
   const isPasswordValid = await comparePassword(password, user.password_hash);
-
   if (!isPasswordValid) {
-   const error = new Error("Incorrect email or password.");
+    const error = new Error("Incorrect email or password.");
     error.statusCode = 401;
     throw error;
   }
 
-  // Generate a JWT after successful authentication.
+  // 2. Reject unverified accounts with HTTP 403
+  if (!user.is_verified) {
+    const error = new Error(
+      "Please verify your email address before signing in. Check your inbox or request a new activation link.",
+    );
+    error.statusCode = 403;
+    error.unverified = true;
+    error.email = user.email;
+    throw error;
+  }
+
+  // Generate a JWT after successful verified authentication
   const token = generateToken(user.user_id);
 
   return {
-    user: {
-      userId: user.user_id,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      email: user.email,
-      role: user.role || "user",
-      avatarUrl: user.avatar_url || null,
-      headline: user.headline || null,
-    },
+    user: toAuthenticatedUser(user),
     token,
   };
 };
+
 
 // ============================================================
 // GET CURRENT USER
@@ -413,7 +497,121 @@ const toAuthenticatedUser = (user) => ({
   role: user.role || "user",
   avatarUrl: user.avatar_url || null,
   headline: user.headline || null,
+  isVerified: Boolean(user.is_verified),
+  isGoogleLinked: Boolean(user.google_id),
 });
+
+// ============================================================
+// VERIFY EMAIL
+// ============================================================
+
+const verifyEmail = async (rawToken) => {
+  if (!rawToken || typeof rawToken !== "string" || !rawToken.trim()) {
+    const error = new Error("Verification token is required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const tokenHash = hashVerificationToken(rawToken.trim());
+  const user = await User.findByVerificationTokenHash(tokenHash);
+
+  if (!user) {
+    const error = new Error(
+      "Invalid or already used verification link. If your account is not verified, please request a new link.",
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Check expiration
+  if (
+    user.verification_expires &&
+    new Date(user.verification_expires).getTime() < Date.now()
+  ) {
+    const error = new Error(
+      "This verification link has expired. Please request a new verification email.",
+    );
+    error.statusCode = 400;
+    error.expired = true;
+    error.email = user.email;
+    throw error;
+  }
+
+  await User.markAsVerified(user.user_id);
+
+  return {
+    message: "Your email has been successfully verified! You can now sign in.",
+    user: toAuthenticatedUser(user),
+  };
+};
+
+// ============================================================
+// RESEND VERIFICATION EMAIL
+// ============================================================
+
+const resendVerification = async (email) => {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !emailPattern.test(normalizedEmail)) {
+    const error = new Error("Please provide a valid email address.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (isDisposableEmail(normalizedEmail)) {
+    const error = new Error(DISPOSABLE_EMAIL_ERROR_MESSAGE);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await User.findByEmail(normalizedEmail);
+
+  // Return generic, friendly message to prevent account enumeration
+  if (!user || user.is_verified) {
+    return {
+      message:
+        "If an unverified account exists with that email address, a new verification link has been sent.",
+    };
+  }
+
+  // Cooldown protection: if a token was issued in the last 60 seconds, enforce rate limit
+  if (user.verification_expires) {
+    const expiresTime = new Date(user.verification_expires).getTime();
+    const issuedTime = expiresTime - 24 * 60 * 60 * 1000;
+    const elapsedSeconds = (Date.now() - issuedTime) / 1000;
+
+    if (elapsedSeconds < 60) {
+      const waitSeconds = Math.ceil(60 - elapsedSeconds);
+      const error = new Error(
+        `Please wait ${waitSeconds} seconds before requesting another verification email.`,
+      );
+      error.statusCode = 429;
+      throw error;
+    }
+  }
+
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashVerificationToken(rawToken);
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await User.setVerificationTokenHash(user.user_id, tokenHash, expiresAt);
+
+  try {
+    await sendAccountVerificationEmail(user.email, user.first_name, rawToken);
+  } catch (emailErr) {
+    console.error("[Resend Verification Email Error]:", emailErr.message);
+    const error = new Error(
+      "Could not send verification email right now. Please try again later.",
+    );
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return {
+    message:
+      "A new verification link has been sent. Please check your inbox.",
+  };
+};
 
 const getGoogleIdentity = async (idToken) => {
   if (!idToken || typeof idToken !== "string") {
@@ -494,20 +692,33 @@ const existingEmailAccountError = () =>
 const authenticateWithGoogle = async (idToken) => {
   const identity = await getGoogleIdentity(idToken);
 
-  // Google subjects are the stable identifier. Do not use a mutable email to
-  // identify a returning Google user.
+  // 1. Returning Google user with matching google_id
   let user = await User.findByGoogleId(identity.googleId);
   if (user) {
     return createGoogleAuthenticationResponse(user);
   }
 
-  // Never silently attach a Google credential to a password account based on
-  // email alone. An existing user must authenticate first and explicitly link
-  // Google through the protected endpoint below.
-  if (await User.findByEmail(identity.email)) {
+  // 2. Check if an account exists with this email address
+  const existingUser = await User.findByEmail(identity.email);
+  if (existingUser) {
+    // PRE-REGISTRATION TAKEOVER DEFENSE:
+    // If someone pre-registered the victim's email address with a password but NEVER verified it,
+    // the legitimate owner is now signing in with Google (which certifies email ownership).
+    // In this case, wipe the unverified password backdoor and claim the account as verified Google user!
+    if (!existingUser.is_verified) {
+      user = await User.claimUnverifiedAccountWithGoogle(existingUser.user_id, {
+        googleId: identity.googleId,
+        avatarUrl: identity.avatarUrl,
+      });
+      return createGoogleAuthenticationResponse(user);
+    }
+
+    // If the account was ALREADY VERIFIED with a password:
+    // Do NOT silently link; require the user to sign in with password first and link in Settings.
     throw existingEmailAccountError();
   }
 
+  // 3. New user registration via Google (certified as verified by Google)
   try {
     const newUser = await User.createGoogleUser({
       ...identity,
@@ -572,6 +783,9 @@ const linkGoogleAccount = async (userId, idToken) => {
 export {
   registerUser,
   loginUser,
+  verifyEmail,
+  resendVerification,
+  hashVerificationToken,
   getCurrentUser,
   forgotPassword,
   resetPasswordConfirm,
@@ -583,3 +797,4 @@ export {
   authenticateWithGoogle,
   linkGoogleAccount,
 };
+
