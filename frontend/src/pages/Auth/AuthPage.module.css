@@ -526,3 +526,157 @@
   background-color: #78350f;
   border-color: #92400e;
 }
+
+/* ============================================================
+   EMAIL VERIFICATION & RESEND CALLOUT
+   ============================================================ */
+
+.fieldError {
+  font-size: var(--text-xs);
+  color: #dc2626;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+:global(html[data-theme="dark"]) .fieldError {
+  color: #f87171;
+}
+
+.inputError {
+  border-color: #dc2626 !important;
+}
+
+:global(html[data-theme="dark"]) .inputError {
+  border-color: #ef4444 !important;
+}
+
+.unverifiedCallout {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(220, 38, 38, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+:global(html[data-theme="dark"]) .unverifiedCallout {
+  border-top-color: rgba(239, 68, 68, 0.3);
+}
+
+.resendPrompt {
+  font-size: var(--text-xs);
+  color: inherit;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.resendActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: #b91c1c;
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: fit-content;
+}
+
+.resendActionButton:hover:not(:disabled) {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.resendActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+:global(html[data-theme="dark"]) .resendActionButton {
+  color: #fecaca;
+  background-color: #7f1d1d;
+  border-color: #991b1b;
+}
+
+:global(html[data-theme="dark"]) .resendActionButton:hover:not(:disabled) {
+  background-color: #991b1b;
+}
+
+.resendSuccessNotice {
+  font-size: var(--text-xs);
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-top: 0.25rem;
+}
+
+:global(html[data-theme="dark"]) .resendSuccessNotice {
+  color: #bbf7d0;
+  background-color: #052e16;
+  border-color: #166534;
+}
+
+/* Post-registration activation view */
+.activationCard {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.activationIcon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background-color: rgba(255, 102, 0, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activationTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.activationDescription {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 24rem;
+}
+
+.activationHighlight {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.activationHint {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.activationActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 20rem;
+  margin-top: 0.5rem;
+}
+
