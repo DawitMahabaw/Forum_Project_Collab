@@ -63,6 +63,15 @@ const AuthPage = () => {
   const [resendSuccessMessage, setResendSuccessMessage] = useState("");
   const [resendErrorMessage, setResendErrorMessage] = useState("");
   const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   // ============================================================
   // 💡 FIXED PARAMETER SCRAPER: Catch token before router clears it
@@ -99,6 +108,7 @@ const AuthPage = () => {
     setEmailError("");
     setResendSuccessMessage("");
     setResendErrorMessage("");
+    setResendCooldown(0);
     setFormData({
       firstName: "",
       lastName: "",
@@ -370,8 +380,11 @@ const AuthPage = () => {
         if (result?.unverified) {
           setUnverifiedEmail(email);
           setIsRegistrationSuccess(true);
+          setResendCooldown(60);
+          setResendSuccessMessage("");
+          setResendErrorMessage("");
           setSuccess(
-            result.emailNotice ||
+            result.message ||
               "Registration successful! Please check your email to activate your account."
           );
           return;
@@ -394,6 +407,8 @@ const AuthPage = () => {
         setError(data.message);
       } else if (status === 403 && data?.unverified) {
         setUnverifiedEmail(data.email || email);
+        setResendSuccessMessage("");
+        setResendErrorMessage("");
         setError(
           data.message ||
             "Please verify your email address before signing in. Check your inbox for the verification link."
@@ -424,8 +439,9 @@ const AuthPage = () => {
       const response = await resendVerification(targetEmail);
       setResendSuccessMessage(
         response?.message ||
-          "If this account exists and is unverified, a new verification link has been sent."
+          "If an account exists and still needs verification, we've sent a new link."
       );
+      setResendCooldown(60);
     } catch (requestError) {
       setResendErrorMessage(
         requestError.response?.data?.message ||
@@ -434,6 +450,24 @@ const AuthPage = () => {
     } finally {
       setIsResending(false);
     }
+  };
+
+  const handleStartAgain = () => {
+    setIsRegistrationSuccess(false);
+    setIsRegistering(true);
+    setUnverifiedEmail("");
+    setResendSuccessMessage("");
+    setResendErrorMessage("");
+    setResendCooldown(0);
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setError("");
+    setSuccess("");
   };
 
   const toggleMode = () => {
@@ -445,6 +479,7 @@ const AuthPage = () => {
     setEmailError("");
     setResendSuccessMessage("");
     setResendErrorMessage("");
+    setResendCooldown(0);
     setFormData({
       firstName: "",
       lastName: "",
@@ -562,7 +597,7 @@ const AuthPage = () => {
                    <div className={styles.activationIcon} aria-hidden>
                      <Mail size={32} />
                    </div>
-                   <h2 className={styles.activationTitle}>Verify your email</h2>
+                   <h2 className={styles.activationTitle}>Check your inbox</h2>
                    <p className={styles.activationDescription}>
                      We sent an activation link to{" "}
                      <span className={styles.activationHighlight}>{unverifiedEmail}</span>.
@@ -576,10 +611,14 @@ const AuthPage = () => {
                        type="button"
                        onClick={handleResendVerification}
                        className={styles.resendActionButton}
-                       disabled={isResending}
+                       disabled={isResending || resendCooldown > 0}
                        style={{ width: "100%", padding: "0.75rem 1rem", fontSize: "0.875rem" }}
                      >
-                       {isResending ? "Sending..." : "Resend Verification Email"}
+                       {isResending
+                         ? "Sending..."
+                         : resendCooldown > 0
+                           ? `Resend verification email (${resendCooldown}s)`
+                           : "Resend verification email"}
                      </button>
                      {resendSuccessMessage && (
                        <p className={styles.resendSuccessNotice}>{resendSuccessMessage}</p>
@@ -589,16 +628,11 @@ const AuthPage = () => {
                      )}
                      <button
                        type="button"
-                       onClick={() => {
-                         setIsRegistrationSuccess(false);
-                         setIsRegistering(false);
-                         setError("");
-                         setSuccess("");
-                       }}
+                       onClick={handleStartAgain}
                        className={styles.switchButton}
                        style={{ marginTop: "0.5rem" }}
                      >
-                       ← Back to sign in
+                       Wrong email? Start again
                      </button>
                    </div>
                  </div>
@@ -638,9 +672,13 @@ const AuthPage = () => {
                              type="button"
                              onClick={handleResendVerification}
                              className={styles.resendActionButton}
-                             disabled={isResending}
+                             disabled={isResending || resendCooldown > 0}
                            >
-                             {isResending ? "Sending..." : "Resend Verification Email"}
+                             {isResending
+                               ? "Sending..."
+                               : resendCooldown > 0
+                                 ? `Resend verification email (${resendCooldown}s)`
+                                 : "Resend verification email"}
                            </button>
                            {resendSuccessMessage && (
                              <p className={styles.resendSuccessNotice}>
