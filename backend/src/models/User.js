@@ -245,6 +245,7 @@ const User = {
         location,
         github_url,
         portfolio_url,
+        is_verified,
         created_at
       FROM users
       WHERE user_id = ?
