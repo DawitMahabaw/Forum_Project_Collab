@@ -118,6 +118,11 @@ export async function initializeDatabase() {
         "ALTER TABLE users ADD COLUMN verification_expires DATETIME NULL",
       );
     }
+    if (!existingUserCols.has("pending_email")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN pending_email VARCHAR(255) NULL",
+      );
+    }
 
     // Migration guard: Use a hard cutoff timestamp ('2026-10-16 08:23:00').
     // 1. Google OAuth accounts are certified by Google as verified identities.

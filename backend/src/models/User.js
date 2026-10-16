@@ -48,6 +48,7 @@ const User = {
         first_name,
         last_name,
         email,
+        pending_email,
         google_id,
         password_hash,
         role,
@@ -140,6 +141,7 @@ const User = {
         first_name,
         last_name,
         email,
+        pending_email,
         google_id,
         is_verified,
         verification_token,
@@ -151,6 +153,70 @@ const User = {
       [tokenHash],
     );
     return rows[0] || null;
+  },
+
+  async findByEmailOrPendingEmail(email) {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        user_id,
+        first_name,
+        last_name,
+        email,
+        pending_email,
+        google_id,
+        is_verified
+      FROM users
+      WHERE email = ? OR pending_email = ?
+      LIMIT 1
+      `,
+      [email, email],
+    );
+    return rows[0] || null;
+  },
+
+  async setPendingEmail(userId, pendingEmail, tokenHash, expiresAt) {
+    await pool.execute(
+      `
+      UPDATE users
+      SET
+        pending_email = ?,
+        verification_token = ?,
+        verification_expires = ?
+      WHERE user_id = ?
+      `,
+      [pendingEmail, tokenHash, expiresAt, userId],
+    );
+    return this.findById(userId);
+  },
+
+  async confirmEmailChange(userId, newEmail) {
+    await pool.execute(
+      `
+      UPDATE users
+      SET
+        email = ?,
+        pending_email = NULL,
+        verification_token = NULL,
+        verification_expires = NULL,
+        is_verified = TRUE
+      WHERE user_id = ?
+      `,
+      [newEmail, userId],
+    );
+    return this.findById(userId);
+  },
+
+  async updateAccountNamesOnly(userId, { firstName, lastName }) {
+    await pool.execute(
+      `
+      UPDATE users
+      SET first_name = ?, last_name = ?
+      WHERE user_id = ?
+      `,
+      [firstName, lastName, userId],
+    );
+    return this.findById(userId);
   },
 
   async markAsVerified(userId) {
@@ -178,6 +244,7 @@ const User = {
         password_hash = ?,
         verification_token = ?,
         verification_expires = ?,
+        pending_email = NULL,
         is_verified = FALSE
       WHERE user_id = ?
       `,
@@ -195,6 +262,7 @@ const User = {
         password_hash = NULL,
         verification_token = NULL,
         verification_expires = NULL,
+        pending_email = NULL,
         is_verified = TRUE,
         avatar_url = COALESCE(avatar_url, ?)
       WHERE user_id = ?
@@ -237,6 +305,7 @@ const User = {
         first_name,
         last_name,
         email,
+        pending_email,
         google_id,
         role,
         avatar_url,
