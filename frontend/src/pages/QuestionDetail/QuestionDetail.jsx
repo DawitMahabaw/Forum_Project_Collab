@@ -13,6 +13,8 @@ import {
   Trash2,
   X,
   Bookmark,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -185,16 +187,28 @@ const ExpandableAnswerContent = ({ content }) => {
     
   return (
     <div>
-      <MarkdownContent content={displayedContent} />
-      {isLongText && (
-        <button
-          type="button"
-          className={styles.readMoreButton}
-          onClick={() => setIsExpanded(!isExpanded)}
-          style={{ marginTop: "4px" }}
-        >
-          {isExpanded ? "Show Less" : "Read More"}
-        </button>
+      {isLongText && !isExpanded ? (
+        <span>
+          {displayedContent}
+          <span
+            className={styles.readMoreButton}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            Read More <ChevronDown size={16} />
+          </span>
+        </span>
+      ) : (
+        <>
+          <MarkdownContent content={displayedContent} />
+          {isLongText && (
+            <span
+              className={styles.readMoreButton}
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              Show Less <ChevronUp size={16} />
+            </span>
+          )}
+        </>
       )}
     </div>
   );
@@ -924,7 +938,6 @@ export default QuestionDetail;
  
 
 
-
 // ============================================================
 // NESTED REPLIES COMPONENT
 // ============================================================
@@ -933,37 +946,60 @@ const ExpandableReplyItem = ({ reply }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const isLongText = reply.content.length > 120;
-  const displayedContent =
-    isLongText && !isExpanded
-      ? `${reply.content.substring(0, 120)}...`
-      : reply.content;
+  let displayedContent = reply.content;
+
+  if (isLongText && !isExpanded) {
+    const cutoff = reply.content.lastIndexOf(" ", 120);
+    displayedContent =
+      cutoff > 0
+        ? `${reply.content.substring(0, cutoff)}...`
+        : `${reply.content.substring(0, 120)}...`;
+  }
 
   return (
-    <div className={styles.nestedReplyItem}>
+    <div className={styles.nestedReplyCard}>
       <div className={styles.nestedReplyHeader}>
-        <span className={styles.nestedReplyUser}>
-          {reply.author?.firstName} {reply.author?.lastName}
-        </span>
+        <div className={styles.nestedReplyUserMeta}>
+          <span className={styles.nestedReplyUser}>
+            {reply.author?.firstName} {reply.author?.lastName}
+          </span>
+          <span className={styles.nestedReplyBadge}>Learner</span>
+        </div>
         <span className={styles.nestedReplyDate}>
           {formatDate(reply.createdAt)}
         </span>
       </div>
 
       <p className={styles.nestedReplyBody}>
-        {displayedContent}
-        {isLongText && (
-          <button
-            type="button"
-            className={styles.readMoreButton}
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? "Show Less" : "Read More"}
-          </button>
+        {isLongText && !isExpanded ? (
+          <span>
+            {displayedContent}
+            <span
+              className={styles.readMoreButton}
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              Read More <ChevronDown size={14} />
+            </span>
+          </span>
+        ) : (
+          <>
+            {displayedContent}
+            {isLongText && (
+              <span
+                className={styles.readMoreButton}
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                Show Less <ChevronUp size={14} />
+              </span>
+            )}
+          </>
         )}
       </p>
     </div>
   );
 };
+
+
 const AnswerReplies = ({ answerId }) => {
   const [replies, setReplies] = useState([]);
   const [showReplies, setShowReplies] = useState(false);
@@ -971,11 +1007,9 @@ const AnswerReplies = ({ answerId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // 1. Reference for the scrollable container
-  const scrollAreaRef = useRef(null);
+  const [visibleReplies, setVisibleReplies] = useState(3);
 
   useEffect(() => {
-
     const fetchReplies = async () => {
       try {
         const data = await getRepliesByAnswer(answerId);
@@ -986,16 +1020,6 @@ const AnswerReplies = ({ answerId }) => {
     };
     fetchReplies();
   }, [answerId]);
-
-  // 2. Automatically slide down smoothly when a new reply arrives
-  useEffect(() => {
-    if (showReplies && scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }, [replies, showReplies]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1012,6 +1036,9 @@ const AnswerReplies = ({ answerId }) => {
       });
       setReplies((prev) => [...prev, newReply]);
       setReplyText("");
+    
+      setVisibleReplies(replies.length + 1);
+      
     } catch (err) {
       setError(err.response?.data?.message || "Could not post reply.");
     } finally {
@@ -1034,17 +1061,37 @@ const AnswerReplies = ({ answerId }) => {
 
       {showReplies && (
         <div className={styles.repliesDropdownContent}>
-          {/* 3. Added ref here to hook into the scrolling element */}
-          <div ref={scrollAreaRef} className={styles.repliesScrollArea}>
+          <div>
             {replies.length === 0 ? (
               <p className={styles.noRepliesText}>No replies yet.</p>
             ) : (
-              replies.map((reply) => (
-                <ExpandableReplyItem key={reply.id} reply={reply} />
-              ))
+              replies
+                .slice(0, visibleReplies)
+                .map((reply) => (
+                  <ExpandableReplyItem key={reply.id} reply={reply} />
+                ))
             )}
           </div>
-
+          
+          {replies.length > visibleReplies ? (
+            <button
+              type="button"
+              className={styles.loadMoreButton}
+              onClick={() => setVisibleReplies((prev) => prev + 3)}
+            >
+              Load More Replies <ChevronDown size={15} />
+            </button>
+          ) : (
+            replies.length > 3 && (
+              <button
+                type="button"
+                className={styles.loadMoreButton}
+                onClick={() => setVisibleReplies(3)}
+              >
+                Show Less Replies <ChevronUp size={15} />
+              </button>
+            )
+          )}
           <form onSubmit={handleSubmit} className={styles.nestedReplyForm}>
             <input
               type="text"
@@ -1067,5 +1114,3 @@ const AnswerReplies = ({ answerId }) => {
     </div>
   );
 };
-
-
