@@ -401,7 +401,8 @@ const updateAccount = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Account information updated successfully.",
+      message:
+        updatedUser.message || "Account information updated successfully.",
       user: updatedUser,
     });
   } catch (error) {

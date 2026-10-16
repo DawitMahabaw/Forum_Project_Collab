@@ -27,8 +27,22 @@ import {
 const hashVerificationToken = (rawToken) =>
   crypto.createHash("sha256").update(rawToken).digest("hex");
 
+const GENERIC_RESEND_RESPONSE =
+  "If an account exists and still needs verification, we've sent a new link.";
+
+let mailSenderHook = null;
+const setMailSenderHook = (hook) => {
+  mailSenderHook = hook;
+};
+
 const sendAccountVerificationEmail = async (email, firstName, rawToken) => {
   const verifyUrl = `${env.frontendUrl}/verify-email?token=${rawToken}`;
+
+  if (typeof mailSenderHook === "function") {
+    await mailSenderHook({ email, firstName, rawToken, verifyUrl });
+    return;
+  }
+
   const emailHtml = getEmailVerificationHTML({
     firstName,
     verifyLink: verifyUrl,
@@ -70,16 +84,44 @@ const registerUser = async ({ firstName, lastName, email, password }) => {
   const existingUser = await User.findByEmail(normalizedEmail);
 
   if (existingUser) {
-    // If the account was already verified, disallow duplicate registration
-    if (existingUser.is_verified) {
+    // If the account was already verified, or is a Google account, return normal "already exists"
+    if (existingUser.is_verified || existingUser.google_id) {
       const error = new Error("An account with this email already exists.");
       error.statusCode = 409;
       throw error;
     }
 
     // Unverified account handling:
-    // If user previously registered with an unverified email, refresh password and token, and resend
+    // Update the pending account (new password hash, new token hash, new expiry)
+    // and send a fresh link, subject to the same cooldown.
+    const cooldownSeconds = env.verificationResendCooldownSeconds || 60;
+    let isOnCooldown = false;
+    if (existingUser.verification_expires) {
+      const expiresTime = new Date(existingUser.verification_expires).getTime();
+      const issuedTime = expiresTime - 24 * 60 * 60 * 1000;
+      const elapsedSeconds = (Date.now() - issuedTime) / 1000;
+      if (elapsedSeconds >= 0 && elapsedSeconds < cooldownSeconds) {
+        isOnCooldown = true;
+      }
+    }
+
     const passwordHash = await hashPassword(password);
+
+    if (isOnCooldown) {
+      // Cooldown active: update pending account credentials without sending duplicate email
+      await User.updateAccountNamesOnly(existingUser.user_id, {
+        firstName,
+        lastName,
+      });
+      await User.updatePassword(existingUser.user_id, passwordHash);
+
+      return {
+        message:
+          "Account created! Please check your email to activate your account.",
+        unverified: true,
+      };
+    }
+
     const rawToken = crypto.randomBytes(32).toString("hex");
     const tokenHash = hashVerificationToken(rawToken);
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -95,10 +137,13 @@ const registerUser = async ({ firstName, lastName, email, password }) => {
     try {
       await sendAccountVerificationEmail(normalizedEmail, firstName, rawToken);
     } catch (emailErr) {
-      console.error("[Registration Email Error]:", emailErr.message);
+      console.error(
+        "[Registration Email Error]: Verification email dispatch failed:",
+        emailErr.message,
+      );
       return {
         message:
-          "Account updated, but the verification email could not be sent. Please use the 'Resend verification' option.",
+          "Account created! We couldn't deliver the verification email right now. Please use 'Resend verification email' once your inbox is ready.",
         unverified: true,
       };
     }
@@ -110,13 +155,12 @@ const registerUser = async ({ firstName, lastName, email, password }) => {
     };
   }
 
-  // Hash the password before storing it in the database
+  // Create unverified account
   const passwordHash = await hashPassword(password);
   const rawToken = crypto.randomBytes(32).toString("hex");
   const tokenHash = hashVerificationToken(rawToken);
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-  // Create unverified account
   await User.create({
     firstName,
     lastName,
@@ -130,10 +174,13 @@ const registerUser = async ({ firstName, lastName, email, password }) => {
   try {
     await sendAccountVerificationEmail(normalizedEmail, firstName, rawToken);
   } catch (emailErr) {
-    console.error("[Registration Email Error]:", emailErr.message);
+    console.error(
+      "[Registration Email Error]: Verification email dispatch failed:",
+      emailErr.message,
+    );
     return {
       message:
-        "Account created, but the verification email could not be sent. Please use 'Resend verification'.",
+        "Account created! We couldn't deliver the verification email right now. Please use 'Resend verification email' once your inbox is ready.",
       unverified: true,
     };
   }
@@ -392,16 +439,76 @@ const updateUserAvatar = async (userId, avatarUrl) => {
 // ============================================================
 
 const updateUserAccount = async (userId, { firstName, lastName, email }) => {
-  // If email was changed, ensure no other user has it
-  const existingUser = await User.findByEmail(email);
-
-  if (existingUser && Number(existingUser.user_id) !== Number(userId)) {
-    const error = new Error("An account with this email already exists.");
-    error.statusCode = 409;
+  const currentUser = await User.findById(userId);
+  if (!currentUser) {
+    const error = new Error("User not found.");
+    error.statusCode = 404;
     throw error;
   }
 
-  const updated = await User.updateAccount(userId, { firstName, lastName, email });
+  const normalizedNewEmail = email ? normalizeEmail(email) : currentUser.email;
+  const isEmailChanging =
+    normalizedNewEmail && normalizedNewEmail !== currentUser.email;
+
+  if (isEmailChanging) {
+    // 1. Run syntax, disposable, and MX checks on the new address
+    await validateEmailForRegistration(normalizedNewEmail);
+
+    // 2. Reject it if it belongs to another account (active or pending)
+    const existingUser = await User.findByEmailOrPendingEmail(normalizedNewEmail);
+    if (existingUser && Number(existingUser.user_id) !== Number(userId)) {
+      const error = new Error("An account with this email already exists.");
+      error.statusCode = 409;
+      throw error;
+    }
+
+    // 3. Keep old email active! Update names immediately
+    await User.updateAccountNamesOnly(userId, { firstName, lastName });
+
+    // 4. Store the new address as pending, generate token hash and fresh 24h expiry
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = hashVerificationToken(rawToken);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const updated = await User.setPendingEmail(
+      userId,
+      normalizedNewEmail,
+      tokenHash,
+      expiresAt,
+    );
+
+    // 5. Send verification link to the NEW address only
+    try {
+      await sendAccountVerificationEmail(
+        normalizedNewEmail,
+        firstName || currentUser.first_name,
+        rawToken,
+      );
+    } catch (emailErr) {
+      console.error(
+        "[Email Change Error]: Verification email dispatch failed:",
+        emailErr.message,
+      );
+    }
+
+    return {
+      userId: updated.user_id,
+      firstName: updated.first_name,
+      lastName: updated.last_name,
+      email: updated.email, // Old email remains active
+      pendingEmail: updated.pending_email,
+      role: updated.role || "user",
+      avatarUrl: updated.avatar_url || null,
+      headline: updated.headline || null,
+      message:
+        "Account updated. A verification link has been sent to your new email address. Your email will be updated once confirmed.",
+    };
+  }
+
+  const updated = await User.updateAccountNamesOnly(userId, {
+    firstName,
+    lastName,
+  });
 
   if (!updated) {
     const error = new Error("User not found.");
@@ -414,6 +521,7 @@ const updateUserAccount = async (userId, { firstName, lastName, email }) => {
     firstName: updated.first_name,
     lastName: updated.last_name,
     email: updated.email,
+    pendingEmail: updated.pending_email || null,
     role: updated.role || "user",
     avatarUrl: updated.avatar_url || null,
     headline: updated.headline || null,
@@ -528,8 +636,20 @@ const verifyEmail = async (rawToken) => {
     );
     error.statusCode = 400;
     error.expired = true;
-    error.email = user.email;
+    error.email = user.pending_email || user.email;
     throw error;
+  }
+
+  if (user.pending_email) {
+    const updatedUser = await User.confirmEmailChange(
+      user.user_id,
+      user.pending_email,
+    );
+    return {
+      message:
+        "Your new email address has been successfully verified and updated!",
+      user: toAuthenticatedUser(updatedUser),
+    };
   }
 
   await User.markAsVerified(user.user_id);
@@ -550,30 +670,33 @@ const resendVerification = async (email) => {
 
   const user = await User.findByEmail(normalizedEmail);
 
-  // Return generic, friendly message to prevent account enumeration
-  if (!user || user.is_verified) {
+  // Return generic, enumeration-safe response if:
+  // - account does not exist
+  // - account is already verified
+  // - account is a Google account (google_id IS NOT NULL)
+  if (!user || user.is_verified || user.google_id) {
     return {
-      message:
-        "If an unverified account exists with that email address, a new verification link has been sent.",
+      message: GENERIC_RESEND_RESPONSE,
     };
   }
 
-  // Cooldown protection: if a token was issued in the last 60 seconds, enforce rate limit
+  // Cooldown protection: if a token was issued within the cooldown period (default 60s)
+  const cooldownSeconds = env.verificationResendCooldownSeconds || 60;
   if (user.verification_expires) {
     const expiresTime = new Date(user.verification_expires).getTime();
     const issuedTime = expiresTime - 24 * 60 * 60 * 1000;
     const elapsedSeconds = (Date.now() - issuedTime) / 1000;
 
-    if (elapsedSeconds < 60) {
-      const waitSeconds = Math.ceil(60 - elapsedSeconds);
-      const error = new Error(
-        `Please wait ${waitSeconds} seconds before requesting another verification email.`,
-      );
-      error.statusCode = 429;
-      throw error;
+    if (elapsedSeconds >= 0 && elapsedSeconds < cooldownSeconds) {
+      // On cooldown: do not send email, do not update token, return the same generic message
+      return {
+        message: GENERIC_RESEND_RESPONSE,
+      };
     }
   }
 
+  // Eligible unverified password account after cooldown:
+  // Invalidate previous token, store new SHA-256 token hash and fresh 24-hour expiry
   const rawToken = crypto.randomBytes(32).toString("hex");
   const tokenHash = hashVerificationToken(rawToken);
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -583,17 +706,14 @@ const resendVerification = async (email) => {
   try {
     await sendAccountVerificationEmail(user.email, user.first_name, rawToken);
   } catch (emailErr) {
-    console.error("[Resend Verification Email Error]:", emailErr.message);
-    const error = new Error(
-      "Could not send verification email right now. Please try again later.",
+    console.error(
+      "[Resend Verification Email Error]: Verification email dispatch failed:",
+      emailErr.message,
     );
-    error.statusCode = 500;
-    throw error;
   }
 
   return {
-    message:
-      "A new verification link has been sent. Please check your inbox.",
+    message: GENERIC_RESEND_RESPONSE,
   };
 };
 
@@ -769,7 +889,9 @@ export {
   loginUser,
   verifyEmail,
   resendVerification,
+  GENERIC_RESEND_RESPONSE,
   hashVerificationToken,
+  setMailSenderHook,
   getCurrentUser,
   forgotPassword,
   resetPasswordConfirm,

@@ -23,6 +23,10 @@ const env = {
 
   emailUser: process.env.EMAIL_USER,
   emailPass: process.env.EMAIL_PASS,
+  verificationResendCooldownSeconds: numberFromEnv(
+    process.env.VERIFICATION_RESEND_COOLDOWN_SECONDS,
+    60,
+  ),
 
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
   geminiModel: process.env.GEMINI_MODEL?.trim(),
