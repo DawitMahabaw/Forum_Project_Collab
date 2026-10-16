@@ -253,7 +253,10 @@ describe("Asynchronous Email Validation & MX Record Checking", () => {
   it("rejects real live DNS query for definitely nonexistent domain", async () => {
     await assert.rejects(
       async () => {
-        await validateEmailForRegistration("user@thisdomaindoesnotexist12345.com");
+        await validateEmailForRegistration(
+          "user@thisdomaindoesnotexist12345.com",
+          { timeoutMs: 10000 },
+        );
       },
       (err) => {
         assert.equal(err.statusCode, 400);
