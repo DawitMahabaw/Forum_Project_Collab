@@ -1,8 +1,7 @@
 import express from "express";
 import questionRoutes from "./src/routes/questionRoutes.js";
-// Importing and initializing the  automatic database initialization for authentication schema
+// Importing and initializing the automatic database initialization for authentication schema
 import { initializeDatabase } from "./src/config/initDb.js";
-await initializeDatabase();
 
 // for saved questions/bookmarks
 import bookmarkRoutes from "./src/routes/bookmarkRoutes.js";
@@ -33,11 +32,51 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+const app = express();
+
 // Trust the single proxy hop in front of the Render service.
 // This lets express-rate-limit identify the client IP correctly.
 app.set("trust proxy", 1);
 
-app.use(cors());
+const allowedOrigins = new Set(
+  [env.frontendUrl, "http://127.0.0.1:5173"]
+    .flatMap((origins) => origins.split(","))
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
+const isLocalViteOrigin = (origin) => {
+  if (process.env.NODE_ENV === "production") return false;
+
+  try {
+    const url = new URL(origin);
+    const port = Number(url.port);
+
+    // Allow alternate Vite ports only during local development.
+    return (
+      url.protocol === "http:" &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
+      Number.isInteger(port) &&
+      port >= 5173 &&
+      port <= 5199
+    );
+  } catch {
+    return false;
+  }
+};
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      callback(
+        null,
+        !origin || allowedOrigins.has(origin) || isLocalViteOrigin(origin),
+      );
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 app.use(express.json({ limit: "100kb" }));
 
@@ -73,4 +112,9 @@ const testDatabaseConnection = async () => {
 app.listen(env.port, async () => {
   console.log(`AI Powered Evangadi Forum API is running on port ${env.port}.`);
   await testDatabaseConnection();
+  try {
+    await initializeDatabase();
+  } catch (error) {
+    console.error("Database initialization failed:", error.message);
+  }
 });

@@ -127,7 +127,8 @@
 .questionCard footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 10 16px;
+  /* --- FIXED: Added 'px' to the first number so the spacing rule works --- */
+  gap: 10px 16px;
   margin-top: 30px;
   padding-top: 25px;
   border-top: 1px solid #dbe3ee;
@@ -294,7 +295,7 @@
   color: #fff !important;
   border: none !important;
 }
- 
+
 .editActions button:last-child:hover {
   background: #ea580c !important;
 }
@@ -610,14 +611,13 @@
 }
 
 /* ==========================================================================
-   NESTED REPLIES & ACTIONS STYLES (LIGHT THEME)
+   UPDATED NESTED REPLIES & ACTIONS STYLES
    ========================================================================== */
 
 .repliesWrapper {
   margin-top: 18px;
 }
 
-/* Primary Trigger Button - Matches .shareButton exactly */
 .replyActionButton {
   display: inline-flex;
   align-items: center;
@@ -640,7 +640,6 @@
   background: #fff7ed;
 }
 
-/* Dropdown Container */
 .repliesDropdownContent {
   margin-top: 12px;
   padding: 16px;
@@ -649,36 +648,56 @@
   background: #f8fafc;
 }
 
-/* Scroll list layer */
-.repliesScrollArea {
-  max-height: 250px;
-  overflow-y: auto;
+/* Fluid layout container targeting the list block directly wrapper (removes scroll area) */
+.repliesDropdownContent > div:first-child {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 14px;
-  padding-right: 4px;
 }
 
-/* Individual Nested Reply Box */
-.nestedReplyItem {
-  padding: 10px 14px;
+/* Individual Nested Reply Box Design */
+.nestedReplyCard {
+  padding: 12px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #ffffff;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .nestedReplyHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+/* Positions Username and Badge side-by-side */
+.nestedReplyUserMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .nestedReplyUser {
   font-size: 13px;
   font-weight: 700;
   color: #0f172a;
+}
+
+/* Styled custom user profile role badge */
+.nestedReplyBadge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;                  /* Small padding to reduce the box size */
+  border-radius: 5px;                /* Slightly increased rounding for a smooth tag look */
+  border: 1px solid #fed7aa;
+  color: #ff6d11;
+  background: #fff7ed;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .nestedReplyDate {
@@ -702,7 +721,31 @@
   font-style: italic;
 }
 
-/* Input Form Layout */
+/* Pagination load more / show less button rules */
+.loadMoreButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0 16px 0;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.loadMoreButton:hover {
+  background: #fff7ed;
+  border-color: #fb923c;
+  color: #ea580c;
+}
+
 .nestedReplyForm {
   display: flex;
   gap: 8px;
@@ -726,7 +769,6 @@
   border-color: #fb923c;
 }
 
-/* Orange Submit Button (Applies to both Light and Dark themes) */
 .nestedReplySubmit {
   display: inline-flex;
   align-items: center;
@@ -735,7 +777,7 @@
   border: 0;
   border-radius: 6px;
   color: #ffffff;
-  background: #ff6d11; /* Vibrant orange matching your primary accent action buttons */
+  background: #ff6d11;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -764,7 +806,7 @@
   line-height: 1.45;
 }
 
-
+/* Inline text link configuration rules */
 .readMoreButton {
   background: none;
   border: none;
@@ -775,11 +817,15 @@
   font-size: 12px;
   font-family: inherit;
   transition: color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .readMoreButton:hover {
   color: #000000;
 }
+
 
 :global(html[data-theme="dark"]) .back,
 :global(html[data-theme="dark"]) .author small,
@@ -870,7 +916,7 @@
 :global(html[data-theme="dark"]) .questionCard h1 {
   color: var(--text-primary) !important;
 }
-  
+
 :global(html[data-theme="dark"]) .modal h2 {
   color: var(--text-primary) !important;
 }
@@ -980,4 +1026,30 @@
 }
 
 
+:global([data-theme="dark"]) .nestedReplyCard {
+  border-color: var(--border, #1e293b) !important;
+  background: var(--surface-container-low, #1e293b) !important;
+}
 
+/* Force the text inside the reply cards to become readable light gray/white */
+:global([data-theme="dark"]) .nestedReplyCard .nestedReplyBody,
+:global([data-theme="dark"]) .nestedReplyCard .nestedReplyDate {
+  color: var(--text-secondary, #cbd5e1) !important;
+}
+
+:global([data-theme="dark"]) .loadMoreButton {
+  background: var(--surface-container-low, #1e293b) !important;
+  border-color: var(--border, #334155) !important;
+  color: var(--text-secondary, #cbd5e1) !important;
+}
+
+:global([data-theme="dark"]) .loadMoreButton:hover {
+  background: var(--surface-highlight, #2a3a52) !important;
+  color: var(--text-primary, #ffffff) !important;
+}
+
+:global([data-theme="dark"]) .nestedReplyBadge {
+  border-color: rgba(255, 109, 17, 0.25);
+  color: #fb923c;
+  background: rgba(255, 109, 17, 0.08);
+}

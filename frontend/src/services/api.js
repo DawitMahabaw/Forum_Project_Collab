@@ -1,7 +1,17 @@
 import axios from "axios";
 import { getToken, removeToken } from "../utils/auth.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const configuredApiBaseUrl = (
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:4000"
+)
+  .trim()
+  .replace(/\/+$/, "");
+
+const API_BASE_URL = configuredApiBaseUrl.endsWith("/api")
+  ? configuredApiBaseUrl
+  : `${configuredApiBaseUrl}/api`;
 
 // ============================================================
 // CREATE AXIOS CLIENT
@@ -45,11 +55,17 @@ api.interceptors.response.use(
     // A rejected sign-in is expected to stay on the auth screen so the page
     // can show the API's friendly credential message. Other 401 responses
     // mean an existing session is no longer usable.
-    const isLoginRequest = String(error.config?.url || "").includes(
+    const requestPath = String(error.config?.url || "").replace(/\/+$/, "");
+    const isAuthAttempt = [
       "/auth/login",
-    );
+      "/auth/google",
+      "/auth/google/link",
+    ].includes(requestPath);
 
-    if (error.response?.status === 401 && !isLoginRequest) {
+    // A rejected Google credential while linking does not mean the existing
+    // forum JWT is invalid, so keep the user signed in to show the message.
+
+    if (error.response?.status === 401 && !isAuthAttempt) {
       removeToken();
 
       if (window.location.pathname !== "/auth") {

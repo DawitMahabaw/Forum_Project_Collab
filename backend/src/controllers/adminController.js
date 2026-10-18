@@ -5,22 +5,35 @@ import pool from "../config/db.js";
 // ============================================================
 export const getDashboardStats = async (req, res, next) => {
   try {
-    const [[userResult]] = await pool.query("SELECT COUNT(*) AS count FROM users");
-    const [[questionResult]] = await pool.query("SELECT COUNT(*) AS count FROM questions");
-    const [[answerResult]] = await pool.query("SELECT COUNT(*) AS count FROM answers");
+    // 1. Ask MySQL to count rows in each table
+    const [userRows] = await pool.query("SELECT COUNT(*) AS count FROM users");
+    const [questionRows] = await pool.query(
+      "SELECT COUNT(*) AS count FROM questions",
+    );
+    const [answerRows] = await pool.query(
+      "SELECT COUNT(*) AS count FROM answers",
+    );
 
+    // 2. Grab the count from the first row of each result
+    const totalUsers = userRows[0].count;
+    const totalQuestions = questionRows[0].count;
+    const totalAnswers = answerRows[0].count;
+
+    // 3. Send the response back to React
     res.status(200).json({
       success: true,
       stats: {
-        totalUsers: Number(userResult.count) || 0,
-        totalQuestions: Number(questionResult.count) || 0,
-        totalAnswers: Number(answerResult.count) || 0,
+        totalUsers: Number(totalUsers) || 0,
+        totalQuestions: Number(totalQuestions) || 0,
+        totalAnswers: Number(totalAnswers) || 0,
       },
     });
   } catch (error) {
+    // 4. If database fails, pass the error to Express error handler
     next(error);
   }
 };
+
 
 // ============================================================
 // 2. GET USERS LIST (WITH SEARCH)

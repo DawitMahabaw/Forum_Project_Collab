@@ -8,12 +8,20 @@ import {
   User,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { changePassword, updateAccount } from "../../services/authService.js";
+import { useTheme } from "../../context/ThemeContext.jsx";
+import { isGoogleAuthConfigured } from "../../config/googleAuth.js";
+import {
+  changePassword,
+  linkGoogleAccount,
+  updateAccount,
+} from "../../services/authService.js";
 import styles from "./Settings.module.css";
 
 const Settings = () => {
   const { user, updateUser } = useAuth();
+  const { theme } = useTheme();
   const accountTimerRef = useRef(null);
   const passwordTimerRef = useRef(null);
 
@@ -30,6 +38,7 @@ const Settings = () => {
     type: "",
     message: "",
   });
+  const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
 
   const showAccountFeedback = (type, message, duration = 4000) => {
     if (accountTimerRef.current) clearTimeout(accountTimerRef.current);
@@ -143,6 +152,37 @@ const Settings = () => {
     } finally {
       setIsSavingAccount(false);
     }
+  };
+
+  const handleGoogleLinkSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      showAccountFeedback("error", "Google did not return an authentication credential.");
+      return;
+    }
+
+    setIsLinkingGoogle(true);
+    try {
+      const response = await linkGoogleAccount(credentialResponse.credential);
+      if (response?.user) updateUser(response.user);
+      showAccountFeedback(
+        "success",
+        response?.message || "Google account linked successfully.",
+      );
+    } catch (error) {
+      showAccountFeedback(
+        "error",
+        error.response?.data?.message || "Could not link your Google account.",
+      );
+    } finally {
+      setIsLinkingGoogle(false);
+    }
+  };
+
+  const handleGoogleLinkError = () => {
+    showAccountFeedback(
+      "error",
+      "Google sign-in was cancelled or could not be completed. Please try again.",
+    );
   };
 
   // ----------------------------------------------------
@@ -324,6 +364,36 @@ const Settings = () => {
                 </small>
               </div>
             </form>
+
+            {isGoogleAuthConfigured && (
+              <div className={styles.googleLink}>
+                <h4>Google sign-in</h4>
+                <p>
+                  Connect the Google account that uses this same email address.
+                </p>
+                <div
+                  className={`${styles.googleButtonWrapper} ${
+                    isLinkingGoogle ? styles.googleButtonDisabled : ""
+                  }`}
+                >
+                  {isLinkingGoogle ? (
+                    <span className={styles.googleLinkLoading} role="status">
+                      Linking Google account…
+                    </span>
+                  ) : (
+                    <GoogleLogin
+                      onSuccess={handleGoogleLinkSuccess}
+                      onError={handleGoogleLinkError}
+                      theme={theme === "dark" ? "filled_black" : "outline"}
+                      text="continue_with"
+                      shape="rectangular"
+                      size="large"
+                      width="320"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className={styles.cardActionRow}>

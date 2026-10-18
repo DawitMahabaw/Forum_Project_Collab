@@ -9,6 +9,8 @@ import {
   updateUserAvatar,
   updateUserAccount,
   changeUserPassword,
+  authenticateWithGoogle,
+  linkGoogleAccount,
 } from "../services/authService.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -450,9 +452,64 @@ const changePassword = async (req, res, next) => {
   }
 };
 
+// ============================================================
+// GOOGLE AUTH CONTROLLER
+// ============================================================
+
+const googleLogin = async (req, res, next) => {
+  try {
+    const { idToken } = req.body || {};
+
+    if (!idToken || typeof idToken !== "string" || !idToken.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Google ID token is required.",
+      });
+    }
+
+    const result = await authenticateWithGoogle(idToken.trim());
+
+    return res.status(200).json({
+      success: true,
+      message: "Google authentication successful.",
+      user: result.user,
+      token: result.token,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const linkGoogle = async (req, res, next) => {
+  try {
+    const { idToken } = req.body || {};
+
+    if (!idToken || typeof idToken !== "string" || !idToken.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Google ID token is required.",
+      });
+    }
+
+    const result = await linkGoogleAccount(req.user.userId, idToken.trim());
+
+    return res.status(200).json({
+      success: true,
+      message: result.alreadyLinked
+        ? "This Google account is already linked."
+        : "Google account linked successfully.",
+      user: result.user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   register,
   login,
+  googleLogin,
+  linkGoogle,
   getMe,
   getProfile,
   updateProfile,

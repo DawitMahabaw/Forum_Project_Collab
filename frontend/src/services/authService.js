@@ -27,6 +27,24 @@ const loginUser = async (credentials) => {
 };
 
 /**
+ * Authenticates with Google ID token.
+ * @param {string} idToken - The Google OAuth ID token.
+ */
+const googleAuth = async (idToken) => {
+  const response = await api.post("/auth/google", { idToken });
+  return response.data;
+};
+
+/**
+ * Explicitly links a server-verified Google identity to the authenticated
+ * forum account. The Axios interceptor supplies the forum JWT.
+ */
+const linkGoogleAccount = async (idToken) => {
+  const response = await api.post("/auth/google/link", { idToken });
+  return response.data;
+};
+
+/**
  * Fetches the currently authenticated user's information
  * using the token attached by the API client.
  */
@@ -116,4 +134,6 @@ export {
   changePassword,
   forgotPassword,
   resetPasswordConfirm,
+  googleAuth,
+  linkGoogleAccount,
 };
