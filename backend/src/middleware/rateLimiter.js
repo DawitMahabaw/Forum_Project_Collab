@@ -81,5 +81,18 @@ const registerLimiter = rateLimit({
   },
 });
 
-export { draftCoachLimiter, resendVerificationLimiter, registerLimiter };
+const assistantChatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 requests per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    return res.status(429).json({
+      success: false,
+      message: "You have sent too many messages in a short time. Please wait a moment before asking again.",
+    });
+  },
+});
+
+export { draftCoachLimiter, resendVerificationLimiter, registerLimiter, assistantChatLimiter };
 
