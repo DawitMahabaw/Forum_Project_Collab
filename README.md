@@ -25,23 +25,25 @@ The application provides three major areas of functionality:
           |                   |                   |
           v                   v                   v
        Users          Questions & Answers     PDF & TXT Docs
-       JWT            Semantic Search         Chunking
-       Protected      Related Questions      Embeddings
-       Routes         Draft Coach             Retrieval
-                      Answer Fit              Grounded AI & Summary
+       JWT & Google   Semantic Search         Chunking
+       Email Verify   Related Questions       Embeddings
+       Protected      Draft Coach & Fit       Retrieval
+       Routes         Evangadi Assistant      Grounded Q&A
+                      Saved Bookmarks         Multi-turn Chat
 ```
 
 ---
 
 ## Completed Project Scope
 
-All three project milestones have been completed.
+All project milestones have been successfully completed and expanded.
 
 | Milestone   | Area                                    | Status    |
 | ----------- | --------------------------------------- | --------- |
 | Milestone 1 | Authentication & Application Foundation | Completed |
 | Milestone 2 | Questions, Answers & AI Assistance      | Completed |
 | Milestone 3 | Knowledge Base & RAG                    | Completed |
+| Extension   | AI Evangadi Assistant & Bookmarks       | Completed |
 
 ---
 
@@ -50,8 +52,12 @@ All three project milestones have been completed.
 ### Authentication & User Management
 
 * User registration & secure login
-* Google Authentication (Google Sign-In & Sign-Up with official Google branding)
+* Google OAuth 2.0 social authentication (Sign-In & Sign-Up with official Google branding)
 * Secure server-verified account linking with email ownership validation
+* Two-step scanner-safe email verification workflow (protects against spam bots and invalid emails)
+* Resend verification link with 60-second cooldown rate limiting
+* Disposable / temporary burner email domain detection and asynchronous DNS MX record validation
+* Automated background cleanup scheduler purging stale unverified accounts after 7 days
 * Password hashing with bcrypt
 * JWT-based stateless authentication
 * Protected API routes with token verification
@@ -60,7 +66,7 @@ All three project milestones have been completed.
 * User profile management (headline, bio, location, and social links)
 * Custom avatar upload with preview & static storage
 * Password update & account settings
-* Password reset workflow with secure tokens and email templates
+* Password reset workflow with secure short-lived tokens and responsive email templates
 * Role-based access control (Admin and Member tiers)
 * Automatic handling of expired or unauthorized sessions
 * Ownership-based authorization on all resources
@@ -74,6 +80,8 @@ All three project milestones have been completed.
 * Prevent users from answering their own questions
 * Author-only question and answer management
 * Dedicated "My Questions" personal dashboard
+* Saved Questions / Bookmarks library with dedicated personal dashboard (`/saved-questions`)
+* One-click bookmark toggle on question detail pages
 * Markdown-friendly question and answer formatting
 * Polished loading, empty, error, and ownership states
 
@@ -81,22 +89,31 @@ All three project milestones have been completed.
 
 * Keyword-based question search
 * Real-time debounced keyword search suggestions dropdown
-* Semantic question search powered by AI vectors
+* Semantic question search powered by AI vector embeddings
 * Instant toggle between keyword and AI semantic search modes
 * Related-question recommendations on discussion pages
-* Vector embeddings generation for questions
+* High-dimensional vector embeddings generation for questions
 * Cosine similarity matching
-* Meaning-based discovery across diverse phrasing
+* Meaning-based discovery across diverse phrasing and synonyms
 * Configurable similarity threshold and result limits
 
-### AI Assistance
+### AI Assistance & Evangadi Assistant
 
-* AI Draft Coach for questions (with rate limiting protection)
-* AI Answer Fit evaluation before submission
-* Gemini-powered text generation
-* Gemini-powered embeddings
-* Resilient AI service error handling, timeout, and retry logic
-* Human-in-the-loop AI assistance (reviewable suggestions)
+* **AI Evangadi Assistant (Floating Source-Grounded Chatbot):**
+  * Omnipresent floating assistant widget available across both public landing and authenticated application pages
+  * Tri-grounded synthesis answering developer queries from:
+    1. Forum community questions and top verified answers
+    2. User's private uploaded PDFs and technical documents via RAG
+    3. Evangadi Forum full-stack application architecture and technology stack documentation
+  * Strict privacy boundaries: authenticated users can query their uploaded PDFs; guests cannot access any user's private documents
+  * Direct source citation pills linking to discussions and document library with SPA routing (no page reloads)
+  * Dynamic follow-up suggestion chips generated per answer for natural multi-turn conversations
+  * Dedicated rate-limited endpoint (`/api/assistant/chat`) with optional authentication
+* **AI Draft Coach:** Pre-submission question quality review and writing assistance (with rate-limiting protection)
+* **AI Answer Fit:** Evaluates answer relevance, technical accuracy, and completeness against question drafts
+* **Google Gemini Integration:** Gemini Flash for generation and `gemini-embedding-2` for vector embeddings
+* **Resilience:** Heuristic fallbacks, timeout handling, and automatic retry logic on transient provider issues
+* **Human-in-the-Loop:** Suggestions are reviewable and non-destructive; users remain in control of final content
 
 ### Knowledge Base / RAG
 
@@ -107,6 +124,7 @@ All three project milestones have been completed.
 * Chunk-level vector embeddings
 * Semantic document search across extracted excerpts
 * Grounded AI question answering based on uploaded context
+* Multi-turn conversational chat with individual documents (`document_chat_messages`) with conversation history and per-message citations
 * AI document summarization with style presets (One page, Under 500w, Bullets, Executive)
 * Client-side summary export and download (.txt and .md)
 * Document metadata and processing status tracking
@@ -115,14 +133,15 @@ All three project milestones have been completed.
 
 ### Admin & Moderation
 
-* Role-guarded administrative dashboard
-* Platform-wide user metrics and management
+* Role-guarded administrative dashboard (`/admin`)
+* Platform-wide user metrics, verification tracking, and management
 * Moderation queue with question deletion controls
 * Administrative routing guards on frontend and backend
 
 ### Modern UI & Experience
 
 * Dark / Light mode toggle with persistent preferences
+* Floating AI Evangadi Assistant with micro-animations
 * Responsive navigation with collapsible sidebar drawer
 * Clean typography and interactive animations with Framer Motion and Lucide icons
 * Live search suggestions dropdown in navbar
@@ -201,31 +220,34 @@ The frontend is responsible for:
 
 # Technology Stack
 
-| Area                | Technology                  |
-| ------------------- | --------------------------- |
-| Frontend            | React 19                    |
-| Build Tool          | Vite                        |
-| Routing             | React Router 7              |
-| HTTP Client         | Axios                       |
-| Styling             | CSS Modules                 |
-| Markdown Rendering  | React Markdown              |
-| UI Icons            | Lucide React                |
-| Animation           | Framer Motion               |
-| Backend             | Node.js                     |
-| API Framework       | Express 5                   |
-| Database            | MySQL 8+                    |
-| Database Driver     | mysql2 (Promise-based)      |
-| Authentication      | JSON Web Tokens (JWT)       |
-| Password Security   | bcrypt                      |
-| Email Service       | Nodemailer (Gmail SMTP)     |
-| File Uploads        | Multer                      |
-| Rate Limiting       | express-rate-limit          |
-| Validation          | Custom / Native Validation  |
-| AI Model            | Google Gemini               |
-| Embeddings          | Gemini Embedding API        |
-| Document Parsing    | pdf-parse                   |
-| Code Quality        | Oxlint                      |
-| Architecture        | Layered MVC + Service Layer |
+| Area                | Technology                              |
+| ------------------- | --------------------------------------- |
+| Frontend            | React 19                                |
+| Build Tool          | Vite 8                                  |
+| Routing             | React Router 7                          |
+| HTTP Client         | Axios                                   |
+| Styling             | Vanilla CSS & CSS Modules               |
+| Social Login (Client)| @react-oauth/google                    |
+| Markdown & Syntax   | React Markdown, Remark GFM, Rehype Highlight |
+| UI Icons            | Lucide React                            |
+| Animation           | Framer Motion                           |
+| Backend             | Node.js 20+                             |
+| API Framework       | Express 5                               |
+| Database            | MySQL 8+                                |
+| Database Driver     | mysql2 (Promise-based connection pool)  |
+| Authentication      | JSON Web Tokens (JWT)                   |
+| Social Auth (Server)| google-auth-library                     |
+| Password Security   | bcrypt                                  |
+| Email Service       | Nodemailer (Gmail SMTP)                 |
+| Email Verification  | disposable-email-domains & DNS MX checks|
+| File Uploads        | Multer                                  |
+| Rate Limiting       | express-rate-limit                      |
+| Validation          | Custom / Native Validation              |
+| AI Model            | Google Gemini (Gemini Flash)            |
+| Embeddings          | Gemini Embedding API (gemini-embedding-2)|
+| Document Parsing    | pdf-parse                               |
+| Code Quality        | Oxlint                                  |
+| Architecture        | Layered MVC + Service Architecture      |
 
 ---
 
@@ -649,6 +671,10 @@ Authorization: Bearer <token>
 | ------ | ------------------------------------ | ------------------------------------ |
 | POST   | `/api/auth/register`                 | Register a new user                  |
 | POST   | `/api/auth/login`                    | Authenticate user and issue JWT      |
+| POST   | `/api/auth/verify-email`             | Verify email address with secure token |
+| POST   | `/api/auth/resend-verification`      | Resend verification email (rate-limited cooldown) |
+| POST   | `/api/auth/google`                   | Authenticate or sign up with Google OAuth |
+| POST   | `/api/auth/google/link`              | Link Google account to authenticated user |
 | GET    | `/api/auth/me`                       | Get current authenticated user       |
 | GET    | `/api/auth/profile`                  | Get user profile & biography details |
 | PUT    | `/api/auth/profile`                  | Update profile info & social links   |
@@ -682,6 +708,21 @@ Authorization: Bearer <token>
 | POST   | `/api/replies`           | Post a threaded reply to an answer |
 | GET    | `/api/replies/:answerId` | Get all replies for an answer      |
 
+## Saved Questions (Bookmarks)
+
+| Method | Endpoint                        | Purpose                                         |
+| ------ | ------------------------------- | ----------------------------------------------- |
+| GET    | `/api/bookmarks`                | List all saved questions for authenticated user |
+| GET    | `/api/bookmarks/:questionHash`  | Check bookmark status for a question            |
+| PUT    | `/api/bookmarks/:questionHash`  | Save / bookmark a question (idempotent)         |
+| DELETE | `/api/bookmarks/:questionHash`  | Remove a saved question from bookmarks          |
+
+## AI Evangadi Assistant
+
+| Method | Endpoint                 | Purpose                                                                 |
+| ------ | ------------------------ | ----------------------------------------------------------------------- |
+| POST   | `/api/assistant/chat`    | Interactive chat grounded across forum Q&As, user PDFs, and app architecture (rate-limited, optional auth) |
+
 ## Knowledge Base / RAG
 
 | Method | Endpoint                                   | Purpose                                        |
@@ -693,7 +734,10 @@ Authorization: Bearer <token>
 | GET    | `/api/rag/documents/:documentId/search`    | Semantic document search                       |
 | POST   | `/api/rag/documents/:documentId/query`     | Ask AI about a document                        |
 | POST   | `/api/rag/documents/:documentId/summarize` | AI document summary with custom prompt/preset  |
-| DELETE | `/api/rag/documents/:documentId`           | Delete document and vectors                    |
+| GET    | `/api/rag/documents/:documentId/messages`  | Get multi-turn chat messages for a document    |
+| DELETE | `/api/rag/documents/:documentId/messages`  | Clear chat conversation for a document         |
+| DELETE | `/api/rag/documents/:documentId/messages/:messageId` | Delete specific document chat message |
+| DELETE | `/api/rag/documents/:documentId`           | Delete document, chunks, and vectors           |
 
 ## Administration (Admin Only)
 
@@ -730,7 +774,9 @@ Authorization: Bearer <token>
 │   │   ├── controllers/
 │   │   │   ├── adminController.js
 │   │   │   ├── answerController.js
+│   │   │   ├── assistantController.js
 │   │   │   ├── authController.js
+│   │   │   ├── bookmarkController.js
 │   │   │   ├── createQuestionController.js
 │   │   │   ├── documentController.js
 │   │   │   ├── questionController.js
@@ -746,6 +792,7 @@ Authorization: Bearer <token>
 │   │   │
 │   │   ├── models/
 │   │   │   ├── Answer.js
+│   │   │   ├── Bookmark.js
 │   │   │   ├── Document.js
 │   │   │   ├── Question.js
 │   │   │   ├── QuestionVector.js
@@ -761,7 +808,9 @@ Authorization: Bearer <token>
 │   │   ├── routes/
 │   │   │   ├── adminRoutes.js
 │   │   │   ├── answerRoutes.js
+│   │   │   ├── assistantRoutes.js
 │   │   │   ├── authRoutes.js
+│   │   │   ├── bookmarkRoutes.js
 │   │   │   ├── createQuestionRoutes.js
 │   │   │   ├── documentRoutes.js
 │   │   │   ├── questionRoutes.js
@@ -770,19 +819,29 @@ Authorization: Bearer <token>
 │   │   ├── services/
 │   │   │   ├── aiService.js
 │   │   │   ├── answerService.js
+│   │   │   ├── assistantService.js
 │   │   │   ├── authService.js
+│   │   │   ├── bookmarkService.js
 │   │   │   ├── createQuestionService.js
 │   │   │   ├── documentService.js
 │   │   │   ├── questionService.js
 │   │   │   └── replyService.js
 │   │   │
 │   │   └── utils/
+│   │       ├── cleanupUnverifiedAccounts.js
 │   │       ├── emailTemplates.js
+│   │       ├── emailValidation.js
 │   │       ├── hash.js
 │   │       ├── jwt.js
 │   │       ├── password.js
 │   │       ├── questionHash.js
 │   │       └── seed.js
+│   │
+│   ├── tests/
+│   │   ├── authAuditAndCleanup.test.js
+│   │   ├── emailValidation.test.js
+│   │   ├── emailVerification.test.js
+│   │   └── verificationEmailLifecycle.test.js
 │   │
 │   ├── uploads/
 │   │   ├── avatars/
@@ -797,6 +856,7 @@ Authorization: Bearer <token>
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── AppFooter/
+│   │   │   ├── EvangadiAssistant/
 │   │   │   ├── Layout/
 │   │   │   ├── Navbar/
 │   │   │   ├── QuestionCard/
@@ -819,7 +879,9 @@ Authorization: Bearer <token>
 │   │   │   ├── Profile/
 │   │   │   ├── QuestionDetail/
 │   │   │   ├── RagDocuments/
-│   │   │   └── Settings/
+│   │   │   ├── SavedQuestions/
+│   │   │   ├── Settings/
+│   │   │   └── VerifyEmail/
 │   │   │
 │   │   ├── routes/
 │   │   │   └── AppRoutes.jsx
@@ -828,6 +890,7 @@ Authorization: Bearer <token>
 │   │   │   ├── adminService.js
 │   │   │   ├── answerService.js
 │   │   │   ├── api.js
+│   │   │   ├── assistantService.js
 │   │   │   ├── authService.js
 │   │   │   ├── questionService.js
 │   │   │   ├── ragService.js
@@ -930,35 +993,41 @@ The AI-related code handles:
 
 The application uses MySQL for persistent storage, with automatic schema and column initialization on startup (`backend/src/config/initDb.js`).
 
-The database stores information related to:
+The database schema consists of 10 dedicated tables:
 
-* Users (credentials, profile bio, avatar URL, social links, role)
-* Questions (content, hash-based URLs, author)
-* Question vectors (Gemini-generated embeddings in JSON)
-* Answers (content, author, question association)
-* Replies (threaded discussions on specific answers)
-* Documents (uploaded PDFs, metadata, processing status)
-* Document chunks (segmented text content)
-* Document chunk vectors (vector embeddings for semantic retrieval)
+* **Users (`users`)**: Credentials, Google OAuth ID (`google_id`), profile bio, headline, avatar URL, social links (GitHub, portfolio), role, and email verification lifecycle (`is_verified`, `verification_token`, `verification_expires`, `pending_email`).
+* **Questions (`questions`)**: Content, 64-character hash-based URLs (`question_hash`), author association, and timestamps.
+* **Question Vectors (`question_vectors`)**: Gemini-generated 768-dimensional JSON embeddings and indexing status (`ready`, `failed`).
+* **Answers (`answers`)**: Solution content, author, question foreign key association.
+* **Replies (`replies`)**: Threaded discussion comments on specific answers with cascading delete.
+* **Question Bookmarks (`question_bookmarks`)**: Personal question bookmarking tracking `(user_id, question_id)` pairs for quick access.
+* **Documents (`documents`)**: Uploaded PDF metadata, storage paths, file byte sizes, and asynchronous processing statuses (`processing`, `ready`, `failed`).
+* **Document Chunks (`document_chunks`)**: Segmented text excerpts with corresponding `page_numbers` JSON arrays.
+* **Document Chunk Vectors (`document_chunk_vectors`)**: Vector embeddings for document chunks powering RAG semantic retrieval.
+* **Document Chat Messages (`document_chat_messages`)**: Multi-turn conversational Q&A history per document, storing user/assistant roles, grounded citations JSON, and reply chains.
 
 Conceptually:
 
 ```text
-User (Profile, Avatar, Role)
+User (Profile, Email Verification, Google OAuth, Role)
  |
  +---- Questions
  |       |
  |       +---- Question Vector (JSON Embedding)
  |       |
  |       +---- Answers
- |               |
- |               +---- Replies (Threaded Comments)
+ |       |       |
+ |       |       +---- Replies (Threaded Comments)
+ |       |
+ |       +---- Bookmarks (question_bookmarks)
  |
  +---- Documents
          |
          +---- Document Chunks
-                  |
-                  +---- Document Chunk Vectors (Embeddings)
+         |        |
+         |        +---- Document Chunk Vectors (Embeddings)
+         |
+         +---- Document Chat Messages (Multi-turn History & Citations)
 ```
 
 ---
@@ -1193,12 +1262,14 @@ Run from `frontend/`:
 
 Run from `backend/`:
 
-| Command           | Purpose                                        |
-| ----------------- | ---------------------------------------------- |
-| `npm run dev`     | Start backend server (`node index.js`)         |
-| `npm start`       | Start backend server in production             |
-| `npm run nodemon` | Start backend server with hot-reloading        |
-| `npm run seed`    | Populate database with sample forum data       |
+| Command                      | Purpose                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`                | Start backend server (`node index.js`)                                  |
+| `npm start`                  | Start backend server in production                                      |
+| `npm run nodemon`            | Start backend server with hot-reloading                                 |
+| `npm run seed`               | Populate database with sample forum data                                |
+| `npm run embeddings:backfill`| Generate Gemini vector embeddings for any unindexed questions           |
+| `npm test`                   | Run automated test suite (validation, verification lifecycle, cleanup) |
 
 ---
 
@@ -1473,35 +1544,38 @@ RAG allows AI responses to incorporate retrieved information from user-provided 
 │              AI-POWERED EVANGADI FORUM                  │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  Milestone 1                                          │
-│  Authentication & Application Foundation              │
-│  ✓ Registration                                        │
-│  ✓ Login                                               │
-│  ✓ JWT Authentication                                  │
-│  ✓ Protected Routes                                    │
-│  ✓ Auth Context                                        │
+│  Milestone 1                                            │
+│  Authentication & Security Foundation                   │
+│  ✓ Local Registration & Login with Password Hashing     │
+│  ✓ JWT Authentication & React Auth Context              │
+│  ✓ Protected Route Architecture                         │
+│  ✓ Google OAuth 2.0 Sign-In & Explicit Account Linking  │
+│  ✓ Two-Step Email Verification Lifecycle & Cooldowns    │
+│  ✓ MX DNS Validation & Disposable Domain Defense        │
+│  ✓ Automated Unverified Account Cleanup Routine         │
+│  ✓ Profile, Avatar, Bio & Social Links Management       │
 │                                                         │
-│  Milestone 2                                          │
-│  Questions, Answers & AI Assistance                  │
-│  ✓ Question Management                                 │
-│  ✓ Answer Management                                   │
-│  ✓ Keyword Search                                      │
-│  ✓ Semantic Search                                     │
-│  ✓ Related Questions                                   │
-│  ✓ Draft Coach                                         │
-│  ✓ Answer Fit                                          │
+│  Milestone 2                                            │
+│  Questions, Answers & AI Assistance                     │
+│  ✓ Question & Answer Authoring Workflows                │
+│  ✓ Threaded Answer Discussion Replies                   │
+│  ✓ Personal Saved Questions & Bookmarks Collection      │
+│  ✓ Keyword Search & Vector Semantic Search (Gemini)     │
+│  ✓ Related Question Recommendations                     │
+│  ✓ AI Draft Coach (Pre-Publish Quality Advice)          │
+│  ✓ AI Answer Fit Evaluation & Relevance Scoring         │
+│  ✓ AI Evangadi Assistant (Tri-Grounded Floating Bot)    │
 │                                                         │
-│  Milestone 3                                          │
-│  Knowledge Base & RAG                                 │
-│  ✓ PDF Upload                                          │
-│  ✓ Text Extraction                                     │
-│  ✓ Chunking                                             │
-│  ✓ Embeddings                                          │
-│  ✓ Semantic Document Search                            │
-│  ✓ RAG Retrieval                                       │
-│  ✓ Grounded AI Answers                                 │
-│  ✓ PDF Preview                                         │
-│  ✓ Document Management                                 │
+│  Milestone 3                                            │
+│  Knowledge Base & RAG                                   │
+│  ✓ PDF Document Upload & MIME Validation                │
+│  ✓ Text Extraction & Semantic Content Chunking          │
+│  ✓ Document Chunk Vector Embeddings (Gemini)            │
+│  ✓ Semantic Document Search                             │
+│  ✓ RAG Context Retrieval & Grounded AI Answers          │
+│  ✓ Multi-Turn Document Chat with Source Citations       │
+│  ✓ In-Browser PDF Preview                               │
+│  ✓ Document Lifecycle & Deletion Management             │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -1576,24 +1650,19 @@ The complete system can be understood through this high-level model:
 
 # Project Status
 
-**All three milestones are completed.**
+**All three milestones and advanced capabilities are fully completed.**
 
-The project now provides a complete AI-powered forum experience combining:
+The project provides an enterprise-ready, AI-powered community forum experience combining:
 
-* Secure authentication
-* Full question and answer workflows
-* Keyword and semantic discovery
-* AI-assisted question writing
-* AI-assisted answer evaluation
-* Document-based knowledge retrieval
-* Semantic document search
-* Retrieval-Augmented Generation
-* Grounded AI responses
-* PDF document management
-* A React-based user interface
-* A layered Express/MySQL backend
+* **Robust Multi-Layered Authentication**: Dual authentication via local credentials and Google OAuth 2.0, scanner-safe two-step email verification, disposable domain blocking, DNS MX checks, and automated cleanup of unverified accounts.
+* **Full Discussion & Community Workflows**: Question creation with cryptographic URL hashes, rich answer authoring, threaded comment replies, and personal question bookmarking.
+* **Dual-Search Capabilities**: Instant keyword matching alongside 768-dimensional Gemini vector semantic search and related question discovery.
+* **Proactive AI Writing Assistants**: AI Draft Coach for questions and AI Answer Fit evaluations for answers.
+* **AI Evangadi Assistant**: An always-accessible floating chatbot grounded in real-time across community forum discussions, user-uploaded PDFs, and official Evangadi documentation.
+* **Document-Based Knowledge Base (RAG)**: Full PDF upload pipeline, text chunking, vector indexing, grounded document Q&A, and interactive multi-turn document chat with page citations.
+* **Modern Full-Stack Architecture**: Polished React + Vite frontend with responsive design and theme support, paired with a modular Express 5 and MySQL 8 backend.
 
-The result is a full-stack forum application that combines traditional community discussion with modern AI-powered search, writing assistance, and document-grounded knowledge retrieval.
+The result is a production-quality full-stack platform that seamlessly blends community discussions with state-of-the-art AI retrieval and document-grounded intelligence.
 
 ---
 
