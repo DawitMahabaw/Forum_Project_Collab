@@ -3,7 +3,11 @@ import pool from "../config/db.js";
 const parseEmbedding = (embedding) => {
   const parsed = Array.isArray(embedding) ? embedding : JSON.parse(embedding);
 
-  if (!Array.isArray(parsed) || !parsed.length || !parsed.every(Number.isFinite)) {
+  if (
+    !Array.isArray(parsed) ||
+    !parsed.length ||
+    !parsed.every(Number.isFinite)
+  ) {
     return null;
   }
 
@@ -42,7 +46,9 @@ const parsePageNumbers = (pageNumbers) => {
     typeof pageNumbers === "string" ? JSON.parse(pageNumbers) : pageNumbers;
 
   return Array.isArray(parsed)
-    ? parsed.map(Number).filter((page) => Number.isSafeInteger(page) && page > 0)
+    ? parsed
+        .map(Number)
+        .filter((page) => Number.isSafeInteger(page) && page > 0)
     : [];
 };
 
@@ -116,6 +122,11 @@ const Document = {
       [chunkId, JSON.stringify(embedding)],
     );
   },
+  async deleteChunksForDocument(documentId) {
+    await pool.execute(`DELETE FROM document_chunks WHERE document_id = ?`, [
+      documentId,
+    ]);
+  },
 
   async findReadyChunks(documentId) {
     const [rows] = await pool.execute(
@@ -132,13 +143,15 @@ const Document = {
         const embedding = parseEmbedding(row.embedding);
         if (!embedding) return [];
 
-        return [{
-          chunkId: Number(row.chunk_id),
-          chunkIndex: Number(row.chunk_index),
-          content: row.content,
-          pageNumbers: parsePageNumbers(row.page_numbers),
-          embedding,
-        }];
+        return [
+          {
+            chunkId: Number(row.chunk_id),
+            chunkIndex: Number(row.chunk_index),
+            content: row.content,
+            pageNumbers: parsePageNumbers(row.page_numbers),
+            embedding,
+          },
+        ];
       } catch {
         return [];
       }

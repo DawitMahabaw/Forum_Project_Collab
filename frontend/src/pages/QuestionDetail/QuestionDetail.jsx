@@ -184,7 +184,7 @@ const ExpandableAnswerContent = ({ content }) => {
         ? `${content.substring(0, cutoff)}...`
         : `${content.substring(0, 220)}...`;
   }
-    
+
   return (
     <div>
       {isLongText && !isExpanded ? (
@@ -935,7 +935,7 @@ const handleToggleSavedQuestion = async () => {
 };
 
 export default QuestionDetail;
- 
+
 
 
 // ============================================================
@@ -1036,9 +1036,9 @@ const AnswerReplies = ({ answerId }) => {
       });
       setReplies((prev) => [...prev, newReply]);
       setReplyText("");
-    
+
       setVisibleReplies(replies.length + 1);
-      
+
     } catch (err) {
       setError(err.response?.data?.message || "Could not post reply.");
     } finally {
@@ -1072,7 +1072,7 @@ const AnswerReplies = ({ answerId }) => {
                 ))
             )}
           </div>
-          
+
           {replies.length > visibleReplies ? (
             <button
               type="button"

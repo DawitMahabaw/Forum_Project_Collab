@@ -1,3 +1,4 @@
+import { handleProcessingFailure } from "./processingFailure.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PDFParse } from "pdf-parse";
@@ -119,22 +120,6 @@ const extractDocumentContent = async (filePath) => {
 
 const extractText = async (filePath) =>
   (await extractDocumentContent(filePath)).text;
-
-const markProcessingFailed = async (documentId, error) => {
-  try {
-    await Document.updateStatus(
-      documentId,
-      "failed",
-      error.message || "Document processing failed.",
-    );
-  } catch (statusError) {
-    console.error(
-      `Could not mark RAG document ${documentId} as failed:`,
-      statusError.message,
-    );
-  }
-};
-
 const processDocument = async (documentId, filePath) => {
   try {
     const extension = path.extname(filePath).toLowerCase();
@@ -174,7 +159,13 @@ const processDocument = async (documentId, filePath) => {
 
     await Document.updateStatus(documentId, "ready");
   } catch (error) {
-    await markProcessingFailed(documentId, error);
+    await handleProcessingFailure({
+      documentId,
+      error,
+      deleteChunks: (id) => Document.deleteChunksForDocument(id),
+      updateStatus: (id, status, message) =>
+        Document.updateStatus(id, status, message),
+    });
   }
 };
 
@@ -251,9 +242,9 @@ const sampleChunksAcrossDocument = (chunks, limit) => {
     picked.add(Math.round((slot * (chunks.length - 1)) / (limit - 1)));
   }
 
-  return [...picked].sort((first, second) => first - second).map(
-    (index) => chunks[index],
-  );
+  return [...picked]
+    .sort((first, second) => first - second)
+    .map((index) => chunks[index]);
 };
 
 const getOverviewEvidence = async (document) => {
@@ -320,7 +311,10 @@ ${query}
 
 Recent conversation (context for interpreting the latest request only; all factual answers must remain supported by the retrieved excerpts):
 ${history
-  .map(({ role, content }) => `${role === "user" ? "User" : "Assistant"}: ${content}`)
+  .map(
+    ({ role, content }) =>
+      `${role === "user" ? "User" : "Assistant"}: ${content}`,
+  )
   .join("\n")}
 
 Retrieved document excerpts:
@@ -431,7 +425,10 @@ const summarizeDocument = async (document, userPrompt) => {
     rawText = await extractText(document.storagePath);
   } catch (error) {
     if (error.code === "ENOENT") {
-      throw createHttpError("The uploaded PDF file is no longer available.", 404);
+      throw createHttpError(
+        "The uploaded PDF file is no longer available.",
+        404,
+      );
     }
     throw error;
   }

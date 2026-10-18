@@ -128,7 +128,7 @@
   display: flex;
   flex-wrap: wrap;
   /* --- FIXED: Added 'px' to the first number so the spacing rule works --- */
-  gap: 10px 16px; 
+  gap: 10px 16px;
   margin-top: 30px;
   padding-top: 25px;
   border-top: 1px solid #dbe3ee;
@@ -295,7 +295,7 @@
   color: #fff !important;
   border: none !important;
 }
- 
+
 .editActions button:last-child:hover {
   background: #ea580c !important;
 }
@@ -611,7 +611,7 @@
 }
 
 /* ==========================================================================
-   UPDATED NESTED REPLIES & ACTIONS STYLES 
+   UPDATED NESTED REPLIES & ACTIONS STYLES
    ========================================================================== */
 
 .repliesWrapper {
@@ -777,7 +777,7 @@
   border: 0;
   border-radius: 6px;
   color: #ffffff;
-  background: #ff6d11; 
+  background: #ff6d11;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -810,7 +810,7 @@
 .readMoreButton {
   background: none;
   border: none;
-  color: #475569;  
+  color: #475569;
   font-weight: 700;
   padding-left: 6px;
   cursor: pointer;
@@ -916,7 +916,7 @@
 :global(html[data-theme="dark"]) .questionCard h1 {
   color: var(--text-primary) !important;
 }
-  
+
 :global(html[data-theme="dark"]) .modal h2 {
   color: var(--text-primary) !important;
 }

@@ -10,7 +10,7 @@
     "nodemon": "nodemon index.js",
     "seed": "node src/utils/seed.js",
     "embeddings:backfill": "node src/utils/backfillEmbeddings.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
