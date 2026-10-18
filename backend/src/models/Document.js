@@ -158,6 +158,37 @@ const Document = {
     });
   },
 
+  async findReadyChunksForUser(userId) {
+    if (!userId) return [];
+    const [rows] = await pool.execute(
+      `SELECT d.document_id, d.title AS document_title, c.chunk_id, c.chunk_index, c.content, v.embedding
+       FROM documents d
+       INNER JOIN document_chunks c ON c.document_id = d.document_id
+       INNER JOIN document_chunk_vectors v ON v.chunk_id = c.chunk_id
+       WHERE d.user_id = ? AND d.status = 'ready' AND v.status = 'ready'
+       ORDER BY d.created_at DESC, c.chunk_index ASC`,
+      [userId],
+    );
+
+    return rows.flatMap((row) => {
+      try {
+        const embedding = parseEmbedding(row.embedding);
+        if (!embedding) return [];
+
+        return [{
+          documentId: Number(row.document_id),
+          documentTitle: row.document_title,
+          chunkId: Number(row.chunk_id),
+          chunkIndex: Number(row.chunk_index),
+          content: row.content,
+          embedding,
+        }];
+      } catch {
+        return [];
+      }
+    });
+  },
+
   async listChatMessages(documentId) {
     const [rows] = await pool.execute(
       `SELECT message_id, reply_to_message_id, role, content, citations,
