@@ -38,10 +38,20 @@ const app = express();
 // This lets express-rate-limit identify the client IP correctly.
 app.set("trust proxy", 1);
 
-const allowedOrigins = new Set(
-  [env.frontendUrl, "http://127.0.0.1:5173"]
-    .flatMap((origins) => origins.split(","))
-    .map((origin) => origin.trim())
+const normalizeOrigin = (urlStr) => {
+  if (!urlStr || typeof urlStr !== "string") return "";
+  return urlStr.trim().replace(/\/+$/, "");
+};
+
+const explicitAllowedOrigins = new Set(
+  [
+    env.frontendUrl,
+    "https://forum-project-collab.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+  ]
+    .flatMap((origins) => (origins ? origins.split(",") : []))
+    .map(normalizeOrigin)
     .filter(Boolean),
 );
 
@@ -65,16 +75,38 @@ const isLocalViteOrigin = (origin) => {
   }
 };
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  const normalized = normalizeOrigin(origin);
+
+  if (explicitAllowedOrigins.has(normalized)) return true;
+  if (isLocalViteOrigin(normalized)) return true;
+
+  try {
+    const url = new URL(normalized);
+    // Allow Vercel deployments and preview URLs for this forum project
+    if (
+      url.protocol === "https:" &&
+      url.hostname.endsWith(".vercel.app") &&
+      url.hostname.includes("forum-project-collab")
+    ) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+};
+
 app.use(
   cors({
     origin(origin, callback) {
-      callback(
-        null,
-        !origin || allowedOrigins.has(origin) || isLocalViteOrigin(origin),
-      );
+      callback(null, isAllowedOrigin(origin));
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   }),
 );
 
