@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
+import EvangadiAssistant from "../../components/EvangadiAssistant/EvangadiAssistant.jsx";
 
 import styles from "./LandingPage.module.css";
 
@@ -463,6 +464,9 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Floating AI Evangadi Assistant */}
+      <EvangadiAssistant />
     </div>
   );
 };
