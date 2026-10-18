@@ -49,6 +49,8 @@ const authenticate = async (req, res, next) => {
 
     req.user = {
       userId: user.user_id,
+      firstName: user.first_name,
+      lastName: user.last_name,
       role: user.role || "user",
       email: user.email,
     };
@@ -59,4 +61,32 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const authorizationHeader = req.headers.authorization;
+    if (authorizationHeader) {
+      const parts = authorizationHeader.split(" ");
+      if (parts.length === 2 && parts[0] === "Bearer" && parts[1]) {
+        const decodedToken = verifyToken(parts[1]);
+        if (decodedToken?.userId) {
+          const user = await User.findById(decodedToken.userId);
+          if (user && user.is_verified) {
+            req.user = {
+              userId: user.user_id,
+              firstName: user.first_name,
+              lastName: user.last_name,
+              role: user.role || "user",
+              email: user.email,
+            };
+          }
+        }
+      }
+    }
+  } catch {
+    // Proceed as unauthenticated guest
+  }
+  next();
+};
+
+export { authenticate, optionalAuthenticate };
 export default authenticate;
