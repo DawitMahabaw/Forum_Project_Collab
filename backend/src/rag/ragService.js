@@ -269,11 +269,11 @@ const queryDocument = async (document, query, history = []) => {
     .map(({ content }) => content);
   const retrievalQuery = [...previousQuestions, query].join("\n");
 
-  cconst evidence = isOverviewQuery(query)
-  ? await getOverviewEvidence(document)
-  : (await rankDocumentChunks(document, retrievalQuery)).filter(
-      (result) => result.score >= env.rag.evidenceThreshold,
-    );
+  const evidence = isOverviewQuery(query)
+    ? await getOverviewEvidence(document)
+    : (await rankDocumentChunks(document, retrievalQuery)).filter(
+        (result) => result.score >= env.rag.evidenceThreshold,
+      );
 
   if (!evidence.length) {
     return {
@@ -311,7 +311,10 @@ ${query}
 
 Recent conversation (context for interpreting the latest request only; all factual answers must remain supported by the retrieved excerpts):
 ${history
-  .map(({ role, content }) => `${role === "user" ? "User" : "Assistant"}: ${content}`)
+  .map(
+    ({ role, content }) =>
+      `${role === "user" ? "User" : "Assistant"}: ${content}`,
+  )
   .join("\n")}
 
 Retrieved document excerpts:

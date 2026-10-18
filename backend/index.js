@@ -32,8 +32,6 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const app = express();
-
 // Trust the single proxy hop in front of the Render service.
 // This lets express-rate-limit identify the client IP correctly.
 app.set("trust proxy", 1);
