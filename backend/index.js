@@ -6,7 +6,6 @@ import { initializeDatabase } from "./src/config/initDb.js";
 // for saved questions/bookmarks
 import bookmarkRoutes from "./src/routes/bookmarkRoutes.js";
 
-
 // Import CORS.
 import cors from "cors";
 
@@ -22,7 +21,6 @@ import pool from "./src/config/db.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import { startUnverifiedAccountsCleanupScheduler } from "./src/utils/cleanupUnverifiedAccounts.js";
 
-
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -34,6 +32,11 @@ const __dirname = path.dirname(__filename);
 // ============================================================
 
 const app = express();
+
+// Trust the single proxy hop in front of the Render service.
+// This lets express-rate-limit identify the client IP correctly.
+app.set("trust proxy", 1);
+
 const allowedOrigins = new Set(
   [env.frontendUrl, "http://127.0.0.1:5173"]
     .flatMap((origins) => origins.split(","))
@@ -48,8 +51,7 @@ const isLocalViteOrigin = (origin) => {
     const url = new URL(origin);
     const port = Number(url.port);
 
-    // Vite starts at 5173 and selects the next free port when that port is
-    // already in use. Restrict this convenience to loopback development URLs.
+    // Allow alternate Vite ports only during local development.
     return (
       url.protocol === "http:" &&
       (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
@@ -65,9 +67,6 @@ const isLocalViteOrigin = (origin) => {
 app.use(
   cors({
     origin(origin, callback) {
-      // Requests without an Origin header (for example, local health checks)
-      // are not browser CORS requests. Browser clients must be explicitly
-      // configured through FRONTEND_URL.
       callback(
         null,
         !origin || allowedOrigins.has(origin) || isLocalViteOrigin(origin),
@@ -77,6 +76,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
 app.use(express.json({ limit: "100kb" }));
 
 // Serve uploaded assets (avatars, documents)

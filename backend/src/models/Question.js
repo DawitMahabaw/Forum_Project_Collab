@@ -73,7 +73,7 @@ const Question = {
   // FIND MANY (WITH OPTIONAL FILTERS)
   // ---------------------------------------------------------
 
-  async findMany({ search, userId }) {
+  async findMany({ search, userId, limit = 10, offset = 0 }) {
     const conditions = [];
     const params = [];
 
@@ -91,17 +91,32 @@ const Question = {
     const whereClause =
       conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+    // Fetch only the requested page.
     const [rows] = await pool.execute(
       `
       ${BASE_QUESTION_SELECT}
       ${whereClause}
       GROUP BY q.id
-      ORDER BY q.created_at DESC
+      ORDER BY q.created_at DESC, q.id DESC
+      LIMIT ? OFFSET ?
+      `,
+      [...params, limit, offset],
+    );
+
+    // Count all matching questions, not just this page.
+    const [countRows] = await pool.execute(
+      `
+      SELECT COUNT(*) AS total
+      FROM questions q
+      ${whereClause}
       `,
       params,
     );
 
-    return rows.map(mapQuestionRow);
+    return {
+      questions: rows.map(mapQuestionRow),
+      total: Number(countRows[0].total),
+    };
   },
 
   // ---------------------------------------------------------
