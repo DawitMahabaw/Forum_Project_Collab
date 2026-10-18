@@ -19,6 +19,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 import pool from "./src/config/db.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
+import assistantRoutes from "./src/routes/assistantRoutes.js";
 import { startUnverifiedAccountsCleanupScheduler } from "./src/utils/cleanupUnverifiedAccounts.js";
 
 import path from "path";
@@ -97,6 +98,7 @@ app.use("/api/rag/documents", documentRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/assistant", assistantRoutes);
 app.use(notFound);
 app.use(errorHandler);
 const testDatabaseConnection = async () => {
