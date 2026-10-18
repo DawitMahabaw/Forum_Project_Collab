@@ -23,6 +23,10 @@ const env = {
 
   emailUser: process.env.EMAIL_USER,
   emailPass: process.env.EMAIL_PASS,
+  verificationResendCooldownSeconds: numberFromEnv(
+    process.env.VERIFICATION_RESEND_COOLDOWN_SECONDS,
+    60,
+  ),
 
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
   geminiModel: process.env.GEMINI_MODEL?.trim(),
@@ -55,6 +59,14 @@ const env = {
     ),
     evidenceThreshold: numberFromEnv(process.env.RAG_EVIDENCE_THRESHOLD, 0.55),
     searchThreshold: numberFromEnv(process.env.RAG_SEARCH_THRESHOLD, 0.6),
+  },
+  unverifiedCleanup: {
+    retentionDays: numberFromEnv(process.env.UNVERIFIED_USER_RETENTION_DAYS, 7),
+    intervalHours: numberFromEnv(
+      process.env.UNVERIFIED_CLEANUP_INTERVAL_HOURS,
+      24,
+    ),
+    enabled: process.env.UNVERIFIED_CLEANUP_ENABLED !== "false",
   },
 };
 

@@ -54,13 +54,15 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   
-  // Register a new user and automatically log them in.
+  // Register a new user. If a token is provided (e.g. immediate verification), authenticate.
   const register = async (userData) => {
     const response = await registerUser(userData);
 
-    setUser(response.user);
-    setToken(response.token);
-    saveToken(response.token);
+    if (response?.token && response?.user) {
+      setUser(response.user);
+      setToken(response.token);
+      saveToken(response.token);
+    }
 
     return response;
   };

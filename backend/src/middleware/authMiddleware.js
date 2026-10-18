@@ -1,6 +1,7 @@
 import { verifyToken } from "../utils/jwt.js";
+import User from "../models/User.js";
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
@@ -8,26 +9,84 @@ const authenticate = (req, res, next) => {
       error.statusCode = 401;
       return next(error);
     }
+
     const parts = authorizationHeader.split(" ");
     if (parts.length !== 2 || parts[0] !== "Bearer" || !parts[1]) {
       const error = new Error("Invalid authentication token format.");
       error.statusCode = 401;
       return next(error);
     }
+
     const token = parts[1];
-    const decodedToken = verifyToken(token);
+    let decodedToken;
+    try {
+      decodedToken = verifyToken(token);
+    } catch {
+      const authenticationError = new Error(
+        "Invalid or expired authentication token.",
+      );
+      authenticationError.statusCode = 401;
+      return next(authenticationError);
+    }
+
+    // Verify user exists in database and enforce verified status
+    const user = await User.findById(decodedToken.userId);
+    if (!user) {
+      const error = new Error("User account no longer exists.");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    // Unverified accounts cannot access protected resources
+    if (!user.is_verified) {
+      const error = new Error(
+        "Please verify your email address before accessing this resource.",
+      );
+      error.statusCode = 403;
+      error.unverified = true;
+      return next(error);
+    }
+
     req.user = {
-      userId: decodedToken.userId,
+      userId: user.user_id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      role: user.role || "user",
+      email: user.email,
     };
 
     next();
   } catch (error) {
-    const authenticationError = new Error(
-      "Invalid or expired authentication token.",
-    );
-
-    authenticationError.statusCode = 401;
-    next(authenticationError);
+    next(error);
   }
 };
+
+const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const authorizationHeader = req.headers.authorization;
+    if (authorizationHeader) {
+      const parts = authorizationHeader.split(" ");
+      if (parts.length === 2 && parts[0] === "Bearer" && parts[1]) {
+        const decodedToken = verifyToken(parts[1]);
+        if (decodedToken?.userId) {
+          const user = await User.findById(decodedToken.userId);
+          if (user && user.is_verified) {
+            req.user = {
+              userId: user.user_id,
+              firstName: user.first_name,
+              lastName: user.last_name,
+              role: user.role || "user",
+              email: user.email,
+            };
+          }
+        }
+      }
+    }
+  } catch {
+    // Proceed as unauthenticated guest
+  }
+  next();
+};
+
+export { authenticate, optionalAuthenticate };
 export default authenticate;

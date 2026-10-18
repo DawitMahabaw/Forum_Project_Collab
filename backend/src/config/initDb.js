@@ -102,6 +102,40 @@ export async function initializeDatabase() {
       );
     }
 
+    // Ensure email verification columns exist
+    if (!existingUserCols.has("is_verified")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE",
+      );
+    }
+    if (!existingUserCols.has("verification_token")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN verification_token VARCHAR(255) NULL",
+      );
+    }
+    if (!existingUserCols.has("verification_expires")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN verification_expires DATETIME NULL",
+      );
+    }
+    if (!existingUserCols.has("pending_email")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN pending_email VARCHAR(255) NULL",
+      );
+    }
+
+    // Migration guard: Use a hard cutoff timestamp ('2026-10-16 08:23:00').
+    // 1. Google OAuth accounts are certified by Google as verified identities.
+    await connection.query(
+      "UPDATE users SET is_verified = TRUE WHERE google_id IS NOT NULL AND is_verified = FALSE",
+    );
+    // 2. Backfill established legacy cohort accounts created before the verification system deployment.
+    // New accounts created after this cutoff will strictly remain unverified until email confirmation.
+    await connection.query(
+      "UPDATE users SET is_verified = TRUE WHERE created_at < '2026-10-16 08:23:00' AND google_id IS NULL AND is_verified = FALSE",
+    );
+
+
     // Create the questions table if it does not already exist
     await connection.query(`
       CREATE TABLE IF NOT EXISTS questions (

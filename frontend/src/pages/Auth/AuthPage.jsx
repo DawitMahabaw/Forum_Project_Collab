@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
   MessageSquare,
+  Mail,
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -22,6 +23,7 @@ import { isGoogleAuthConfigured } from "../../config/googleAuth.js";
 import {
   forgotPassword,
   resetPasswordConfirm,
+  resendVerification,
 } from "../../services/authService.js";
 
 import styles from "./AuthPage.module.css";
@@ -51,8 +53,25 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Email verification & resend states
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccessMessage, setResendSuccessMessage] = useState("");
+  const [resendErrorMessage, setResendErrorMessage] = useState("");
+  const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   // ============================================================
   // 💡 FIXED PARAMETER SCRAPER: Catch token before router clears it
@@ -84,6 +103,12 @@ const AuthPage = () => {
     setIsRegistering(false);
     setIsResetPasswordMode(false);
     setIsGoogleLoading(false);
+    setIsRegistrationSuccess(false);
+    setUnverifiedEmail("");
+    setEmailError("");
+    setResendSuccessMessage("");
+    setResendErrorMessage("");
+    setResendCooldown(0);
     setFormData({
       firstName: "",
       lastName: "",
@@ -159,6 +184,9 @@ const AuthPage = () => {
       [name]: value,
     }));
     setError("");
+    if (name === "email") {
+      setEmailError("");
+    }
   };
 
   const handleForgotPasswordSubmit = async () => {
@@ -336,15 +364,31 @@ const AuthPage = () => {
     // ==========================================================
 
     setIsLoading(true);
+    setEmailError("");
+    setResendSuccessMessage("");
+    setResendErrorMessage("");
 
     try {
       if (isRegistering) {
-        await register({
+        const result = await register({
           firstName: formData.firstName,
           lastName: formData.lastName,
           email,
           password: formData.password,
         });
+
+        if (result?.unverified) {
+          setUnverifiedEmail(email);
+          setIsRegistrationSuccess(true);
+          setResendCooldown(60);
+          setResendSuccessMessage("");
+          setResendErrorMessage("");
+          setSuccess(
+            result.message ||
+              "Registration successful! Please check your email to activate your account."
+          );
+          return;
+        }
       } else {
         await login({
           email,
@@ -355,27 +399,97 @@ const AuthPage = () => {
       const destination = location.state?.from?.pathname || "/dashboard";
       navigate(destination, { replace: true });
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.message ||
-          "Unable to sign in right now. Please try again.",
-      );
+      const status = requestError.response?.status;
+      const data = requestError.response?.data;
+
+      if (status === 400 && data?.field === "email") {
+        setEmailError(data.message);
+        setError(data.message);
+      } else if (status === 403 && data?.unverified) {
+        setUnverifiedEmail(data.email || email);
+        setResendSuccessMessage("");
+        setResendErrorMessage("");
+        setError(
+          data.message ||
+            "Please verify your email address before signing in. Check your inbox for the verification link."
+        );
+      } else {
+        setError(
+          data?.message ||
+            "Unable to sign in right now. Please try again.",
+        );
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResendVerification = async () => {
+    const targetEmail = unverifiedEmail || formData.email.trim().toLowerCase();
+    if (!targetEmail) {
+      setResendErrorMessage("Please enter your email address first.");
+      return;
+    }
+
+    setIsResending(true);
+    setResendSuccessMessage("");
+    setResendErrorMessage("");
+
+    try {
+      const response = await resendVerification(targetEmail);
+      setResendSuccessMessage(
+        response?.message ||
+          "If an account exists and still needs verification, we've sent a new link."
+      );
+      setResendCooldown(60);
+    } catch (requestError) {
+      setResendErrorMessage(
+        requestError.response?.data?.message ||
+          "Unable to resend verification email right now. Please try again shortly."
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const handleStartAgain = () => {
+    setIsRegistrationSuccess(false);
+    setIsRegistering(true);
+    setUnverifiedEmail("");
+    setResendSuccessMessage("");
+    setResendErrorMessage("");
+    setResendCooldown(0);
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setError("");
+    setSuccess("");
   };
 
   const toggleMode = () => {
     setIsRegistering((previousMode) => !previousMode);
     setIsForgotMode(false);
     setIsGoogleLoading(false);
+    setIsRegistrationSuccess(false);
+    setUnverifiedEmail("");
+    setEmailError("");
+    setResendSuccessMessage("");
+    setResendErrorMessage("");
+    setResendCooldown(0);
     setFormData({
       firstName: "",
       lastName: "",
       email: "",
       password: "",
+      confirmPassword: "",
     });
 
     setShowPassword(false);
+    setShowConfirmPassword(false);
     setError("");
     setSuccess("");
   };
@@ -463,20 +577,68 @@ const AuthPage = () => {
              <Motion.div
                /* 💡 FIXED: Dynamically matches 'reset' so Framer Motion locks the password fields into place! */
                key={
-                 isResetPasswordMode
-                   ? "reset"
-                   : isForgotMode
-                     ? "forgot"
-                     : isRegistering
-                       ? "register"
-                       : "login"
+                 isRegistrationSuccess
+                   ? "activation"
+                   : isResetPasswordMode
+                     ? "reset"
+                     : isForgotMode
+                       ? "forgot"
+                       : isRegistering
+                         ? "register"
+                         : "login"
                }
                initial={{ opacity: 0, y: 10 }}
                animate={{ opacity: 1, y: 0 }}
                exit={{ opacity: 0, y: -10 }}
                transition={{ duration: 0.2 }}
              >
-               <header className={styles.formHeader}>
+               {isRegistrationSuccess ? (
+                 <div className={styles.activationCard}>
+                   <div className={styles.activationIcon} aria-hidden>
+                     <Mail size={32} />
+                   </div>
+                   <h2 className={styles.activationTitle}>Check your inbox</h2>
+                   <p className={styles.activationDescription}>
+                     We sent an activation link to{" "}
+                     <span className={styles.activationHighlight}>{unverifiedEmail}</span>.
+                     Please check your inbox and click the link to activate your account.
+                   </p>
+                   <p className={styles.activationHint}>
+                     Didn&apos;t receive it? Check your spam folder or request a new link below.
+                   </p>
+                   <div className={styles.activationActions}>
+                     <button
+                       type="button"
+                       onClick={handleResendVerification}
+                       className={styles.resendActionButton}
+                       disabled={isResending || resendCooldown > 0}
+                       style={{ width: "100%", padding: "0.75rem 1rem", fontSize: "0.875rem" }}
+                     >
+                       {isResending
+                         ? "Sending..."
+                         : resendCooldown > 0
+                           ? `Resend verification email (${resendCooldown}s)`
+                           : "Resend verification email"}
+                     </button>
+                     {resendSuccessMessage && (
+                       <p className={styles.resendSuccessNotice}>{resendSuccessMessage}</p>
+                     )}
+                     {resendErrorMessage && (
+                       <p className={styles.fieldError}>{resendErrorMessage}</p>
+                     )}
+                     <button
+                       type="button"
+                       onClick={handleStartAgain}
+                       className={styles.switchButton}
+                       style={{ marginTop: "0.5rem" }}
+                     >
+                       Wrong email? Start again
+                     </button>
+                   </div>
+                 </div>
+               ) : (
+                 <>
+                   <header className={styles.formHeader}>
                  {/* 💡 FIXED: Header text reflects the actual reset view state title updates */}
                  <h1>
                    {isResetPasswordMode
@@ -498,11 +660,38 @@ const AuthPage = () => {
                  </p>
                </header>
 
-               {error && (
-                 <div className={styles.error} role="alert">
-                   {error}
-                 </div>
-               )}
+                   {error && (
+                     <div className={styles.error} role="alert">
+                       <div>{error}</div>
+                       {unverifiedEmail && (
+                         <div className={styles.unverifiedCallout}>
+                           <p className={styles.resendPrompt}>
+                             Didn&apos;t receive the link or has it expired?
+                           </p>
+                           <button
+                             type="button"
+                             onClick={handleResendVerification}
+                             className={styles.resendActionButton}
+                             disabled={isResending || resendCooldown > 0}
+                           >
+                             {isResending
+                               ? "Sending..."
+                               : resendCooldown > 0
+                                 ? `Resend verification email (${resendCooldown}s)`
+                                 : "Resend verification email"}
+                           </button>
+                           {resendSuccessMessage && (
+                             <p className={styles.resendSuccessNotice}>
+                               {resendSuccessMessage}
+                             </p>
+                           )}
+                           {resendErrorMessage && (
+                             <p className={styles.fieldError}>{resendErrorMessage}</p>
+                           )}
+                         </div>
+                       )}
+                     </div>
+                   )}
 
                <form className={styles.form} onSubmit={handleSubmit}>
                  {isGoogleLoading && (
@@ -630,7 +819,11 @@ const AuthPage = () => {
                          onChange={handleChange}
                          placeholder="Enter your email address"
                          autoComplete="email"
+                         className={emailError ? styles.inputError : ""}
                        />
+                       {emailError && (
+                         <p className={styles.fieldError}>{emailError}</p>
+                       )}
                      </div>
 
                      {!isForgotMode && (
@@ -774,7 +967,9 @@ const AuthPage = () => {
                    {isRegistering ? "Back to sign in" : "Create an account"}
                  </button>
                </div>
-             </Motion.div>
+             </>
+           )}
+         </Motion.div>
            </AnimatePresence>
          </div>
        </section>

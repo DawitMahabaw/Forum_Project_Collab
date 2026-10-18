@@ -1,6 +1,8 @@
 import {
   registerUser,
   loginUser,
+  verifyEmail,
+  resendVerification,
   getCurrentUser,
   forgotPassword,
   resetPasswordConfirm,
@@ -150,9 +152,8 @@ const register = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: "Account created successfully.",
-      user: result.user,
-      token: result.token,
+      message: result.message,
+      unverified: result.unverified || false,
     });
   } catch (error) {
     next(error);
@@ -400,7 +401,8 @@ const updateAccount = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Account information updated successfully.",
+      message:
+        updatedUser.message || "Account information updated successfully.",
       user: updatedUser,
     });
   } catch (error) {
@@ -505,6 +507,43 @@ const linkGoogle = async (req, res, next) => {
   }
 };
 
+// ============================================================
+// VERIFY EMAIL CONTROLLER
+// ============================================================
+
+const verifyEmailController = async (req, res, next) => {
+  try {
+    const token = req.body?.token || req.query?.token;
+    const result = await verifyEmail(token);
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      user: result.user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================================
+// RESEND VERIFICATION CONTROLLER
+// ============================================================
+
+const resendVerificationController = async (req, res, next) => {
+  try {
+    const { email } = req.body || {};
+    const result = await resendVerification(email);
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   register,
   login,
@@ -518,4 +557,6 @@ export {
   changePassword,
   initiatePasswordReset,
   handlePasswordResetConfirm,
+  verifyEmailController,
+  resendVerificationController,
 };

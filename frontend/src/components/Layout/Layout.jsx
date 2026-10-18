@@ -4,6 +4,7 @@ import { useSidebar } from "../../context/SidebarContext.jsx";
 import AppFooter from "../AppFooter/AppFooter.jsx";
 import Navbar from "../Navbar/Navbar.jsx";
 import Sidebar from "../Sidebar/Sidebar.jsx";
+import EvangadiAssistant from "../EvangadiAssistant/EvangadiAssistant.jsx";
 import styles from "./Layout.module.css";
 
 // Shared layout for authenticated application pages.
@@ -36,6 +37,9 @@ const Layout = () => {
           <AppFooter />
         </main>
       </div>
+
+      {/* Floating AI Evangadi Assistant */}
+      <EvangadiAssistant />
     </div>
   );
 };

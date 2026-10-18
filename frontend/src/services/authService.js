@@ -123,6 +123,24 @@ const changePassword = async (passwords) => {
   return response.data;
 };
 
+/**
+ * Verifies email using the token via scanner-safe POST.
+ * @param {string} token
+ */
+const verifyEmail = async (token) => {
+  const response = await api.post("/auth/verify-email", { token });
+  return response.data;
+};
+
+/**
+ * Resends verification email to the user.
+ * @param {string} email
+ */
+const resendVerification = async (email) => {
+  const response = await api.post("/auth/resend-verification", { email });
+  return response.data;
+};
+
 export {
   registerUser,
   loginUser,
@@ -136,4 +154,7 @@ export {
   resetPasswordConfirm,
   googleAuth,
   linkGoogleAccount,
+  verifyEmail,
+  resendVerification,
 };
+

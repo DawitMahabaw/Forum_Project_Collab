@@ -10,7 +10,7 @@
     "nodemon": "nodemon index.js",
     "seed": "node src/utils/seed.js",
     "embeddings:backfill": "node src/utils/backfillEmbeddings.js",
-    "test": "node --test"
+    "test": "node --test tests/emailValidation.test.js && node --test tests/emailVerification.test.js && node --test tests/verificationEmailLifecycle.test.js && node --test tests/authAuditAndCleanup.test.js"
   },
   "keywords": [],
   "author": "",
@@ -19,15 +19,16 @@
     "@google/genai": "^2.23.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
+    "disposable-email-domains": "^1.0.62",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
+    "google-auth-library": "^10.3.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
     "mysql2": "^3.24.3",
     "nodemailer": "^10.0.14",
-    "pdf-parse": "^2.4.5",
-    "google-auth-library": "^10.3.0"
+    "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
